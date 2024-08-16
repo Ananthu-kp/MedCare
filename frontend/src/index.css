@@ -1,0 +1,40 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Reem Kufi", sans-serif !important;
+}
+
+/* Hide scrollbar for WebKit browsers (Chrome, Safari) */
+/* html,
+body {
+  overflow: hidden;
+  height: 100%;
+} */
+
+/* Hide scrollbar for Firefox */
+/* @-moz-document url-prefix() {
+
+  html,
+  body {
+    overflow: hidden;
+    height: 100%;
+  }
+} */
+
+/* img {
+    max-width: 100%;
+    height: auto;
+  } */
+
+/* @media (max-width: 600px) {
+    .home-bannerImage-container,
+    .about-background-image-container {
+      display: none;
+    }
+  } */
