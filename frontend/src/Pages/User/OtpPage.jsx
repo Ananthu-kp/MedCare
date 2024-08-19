@@ -1,11 +1,9 @@
 import React from 'react'
-import Otp from '../../Components/Users/Otp'
-import Navbar from '../../Components/Users/Navbar'
+import Otp from '../../Components/Users/Otp';
 
 function OtpPage() {
     return (
         <div>   
-            <Navbar />
             <Otp />
         </div>
     )
