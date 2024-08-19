@@ -24,8 +24,11 @@ const userSchema = new Schema<UserType>({
     address: { type: String },
     otp: { type: String }, 
     tempData: { type: Boolean, default: false }, 
-    createdAt: { type: Date, default: Date.now }
+    createdAt: { type: Date, default: Date.now },
+    otpCreatedAt: { type: Date, default: Date.now, expires: '5m' }
 });
+
+userSchema.index({ otpCreatedAt: 1 }, { expireAfterSeconds: 300 });
 
 
 const User = model<UserType>('User', userSchema)

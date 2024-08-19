@@ -7,7 +7,7 @@ class UserService {
     async registerUser(user: UserType): Promise<{ success: boolean; message: string; otp: string }> {
         const existingUser = await userRepository.findUserByEmail(user.email);
         if (existingUser) {
-            return { success: false, message: 'Email already in use', otp: '' };
+            return { success: false, message: 'User already exists', otp: '' };
         }
     
         user.password = await bcryptUtil.hashPassword(user.password);

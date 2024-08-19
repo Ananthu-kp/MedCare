@@ -42,6 +42,10 @@ function Otp() {
     };
 
     const handleSubmit = async () => {
+        // if (otp.length < 4 || otp.includes('')) {
+        //     toast.warning('Please enter the OTP');
+        //     return;
+        // }
         setLoading(true)
         try {
             const response = await axios.post('http://localhost:3002/otp', { email, otp });
@@ -100,7 +104,7 @@ function Otp() {
                     className={`w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500${loading ? 'bg-teal-400 cursor-not-allowed' : ''}`}
                     disabled={loading}
                 >
-                   {loading ? 'Processing...' : 'Verify'}
+                    {loading ? 'Processing...' : 'Verify'}
                 </button>
 
                 {/* <div className="text-center mt-6">

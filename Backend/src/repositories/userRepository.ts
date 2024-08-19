@@ -15,7 +15,7 @@ class UserRepository {
             throw new Error('User not found when trying to save OTP');
         }
     
-        await User.updateOne({ email }, { otp, tempData: true });
+        await User.updateOne({ email }, { otp, tempData: true, otpCreatedAt: new Date() });
     }
 
     async verifyOtp(email: string, otp: string): Promise<boolean> {
