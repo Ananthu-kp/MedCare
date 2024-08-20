@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import userService from "../services/userService";
 import userRepository from "../repositories/userRepository";
+import bcrypt from "bcrypt";
+import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig"
 
 class UserController {
     async register(req: Request, res: Response): Promise<void> {
@@ -69,6 +71,41 @@ class UserController {
             res.status(500).json({ message: "Something went wrong, please try again later" });
         }
     }
+
+
+    async login(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, password } = req.body;
+    
+            const user = await userRepository.findUserByEmail(email);
+            console.log('User =>', user);
+            if (!user) {
+                res.status(401).json({ success: false, message: "Invalid credentials" });
+                return;
+            }
+    
+            const isMatch = await bcrypt.compare(password, user.password);
+            if (!isMatch) {
+                res.status(401).json({ success: false, message: "Invalid credentials" });
+                return;
+            }
+    
+            const accessToken = generateAccessToken(user.email.toString());
+            const refreshToken = generateRefreshToken(user.email.toString());
+    
+            res.status(200).json({
+                success: true,
+                message: "Login successful",
+                accessToken,
+                refreshToken,
+            });
+        } catch (error) {
+            console.error('Error logging in user:', error);
+            res.status(500).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
+    
 }
 
 export default new UserController();
