@@ -9,21 +9,21 @@ class UserService {
         if (existingUser) {
             return { success: false, message: 'User already exists', otp: '' };
         }
-    
+
         user.password = await bcryptUtil.hashPassword(user.password);
-    
-       
+
+
         const savedUser = await userRepository.createUser(user);
         console.log('user created', savedUser);
-        
+
         if (!savedUser) {
             return { success: false, message: 'Failed to register user', otp: '' };
         }
-    
+
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log('your otp', otp);
-        
-    
+
+
         try {
             await sendOtpEmail(user.email, otp);
             return { success: true, message: 'OTP sent to your email', otp };
@@ -31,22 +31,42 @@ class UserService {
             return { success: false, message: 'Failed to send OTP', otp: '' };
         }
     }
-    
-    
+
+
     async verifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
         const user = await userRepository.findTempUserByEmail(email);
         if (!user) {
             return { success: false, message: 'User not found' }
         }
-    
+
         if (user.otp !== otp) {
             return { success: false, message: 'Invalid OTP' }
         }
-    
+
         await userRepository.clearTempUserData(email);
         return { success: true, message: 'User verified and registered successfully' }
     }
-    
+
+
+    async resendOtp(email: string): Promise<{ success: boolean; message: string }> {
+        const user = await userRepository.findTempUserByEmail(email);
+        if (!user) {
+            return { success: false, message: 'User not found' }
+        }
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString()
+        console.log('Resent otp', otp);
+
+        try {
+            await sendOtpEmail(email, otp, true);
+            await userRepository.saveOtp(email, otp)
+            return { success: true, message: 'OTP resent to your email' };
+        } catch (error) {
+            console.error('Failed to resend OTP:', error);
+            return { success: false, message: 'Failed to resend OTP' };
+        }
+    }
+
 }
 
 

@@ -65,6 +65,26 @@ function Otp() {
         }
     };
 
+    const handleResentOtp = async () => {
+        setLoading(true)
+        try {
+            const response = await axios.post('http://localhost:3002/resend-otp', { email });
+            if (response.data.success) {
+                toast.success('Resent OTP sent to mail');
+                setOtp('')
+                setTimer(60)
+                inputRefs.current[0].focus()
+            } else {
+                toast.error(response.data.message || 'Failed to resend OTP. Please try again.');
+            }
+        } catch (error) {
+            console.error('Error', error)
+            toast.error('Failed to resend OTP.');
+        } finally {
+            setLoading(false)
+        }
+    }
+
 
     return (
         <div className="relative min-h-screen flex items-center justify-center">
@@ -94,7 +114,7 @@ function Otp() {
                     {timer > 0 ? (
                         <p>00:{timer < 10 ? `0${timer}` : timer}</p>
                     ) : (
-                        <a href="#" className="text-teal-500 hover:underline">Resend OTP</a>
+                        <p className="text-teal-500 hover:underline" onClick={handleResentOtp}><u>Resend OTP?</u></p>
                     )}
                 </div>
 

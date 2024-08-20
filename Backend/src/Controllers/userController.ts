@@ -50,6 +50,25 @@ class UserController {
             res.status(500).json({ message: "Something went wrong, please try again later" });
         }
     }
+
+    async resendOtp(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body;
+
+            const user = await userRepository.findUserByEmail(email);
+            if (!user) {
+                res.status(404).json({ success: false, message: "User not found" });
+                return;
+            }
+
+            const result = await userService.resendOtp(email);
+
+            res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            console.error('Error resending OTP:', error);
+            res.status(500).json({ message: "Something went wrong, please try again later" });
+        }
+    }
 }
 
 export default new UserController();

@@ -28,7 +28,7 @@ class UserRepository {
     }
 
     async clearTempUserData(email: string): Promise<void> {
-        await User.updateOne({ email }, { $unset: { otp: 1, tempData: 1 } });
+        await User.updateOne({ email }, { $unset: { otp: 1, tempData: 1, otpCreatedAt: 1 } });
     }
 }
 
