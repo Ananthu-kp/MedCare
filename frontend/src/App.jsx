@@ -4,6 +4,8 @@ import SignupPage from './Pages/User/SignupPage';
 import "./index.css"
 import OtpPage from './Pages/User/OtpPage';
 import HomePage from './Pages/User/HomePage';
+import ProtectedRoute from './Components/Users/ProtectedRoute';
+
 
 function App() {
 
@@ -18,7 +20,7 @@ function App() {
 
           <Route path='/otp' element={<OtpPage />} />
 
-          <Route path='/' element={<HomePage />} />
+          <Route path='/' element={<ProtectedRoute element={HomePage}/>} />
 
         </Routes>
       </Router>

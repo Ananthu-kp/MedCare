@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import GoogleIcon from '../../../public/svgs/GoogleIcon';
@@ -10,6 +10,13 @@ import * as Yup from 'yup';
 
 function UserLogin() {
     const navigate = useNavigate();
+    const isAuthenticated = !!sessionStorage.getItem('userToken');
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const validationSchema = Yup.object({
         email: Yup.string()
@@ -26,6 +33,11 @@ function UserLogin() {
 
             if (response.data.success) {
                 toast.success("Login successful!");
+
+                sessionStorage.setItem("userToken", response.data.accessToken);
+                sessionStorage.setItem("refreshToken", response.data.refreshToken);
+                sessionStorage.setItem("userDetails", JSON.stringify(response.data.userData));
+
                 setTimeout(() => {
                     navigate('/');
                 }, 1000);

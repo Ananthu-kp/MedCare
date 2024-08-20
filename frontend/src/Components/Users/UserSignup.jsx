@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom'
@@ -11,6 +11,14 @@ import * as Yup from 'yup';
 function UserSignup() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+
+  const isAuthenticated = !!sessionStorage.getItem('userToken');
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true })
+    }
+  }, [isAuthenticated, navigate])
 
   const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
@@ -34,7 +42,7 @@ function UserSignup() {
       if (response.data.success) {
         setTimeout(() => {
           toast.success("OTP sent to your email!", { autoClose: 3000 });
-        },100)
+        }, 100)
         navigate('/otp', { state: { email: values.email } });
       } else {
         toast.error(response.data.message, { autoClose: 3000 });
