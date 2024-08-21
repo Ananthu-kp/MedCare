@@ -52,7 +52,8 @@ function Otp() {
 
             if (response.data.success) {
                 toast.success('Successfully registered!');
-                setTimeout(() => navigate('/'), 1000);
+                sessionStorage.setItem('otpVerified', 'true'); 
+                setTimeout(() => navigate('/login'), 1000);
             } else {
                 toast.error(response.data.message || 'Invalid OTP');
             }

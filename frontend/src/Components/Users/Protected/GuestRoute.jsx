@@ -1,21 +1,21 @@
 import React, { useEffect } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 
-const ProtectedRoute = ({ element: Component, ...rest }) => {
+const GuestRoute = ({ element: Component, ...rest }) => {
   const isAuthenticated = !!sessionStorage.getItem('userToken');
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/', { replace: true }); 
     }
   }, [isAuthenticated, navigate]);
 
-  return isAuthenticated ? (
+  return !isAuthenticated ? (
     <Component {...rest} />
   ) : (
-    <Navigate to="/login" replace />
+    <Navigate to="/" replace />
   );
 };
 
-export default ProtectedRoute;
+export default GuestRoute;
