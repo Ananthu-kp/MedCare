@@ -2,6 +2,7 @@ import React from 'react';
 import BannerDoctor from "../../../../src/assets/images/doctor1.png";
 
 function HeroSection() {
+    const isLoggedIn = sessionStorage.getItem('userToken')
     return (
         <section className="relative text-white py-20">
             <div
@@ -11,10 +12,12 @@ function HeroSection() {
             <div className="container mx-auto flex flex-col-reverse lg:flex-row justify-between items-center px-4">
                 <div className="w-full lg:w-1/2 flex-shrink-0">
                     <h2 className="text-4xl font-bold">Expert Advice Is Now Just A Call Away !!</h2>
-                    <p className="mt-4 text-lg">MedCare connects you with expert doctors through easy consultations,chat etc.. <br/> Get reliable medical advice from the comfort of your home.</p>
+                    <p className="mt-4 text-lg">MedCare connects you with expert doctors through easy consultations,chat etc.. <br /> Get reliable medical advice from the comfort of your home.</p>
                     <div className="mt-8 space-x-4">
                         <button className="bg-white text-gray-600 font-semibold py-2 px-6 rounded">Get Appointments</button>
-                        <button className="border border-white py-2 px-6 rounded">Doctor Login</button>
+                        {!isLoggedIn && (
+                            <button className="border border-white py-2 px-6 rounded">Doctor Login</button>
+                        )}
                     </div>
                 </div>
                 <div className="relative w-full lg:w-1/2 flex-shrink-0">

@@ -7,6 +7,8 @@ import HomePage from './Pages/User/HomePage';
 import ProtectedRoute from './Components/Users/Protected/ProtectedRoute';
 import GuestRoute from './Components/Users/Protected/GuestRoute';
 import OtpProtect from './Components/Users/Protected/OtpProtect';
+import LoginPageAdmin from './Pages/Admin/LoginPageAdmin';
+import AdminDashboardPage from './Pages/Admin/AdminDashboardPage';
 
 
 function App() {
@@ -20,6 +22,10 @@ function App() {
           <Route path="/login" element={<GuestRoute element={LoginPage} />} />
           <Route path="/otp" element={<OtpProtect element={OtpPage} />} />
           <Route path='/' element={<ProtectedRoute element={HomePage} />} />
+
+
+          <Route path='/admin/login' element={<LoginPageAdmin />} />
+          <Route path='/admin' element={<AdminDashboardPage />} />
 
         </Routes>
       </Router>

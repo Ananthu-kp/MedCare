@@ -4,6 +4,7 @@ dotenv.config()
 const app = express();
 import cors from "cors"
 import userRoutes from './src/routes/userRoute'
+import adminRoutes from './src/routes/adminRoute'
 import dbConnection from "./src/config/dbConnect";
 dbConnection();
 
@@ -17,6 +18,7 @@ app.use(cors({
 }))
 
 app.use('/', userRoutes)
+app.use('/admin', adminRoutes)
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server is Running on: http://localhost:${PORT}`))
