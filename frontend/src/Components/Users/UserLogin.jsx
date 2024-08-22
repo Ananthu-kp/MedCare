@@ -47,6 +47,8 @@ function UserLogin() {
         } catch (error) {
             if (error.response?.status === 401) {
                 toast.error("Invalid credentials");
+            } else if (error.response?.status === 403) {
+                toast.error("Your account has been blocked");
             } else {
                 toast.error("Something went wrong!");
             }

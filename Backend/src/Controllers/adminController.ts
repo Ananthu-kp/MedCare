@@ -24,6 +24,42 @@ class AdminController {
             }
         }
     }
+
+
+    async getUserController(req: Request, res: Response) {
+        try {
+            const users = await adminServices.getUserServices();
+            res.status(200).json(users)
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json({ message: "Internal server error", error: error.message });
+            } else {
+                res.status(500).json({ message: "Internal server error", error: "An unknown error occurred" });
+            }
+        }
+    };
+
+    async unBlockUserController(req: Request, res: Response) {
+        try {
+            const email = req.query.email as string
+            const serviceResponse = await adminServices.unBlockUserService(email)
+            res.status(200).json(serviceResponse)
+        } catch (error: any) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
+
+    async blockUserController(req: Request, res: Response) {
+        try {
+            const email = req.query.email as string
+            const serviceResponse = await adminServices.blockUserService(email)
+            res.status(200).json(serviceResponse)
+        } catch (error: any) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
+
+
 }
 
 export default AdminController;

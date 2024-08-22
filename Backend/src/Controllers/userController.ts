@@ -83,6 +83,11 @@ class UserController {
                 res.status(401).json({ success: false, message: "Invalid credentials" });
                 return;
             }
+
+            if (user.isBlocked) {
+                res.status(403).json({ success: false, message: "Your account has been blocked" });
+                return;
+            }
     
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
