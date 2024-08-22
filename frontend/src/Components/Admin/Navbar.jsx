@@ -1,13 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2'
+
 
 function Navbar() {
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const navigate = useNavigate();
 
     const handleLogout = () => {
-        sessionStorage.removeItem('adminToken');
-        navigate('/admin/login');
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "You will be logged out of the admin panel.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, logout!',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                sessionStorage.removeItem('adminToken');
+                navigate('/admin/login');
+            }
+        });
     };
 
     const toggleDropdown = () => {

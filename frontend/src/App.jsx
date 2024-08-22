@@ -9,6 +9,8 @@ import GuestRoute from './Components/Users/Protected/GuestRoute';
 import OtpProtect from './Components/Users/Protected/OtpProtect';
 import LoginPageAdmin from './Pages/Admin/LoginPageAdmin';
 import AdminDashboardPage from './Pages/Admin/AdminDashboardPage';
+import ProtectAdmin from './Components/Admin/ProtectAdmin';
+import UsersListPage from './Pages/Admin/UsersListPage';
 
 
 function App() {
@@ -25,7 +27,8 @@ function App() {
 
 
           <Route path='/admin/login' element={<LoginPageAdmin />} />
-          <Route path='/admin' element={<AdminDashboardPage />} />
+          <Route path='/admin' element={<ProtectAdmin element={AdminDashboardPage} />} />
+          <Route path='/admin/users' element={<ProtectAdmin element={UsersListPage} />} />
 
         </Routes>
       </Router>
