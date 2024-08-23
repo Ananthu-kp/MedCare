@@ -1,5 +1,6 @@
 import React from 'react';
 import BannerDoctor from "../../../../src/assets/images/doctor1.png";
+import { Link } from 'react-router-dom';
 
 function HeroSection() {
     const isLoggedIn = sessionStorage.getItem('userToken')
@@ -16,7 +17,9 @@ function HeroSection() {
                     <div className="mt-8 space-x-4">
                         <button className="bg-white text-gray-600 font-semibold py-2 px-6 rounded">Get Appointments</button>
                         {!isLoggedIn && (
-                            <button className="border border-white py-2 px-6 rounded">Doctor Login</button>
+                            <Link to="/doctor/login">  
+                                <button className="border border-white py-2 px-6 rounded">Doctor Login</button>
+                            </Link>
                         )}
                     </div>
                 </div>

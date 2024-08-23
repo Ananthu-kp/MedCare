@@ -11,6 +11,9 @@ import LoginPageAdmin from './Pages/Admin/LoginPageAdmin';
 import AdminDashboardPage from './Pages/Admin/AdminDashboardPage';
 import ProtectAdmin from './Components/Admin/ProtectAdmin';
 import UsersListPage from './Pages/Admin/UsersListPage';
+import DoctorLoginPage from './Pages/Doctor/DoctorLoginPage';
+import DoctorRegisterPage from './Pages/Doctor/DoctorRegisterPage';
+import Otp_Page from './Pages/Doctor/Otp_Page';
 
 
 function App() {
@@ -29,6 +32,11 @@ function App() {
           <Route path='/admin/login' element={<LoginPageAdmin />} />
           <Route path='/admin' element={<ProtectAdmin element={AdminDashboardPage} />} />
           <Route path='/admin/users' element={<ProtectAdmin element={UsersListPage} />} />
+
+
+          <Route path='/doctor/login' element={<DoctorLoginPage />} />
+          <Route path='/doctor/register' element={<DoctorRegisterPage />} />
+          <Route path='/doctor/otp' element={<Otp_Page />} />
 
         </Routes>
       </Router>
