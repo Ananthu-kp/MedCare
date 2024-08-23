@@ -75,6 +75,69 @@ class AdminService {
     }
 
 
+    async getDoctorServices() {
+        try {
+            const doctors = await this.adminRepository.getDoctors();
+            return doctors;
+        } catch (error) {
+            console.error('Error fetching doctors in service:', error);
+            throw new Error('Error fetching doctors');
+        }
+    }
+
+    async blockDoctorService(email: string) {
+        try {
+            const response = await this.adminRepository.blockDoctorRepository(email);
+            if (response.modifiedCount === 1) {
+                return "Doctor blocked successfully";
+            } else {
+                throw new Error("Can't block doctor");
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async unBlockDoctorService(email: string) {
+        try {
+            const response = await this.adminRepository.unBlockDoctorRepository(email);
+            if (response.modifiedCount === 1) {
+                return "Doctor unblocked successfully";
+            } else {
+                throw new Error("Can't unblock doctor");
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async verifyDoctorService(email: string) {
+        try {
+            const response = await this.adminRepository.verifyDoctorRepository(email);
+            if (response.modifiedCount === 1) {
+                return "Doctor verified successfully";
+            } else {
+                throw new Error("Can't verify doctor");
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    async rejectDoctorService(email: string) {
+        try {
+            const response = await this.adminRepository.rejectDoctorRepository(email);
+            if (response.deletedCount === 1) {
+                return "Doctor rejected and removed successfully";
+            } else {
+                throw new Error("Can't reject doctor");
+            }
+        } catch (error) {
+            throw error;
+        }
+    }
+
+
 }
 
 export default AdminService;

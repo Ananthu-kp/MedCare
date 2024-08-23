@@ -12,6 +12,7 @@ type DoctorType = {
     otp: string;
     profileImg?: string;
     isBlocked?: boolean;
+    isVerified?: boolean;
     address?: string;
     createdAt?: Date;
     tempData?: boolean;
@@ -28,6 +29,7 @@ const doctorSchema = new Schema<DoctorType>({
     password: { type: String, required: true },
     profileImg: { type: String },
     isBlocked: { type: Boolean, default: false },
+    isVerified: { type: Boolean, default: false },
     certificateUrl: { type: String },
     address: { type: String },
     otp: { type: String }, 

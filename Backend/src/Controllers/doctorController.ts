@@ -113,6 +113,11 @@ class DoctorController {
                 return;
             }
 
+            if (!doctor.isVerified) { 
+                res.status(403).json({ success: false, message: "Your account is not verified" });
+                return;
+            }
+
             const isMatch = await bcryptUtil.comparePassword(password, doctor.password);
             if (!isMatch) {
                 res.status(401).json({ success: false, message: "Invalid credentials" });

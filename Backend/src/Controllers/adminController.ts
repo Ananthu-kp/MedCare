@@ -60,6 +60,60 @@ class AdminController {
     }
 
 
+    async getDoctorController(req: Request, res: Response) {
+        try {
+            const doctors = await adminServices.getDoctorServices();
+            res.status(200).json(doctors);
+        } catch (error) {
+            if (error instanceof Error) {
+                res.status(500).json({ message: "Internal server error", error: error.message });
+            } else {
+                res.status(500).json({ message: "Internal server error", error: "An unknown error occurred" });
+            }
+        }
+    }
+
+    async blockDoctorController(req: Request, res: Response) {
+        try {
+            const email = req.query.email as string;
+            const serviceResponse = await adminServices.blockDoctorService(email);
+            res.status(200).json(serviceResponse);
+        } catch (error: any) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
+
+    async unBlockDoctorController(req: Request, res: Response) {
+        try {
+            const email = req.query.email as string;
+            const serviceResponse = await adminServices.unBlockDoctorService(email);
+            res.status(200).json(serviceResponse);
+        } catch (error: any) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
+
+    async verifyDoctorController(req: Request, res: Response) {
+        try {
+            const email = req.query.email as string;
+            const serviceResponse = await adminServices.verifyDoctorService(email);
+            res.status(200).json(serviceResponse);
+        } catch (error: any) {
+            console.error('Error in verifyDoctorController:', error.message);
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
+
+    async rejectDoctorController(req: Request, res: Response) {
+        try {
+            const email = req.query.email as string;
+            const serviceResponse = await adminServices.rejectDoctorService(email);
+            res.status(200).json(serviceResponse);
+        } catch (error: any) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
+
 }
 
 export default AdminController;

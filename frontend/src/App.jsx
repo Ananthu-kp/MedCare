@@ -14,6 +14,7 @@ import UsersListPage from './Pages/Admin/UsersListPage';
 import DoctorLoginPage from './Pages/Doctor/DoctorLoginPage';
 import DoctorRegisterPage from './Pages/Doctor/DoctorRegisterPage';
 import Otp_Page from './Pages/Doctor/Otp_Page';
+import DoctorsRequestPage from './Pages/Admin/DoctorsRequestPage';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
           <Route path='/admin/login' element={<LoginPageAdmin />} />
           <Route path='/admin' element={<ProtectAdmin element={AdminDashboardPage} />} />
           <Route path='/admin/users' element={<ProtectAdmin element={UsersListPage} />} />
+          <Route path='/admin/doctor-requests' element={<ProtectAdmin element={DoctorsRequestPage} />} />
 
 
           <Route path='/doctor/login' element={<DoctorLoginPage />} />
