@@ -15,6 +15,8 @@ import DoctorLoginPage from './Pages/Doctor/DoctorLoginPage';
 import DoctorRegisterPage from './Pages/Doctor/DoctorRegisterPage';
 import Otp_Page from './Pages/Doctor/Otp_Page';
 import DoctorsRequestPage from './Pages/Admin/DoctorsRequestPage';
+import DoctorProfilePage from './Pages/Doctor/DoctorProfilePage';
+import ProtectDoctor from './Components/Doctors/ProtectDoctor';
 
 
 function App() {
@@ -39,6 +41,7 @@ function App() {
           <Route path='/doctor/login' element={<DoctorLoginPage />} />
           <Route path='/doctor/register' element={<DoctorRegisterPage />} />
           <Route path='/doctor/otp' element={<Otp_Page />} />
+          <Route path='/doctor' element={<ProtectDoctor element={DoctorProfilePage} />} />
 
         </Routes>
       </Router>

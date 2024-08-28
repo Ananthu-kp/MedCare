@@ -1,8 +1,48 @@
 import React from 'react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import LoginPicture from "../../../src/assets/images/doclogin.png";
 import { Link } from 'react-router-dom';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function DoctorLogin() {
+    const navigate = useNavigate();
+
+    const formik = useFormik({
+        initialValues: {
+            email: '',
+            password: '',
+        },
+        validationSchema: Yup.object({
+            email: Yup.string().email('Invalid email address').required('Email is Required'),
+            password: Yup.string().required('Password is Required'),
+        }),
+        onSubmit: async (values, { setSubmitting, setErrors }) => {
+            try {
+                const response = await axios.post('http://localhost:3002/doctor/login', values);
+                if (response.data.success) {
+                    sessionStorage.setItem('doctorToken', response.data.token);
+                    toast.success('Login successful!...');
+                    setTimeout(() => {
+                        navigate('/doctor');
+                    }, 1500); 
+                } else {
+                    toast.error('Invalid email or password');
+                }
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    toast.error('Invalid credentials');
+                } else {
+                    toast.error('An error occurred while logging in');
+                }
+            }
+            setSubmitting(false);
+        },
+    });
+
     return (
         <div className="min-h-screen flex">
             <div className="relative w-full flex">
@@ -24,37 +64,47 @@ function DoctorLogin() {
                 <div className="w-1/2 flex justify-center items-center z-10">
                     <div className="bg-white p-12 rounded-lg shadow-lg w-3/4">
                         <h2 className="text-3xl font-bold text-center mb-8">Login</h2>
+                        <form onSubmit={formik.handleSubmit}>
+                            <div className="mb-4">
+                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    placeholder='Enter your email'
+                                    {...formik.getFieldProps('email')}
+                                    className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                />
+                                {formik.touched.email && formik.errors.email ? (
+                                    <div className="text-red-500 text-sm">{formik.errors.email}</div>
+                                ) : null}
+                            </div>
 
-                        <div className="mb-4">
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                            <input
-                                type="email"
-                                id="email"
-                                placeholder="Enter your email"
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            />
-                        </div>
+                            <div className="mb-4">
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    placeholder='Enter your password'
+                                    {...formik.getFieldProps('password')}
+                                    className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                />
+                                {formik.touched.password && formik.errors.password ? (
+                                    <div className="text-red-500 text-sm">{formik.errors.password}</div>
+                                ) : null}
+                            </div>
 
-                        <div className="mb-4">
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                            <input
-                                type="password"
-                                id="password"
-                                placeholder="Enter your password"
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            />
-                        </div>
+                            <div className="text-right mb-4">
+                                <a href="#" className="text-sm text-teal-500 hover:underline">Forgot password?</a>
+                            </div>
 
-                        <div className="text-right mb-4">
-                            <a href="#" className="text-sm text-teal-500 hover:underline">Forgot password?</a>
-                        </div>
-
-                        <button
-                            type="submit"
-                            className="w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        >
-                            Login
-                        </button>
+                            <button
+                                type="submit"
+                                disabled={formik.isSubmitting}
+                                className="w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            >
+                                {formik.isSubmitting ? 'Logging in...' : 'Login'}
+                            </button>
+                        </form>
 
                         <div className="text-center mt-6">
                             <Link to={"/doctor/register"}>
@@ -64,6 +114,7 @@ function DoctorLogin() {
                     </div>
                 </div>
             </div>
+            <ToastContainer />
         </div>
     );
 }
