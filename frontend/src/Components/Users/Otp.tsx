@@ -56,7 +56,7 @@ function Otp() {
             } else {
                 toast.error(response.data.message || 'Invalid OTP');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error response:', error.response);
             console.error('Error message:', error.message);
             toast.error(error.response?.data?.message || 'Something went wrong. Please try again.');

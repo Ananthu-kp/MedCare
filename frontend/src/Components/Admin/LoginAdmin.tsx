@@ -22,7 +22,7 @@ function LoginAdmin() {
             .required('Password is required!')
     });
 
-    const handleSubmit = async (values, { setSubmitting }) => {
+    const handleSubmit = async (values: any, { setSubmitting }: any) => {
         console.log('Login form submitted:', values);
         try {
             const response = await axios.post('http://localhost:3002/admin/login', values);
@@ -40,7 +40,7 @@ function LoginAdmin() {
                 console.log('Login failed:', response); 
                 toast.error("Invalid credentials");
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Login error:', error);
             if (error.response?.status === 401) {
                 toast.error("Invalid credentials");

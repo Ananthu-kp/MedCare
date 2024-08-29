@@ -1,7 +1,11 @@
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const ProtectDoctor = ({ element: Component }) => {
+interface ProtectDoctorProps {
+    element: React.ComponentType;  // Define the type for the component prop
+}
+
+const ProtectDoctor: React.FC<ProtectDoctorProps> = ({ element: Component }) => {
     const navigate = useNavigate();
     const isAuthenticated = !!sessionStorage.getItem('doctorToken');
 
@@ -12,6 +16,6 @@ const ProtectDoctor = ({ element: Component }) => {
     }, [isAuthenticated, navigate]);
 
     return isAuthenticated ? <Component /> : null;
-}
+};
 
 export default ProtectDoctor;

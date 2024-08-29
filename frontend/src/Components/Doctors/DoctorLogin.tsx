@@ -35,7 +35,7 @@ function DoctorLoginPage() {
                 } else {
                     toast.error('Invalid email or password');
                 }
-            } catch (error) {
+            } catch (error: any) {
                 if (error.response && error.response.status === 401) {
                     toast.error('Invalid credentials');
                 } else {

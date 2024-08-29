@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+// @ts-ignore
 import GoogleIcon from '../../../public/svgs/GoogleIcon';
 import  "../../../src/assets/images/nurse.png";
 import { useNavigate, Link } from 'react-router-dom';
