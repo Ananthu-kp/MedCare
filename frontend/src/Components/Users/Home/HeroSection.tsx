@@ -1,5 +1,5 @@
 import React from 'react';
-import BannerDoctor from "../../../../src/assets/images/doctor1.png";
+import "../../../../src/assets/images/doctor1.png";
 import { Link } from 'react-router-dom';
 
 function HeroSection() {
@@ -24,7 +24,7 @@ function HeroSection() {
                     </div>
                 </div>
                 <div className="relative w-full lg:w-1/2 flex-shrink-0">
-                    <img src={BannerDoctor} alt="Doctor" className="w-full h-auto" style={{ marginLeft: '-40%', marginTop: '50px' }} />
+                    <img src={"../../../../src/assets/images/doctor1.png"} alt="Doctor" className="w-full h-auto" style={{ marginLeft: '-40%', marginTop: '50px' }} />
                     <div className="absolute top-1/4 right-0 transform -translate-x-1/2 space-y-4" style={{ marginTop: '-110px' }}>
                         <div className="bg-white bg-opacity-70 p-4 rounded-lg shadow-lg max-w-xs text-center">
                             <span className="text-2xl font-bold">15+</span>

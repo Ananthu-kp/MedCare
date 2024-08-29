@@ -1,15 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import LoginPicture from "../../../src/assets/images/doclogin.png";
-import { Link } from 'react-router-dom';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 
-function DoctorLogin() {
+function DoctorLoginPage() {
     const navigate = useNavigate();
+    const isAuthenticated = !!sessionStorage.getItem('doctorToken');
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            navigate('/doctor', { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
 
     const formik = useFormik({
         initialValues: {
@@ -20,15 +24,14 @@ function DoctorLogin() {
             email: Yup.string().email('Invalid email address').required('Email is Required'),
             password: Yup.string().required('Password is Required'),
         }),
-        onSubmit: async (values, { setSubmitting, setErrors }) => {
+        onSubmit: async (values, { setSubmitting }) => {
             try {
                 const response = await axios.post('http://localhost:3002/doctor/login', values);
                 if (response.data.success) {
                     sessionStorage.setItem('doctorToken', response.data.token);
-                    toast.success('Login successful!...');
-                    setTimeout(() => {
-                        navigate('/doctor');
-                    }, 1500); 
+                   
+                        navigate('/doctor', {state: {message: "Login successfully"}});
+                   
                 } else {
                     toast.error('Invalid email or password');
                 }
@@ -43,7 +46,7 @@ function DoctorLogin() {
         },
     });
 
-    return (
+    return !isAuthenticated ? (
         <div className="min-h-screen flex">
             <div className="relative w-full flex">
                 <div
@@ -57,7 +60,7 @@ function DoctorLogin() {
                         <p className="text-lg">
                             Enter your Email address and Password to Enter <strong>MEDCARE</strong>
                         </p>
-                        <img src={LoginPicture} alt="Doctor" className="w-[450px] h-auto mt-6" />
+                        <img src="../../../src/assets/images/doclogin.png" alt="Doctor" className="w-[450px] h-auto mt-6" />
                     </div>
                 </div>
 
@@ -114,9 +117,8 @@ function DoctorLogin() {
                     </div>
                 </div>
             </div>
-            <ToastContainer />
         </div>
-    );
+    ) : null;
 }
 
-export default DoctorLogin;
+export default DoctorLoginPage;

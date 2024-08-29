@@ -1,6 +1,7 @@
 import React from 'react';
-import Section1 from "../../../assets/images/Section1.jpg"
-import Section2 from "../../../assets/images/section2.jpg"
+import Section1Img from '../../../assets/images/Section1.jpg';
+import Section2Img from '../../../assets/images/section2.jpg';
+
 
 function HomeSection2() {
     return (
@@ -24,7 +25,7 @@ function HomeSection2() {
                     <div className="relative w-full lg:w-1/2 flex justify-center lg:justify-end">
                         <div className="relative">
                             <img
-                                src={Section1}
+                                src={Section1Img}
                                 alt="Medical Team"
                                 className="rounded-full"
                             />
@@ -64,7 +65,7 @@ function HomeSection2() {
                     {/* Image */}
                     <div className="w-full lg:w-1/2 order-1 lg:order-2">
                         <img
-                            src={Section2}
+                            src={Section2Img}
                             alt="Medical Supplement Advocate"
                             className="w-3/4 h-auto"
                         />

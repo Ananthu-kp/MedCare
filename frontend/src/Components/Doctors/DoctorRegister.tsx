@@ -1,22 +1,34 @@
 import React, { useState } from 'react';
-import { useFormik } from 'formik';
+import { useFormik, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
+
+interface DoctorRegisterFormValues {
+    name: string;
+    email: string;
+    phone: string;
+    category: string;
+    experience: number;
+    hospital: string;
+    password: string;
+    confirmPassword: string;
+    certificate: File | null;
+}
 
 function DoctorRegister() {
-    const [certificatePreview, setCertificatePreview] = useState(null);
+    const [certificatePreview, setCertificatePreview] = useState<string | null>(null);
+    const [generalError, setGeneralError] = useState<string | null>(null);  // General error state
     const navigate = useNavigate();
 
-    const handleButton = async (values) => {
+    const handleButton = async (values: DoctorRegisterFormValues, { setSubmitting }: FormikHelpers<DoctorRegisterFormValues>) => {
         const formData = new FormData();
         formData.append('name', values.name);
         formData.append('email', values.email);
         formData.append('phone', values.phone);
         formData.append('category', values.category);
-        formData.append('experience', values.experience);
+        formData.append('experience', values.experience.toString());
         formData.append('hospital', values.hospital);
         formData.append('password', values.password);
         formData.append('confirmPassword', values.confirmPassword);
@@ -36,28 +48,29 @@ function DoctorRegister() {
                 toast.success('OTP sent to your email.');
                 setTimeout(() => {
                     navigate('/doctor/otp', { state: { email: values.email } });
-                }, 1500)
+                }, 1500);
             } else {
-                toast.error(response.data.message);
+                setGeneralError(response.data.message || 'Error registering doctor.');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error response:", error.response);
             if (error.response && error.response.data && error.response.data.message) {
-                toast.error(error.response.data.message);
+                setGeneralError(error.response.data.message);
             } else {
-                toast.error('Error registering doctor. Please try again.');
+                setGeneralError('Error registering doctor. Please try again.');
             }
+        } finally {
+            setSubmitting(false);
         }
     };
 
-
-    const formik = useFormik({
+    const formik = useFormik<DoctorRegisterFormValues>({
         initialValues: {
             name: '',
             email: '',
             phone: '',
             category: '',
-            experience: '',
+            experience: 0,
             hospital: '',
             password: '',
             confirmPassword: '',
@@ -71,19 +84,21 @@ function DoctorRegister() {
             experience: Yup.number().required('Experience is required').min(0, 'Experience cannot be negative'),
             hospital: Yup.string().required('Hospital is required'),
             password: Yup.string().required('Password is required').min(6, 'Password must be at least 6 characters'),
-            confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Confirm Password is required'),
+            confirmPassword: Yup.string()
+                .oneOf([Yup.ref('password')], 'Passwords must match')
+                .required('Confirm Password is required'),
             certificate: Yup.mixed().required('Certificate is required'),
         }),
         onSubmit: handleButton,
     });
 
-    const handleFileChange = (event) => {
-        const file = event.currentTarget.files[0];
+    const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.currentTarget.files?.[0];
         if (file) {
             formik.setFieldValue('certificate', file);
             const reader = new FileReader();
             reader.onloadend = () => {
-                setCertificatePreview(reader.result);
+                setCertificatePreview(reader.result as string);
             };
             reader.readAsDataURL(file);
         }
@@ -91,11 +106,10 @@ function DoctorRegister() {
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
-            <ToastContainer />
             <div className="bg-white p-8 rounded-lg shadow-lg w-3/4 lg:w-1/2">
                 <h2 className="text-3xl font-bold text-center mb-8">Register</h2>
+                {generalError && <p className="text-red-500 text-center mb-4">{generalError}</p>}
                 <form encType="multipart/form-data" onSubmit={formik.handleSubmit} className="space-y-4">
-                    {formik.errors.general && <p className="text-red-500 text-center">{formik.errors.general}</p>}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
@@ -189,30 +203,39 @@ function DoctorRegister() {
                             />
                             {formik.touched.confirmPassword && formik.errors.confirmPassword ? <p className="text-red-500">{formik.errors.confirmPassword}</p> : null}
                         </div>
-                        <div>
-                            <label htmlFor="certificate" className="block text-sm font-medium text-gray-700">Certificate</label>
+                        <div className="col-span-2">
+                            <label htmlFor="certificate" className="block text-sm font-medium text-gray-700">Upload Certificate</label>
                             <input
                                 type="file"
                                 id="certificate"
+                                name="certificate"
                                 onChange={handleFileChange}
                                 className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {certificatePreview && <img src={certificatePreview} alt="Certificate Preview" className="mt-2 w-full h-auto rounded-lg" />}
+                            {certificatePreview && (
+                                <img
+                                    src={certificatePreview}
+                                    alt="Certificate Preview"
+                                    className="mt-2 h-24 w-auto object-cover border border-gray-300 rounded-lg"
+                                />
+                            )}
                             {formik.touched.certificate && formik.errors.certificate ? <p className="text-red-500">{formik.errors.certificate}</p> : null}
                         </div>
                     </div>
-                    <div className="text-center">
-                        <button
-                            type="submit"
-                            className="mt-4 px-6 py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
-                        >
-                            Register
-                        </button>
-                    </div>
+                    <button
+                        type="submit"
+                        disabled={formik.isSubmitting}
+                        className="mt-6 w-full bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 focus:ring-2 focus:ring-teal-400 focus:outline-none"
+                    >
+                        {formik.isSubmitting ? 'Registering...' : 'Register'}
+                    </button>
                 </form>
-                <div className="mt-4 text-center">
-                    <p>Already have an account? <Link to="/doctor/login" className="text-teal-500 hover:underline">Login here</Link></p>
-                </div>
+                <p className="mt-4 text-sm text-gray-600 text-center">
+                    Already have an account?{' '}
+                    <Link to="/doctor/login" className="text-teal-500 hover:underline">
+                        Login
+                    </Link>
+                </p>
             </div>
         </div>
     );

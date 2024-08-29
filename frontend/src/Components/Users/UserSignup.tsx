@@ -1,34 +1,42 @@
-import { useEffect, useState } from 'react';
-import { ToastContainer, toast } from "react-toastify";
-import 'react-toastify/dist/ReactToastify.css';
-import { useNavigate } from 'react-router-dom'
-import DoctorImageSignup from '../../../src/assets/images/girl-doctor.png';
+import React, { useEffect, useState } from 'react';
+import {  toast } from "sonner";
+import { useNavigate } from 'react-router-dom';
+import  DoctorSignupImage from '../../assets/images/girl-doctor.png';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
+// Define the type for the form values
+interface FormValues {
+  name: string;
+  email: string;
+  phone: string;
+  password: string;
+  confirmPassword: string;
+}
+
 function UserSignup() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
   const isAuthenticated = !!sessionStorage.getItem('userToken');
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true })
+      navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate]);
 
   const validationSchema = Yup.object({
     name: Yup.string().required('Name is required'),
     email: Yup.string().email('Invalid email format').required('Email is required'),
     phone: Yup.string().matches(/^[0-9]{10}$/, 'Invalid phone number').required('Phone number is required'),
     password: Yup.string().min(6, 'Password must be at least 6 characters long').required('Password is required'),
-    confirmPassword: Yup.string().oneOf([Yup.ref('password'), null], 'Passwords must match').required('Confirm Password is required')
+    confirmPassword: Yup.string().oneOf([Yup.ref('password')], 'Passwords must match').required('Confirm Password is required')
   });
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
       const response = await axios.post('http://localhost:3002/signup', values);
@@ -41,17 +49,17 @@ function UserSignup() {
 
       if (response.data.success) {
         setTimeout(() => {
-          toast.success("OTP sent to your email!", { autoClose: 3000 });
-        }, 100)
+          toast.success("OTP sent to your email!");
+        }, 100);
         navigate('/otp', { state: { email: values.email } });
       } else {
-        toast.error(response.data.message, { autoClose: 3000 });
+        toast.error(response.data.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       if (error.response && error.response.status === 409) {
-        toast.error('User already exists', { autoClose: 3000 });
+        toast.error('User already exists');
       } else {
-        toast.error("Something went wrong!", { autoClose: 3000 });
+        toast.error("Something went wrong!");
       }
       console.error("Error:", error.response ? error.response.data : error.message);
     } finally {
@@ -61,7 +69,6 @@ function UserSignup() {
 
   return (
     <div className='min-h-screen flex'>
-      <ToastContainer />
       <div className='relative w-full flex'>
         <div className='absolute inset-0 bg-gradient-to-br from-teal-400 via-teal-500 to-green-300' style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 100%)' }} />
 
@@ -74,7 +81,7 @@ function UserSignup() {
           </div>
 
           <div className="relative flex-grow flex items-end">
-            <img src={DoctorImageSignup} alt="Doctor" className="w-96 h-auto" />
+            <img src={DoctorSignupImage} alt="Doctor" className="w-96 h-auto" />
           </div>
         </div>
 

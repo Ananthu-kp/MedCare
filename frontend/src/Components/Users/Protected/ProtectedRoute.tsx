@@ -5,10 +5,6 @@ const ProtectedRoute = ({ element: Component, ...rest }) => {
   const isAuthenticated = !!sessionStorage.getItem('userToken');
   const location = useLocation();
 
-  if (location.pathname === '/') {
-    return <Component {...rest} />;
-  }
-
   return isAuthenticated ? (
     <Component {...rest} />
   ) : (

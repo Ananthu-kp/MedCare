@@ -1,23 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 
-function UsersList() {
-  const [usersArray, setUsersArray] = useState([]);
-  const [error, setError] = useState(null);
+// Define the types for the user data
+interface User {
+  _id: string;
+  name: string;
+  email: string;
+  phone: string;
+  isBlocked: boolean;
+}
+
+const UsersList: React.FC = () => {
+  const [usersArray, setUsersArray] = useState<User[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     axios.get('http://localhost:3002/admin/users')
       .then(response => setUsersArray(response.data))
-      .catch(error => {
+      .catch((error: AxiosError) => {
         console.error('Error fetching users:', error);
         setError('Failed to load users');
       });
   }, []);
 
-  const unblockUser = async (email) => {
+  const unblockUser = async (email: string) => {
     try {
       const result = await Swal.fire({
         title: 'Are you sure?',
@@ -36,19 +44,19 @@ function UsersList() {
           user.email === email ? { ...user, isBlocked: false } : user
         );
         setUsersArray(updatedUsers);
-        toast.success('User unblocked successfully', { autoClose: 1000 });
+        toast.success('User unblocked successfully');
       }
     } catch (error) {
-      if (error.response && error.response.status === 401) {
-        toast.error('Authorization failed, please login again', { autoClose: 1000 });
+      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+        toast.error('Authorization failed, please login again');
       } else {
         console.error(error);
-        toast.error('Something went wrong, please try again later', { autoClose: 1000 });
+        toast.error('Something went wrong, please try again later');
       }
     }
   };
 
-  const blockUser = async (email) => {
+  const blockUser = async (email: string) => {
     try {
       const result = await Swal.fire({
         title: 'Are you sure?',
@@ -67,21 +75,20 @@ function UsersList() {
           user.email === email ? { ...user, isBlocked: true } : user
         );
         setUsersArray(updatedUsers);
-        toast.success('User blocked successfully', { autoClose: 1000 });
+        toast.success('User blocked successfully');
       }
     } catch (error) {
-      if (error.response && error.response.status === 401) {
-        toast.error('Authorization failed, please login again', { autoClose: 1000 });
+      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+        toast.error('Authorization failed, please login again');
       } else {
         console.error(error);
-        toast.error('Something went wrong, please try again later', { autoClose: 1000 });
+        toast.error('Something went wrong, please try again later');
       }
     }
   };
 
   return (
     <div className="container mx-auto p-6">
-      <ToastContainer />
       <h1 className="text-3xl font-bold mb-6 text-center">Users List</h1>
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
       <div className="overflow-x-auto">
@@ -99,7 +106,7 @@ function UsersList() {
           <tbody>
             {usersArray.length === 0 ? (
               <tr>
-                <td colSpan="6" className="py-4 px-4 text-gray-500 text-center">
+                <td colSpan={6} className="py-4 px-4 text-gray-500 text-center">
                   No users available
                 </td>
               </tr>
@@ -140,6 +147,6 @@ function UsersList() {
       </div>
     </div>
   );
-}
+};
 
 export default UsersList;

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
@@ -38,7 +37,7 @@ function LoginAdmin() {
                     navigate('/admin');
                 }, 1000);
             } else {
-                console.log('Login failed:', response); // Log the entire response object
+                console.log('Login failed:', response); 
                 toast.error("Invalid credentials");
             }
         } catch (error) {
@@ -54,7 +53,6 @@ function LoginAdmin() {
 
     return (
         <div className="min-h-screen flex items-center justify-center">
-            <ToastContainer />
             <div className="bg-white p-12 rounded-lg shadow-lg w-full max-w-md">
                 <h2 className="text-3xl font-bold text-center mb-8">Admin Login</h2>
                 <Formik

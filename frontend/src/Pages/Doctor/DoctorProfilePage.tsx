@@ -1,9 +1,17 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import DoctorProfile from '../../Components/Doctors/DoctorProfile'
 import SidebarDoctor from '../../Components/Doctors/SidebarDoctor'
 import NavbarDoctor from '../../Components/Doctors/NavbarDoctor'
+import { useLocation } from 'react-router-dom'
+import { toast } from 'sonner'
 
 function DoctorProfilePage() {
+  const location = useLocation();
+  useEffect(() => {
+    if(location.state?.message){
+      toast.success("Login successfully");
+    }
+  }, [])
   return (
     <div className="flex flex-col h-screen">
     <NavbarDoctor />

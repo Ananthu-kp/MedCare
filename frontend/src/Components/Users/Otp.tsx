@@ -4,55 +4,54 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+interface LocationState {
+  email?: string;
+}
 
 function Otp() {
-    const [timer, setTimer] = useState(60);
-    const inputRefs = useRef([]);
-    const [otp, setOtp] = useState('');
-    const [loading, setLoading] = useState(false)
+    const [timer, setTimer] = useState<number>(60);
+    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [otp, setOtp] = useState<string>('');
+    const [loading, setLoading] = useState<boolean>(false);
     const navigate = useNavigate();
 
     const location = useLocation();
-    const email = location.state?.email;
+    const email = (location.state as LocationState)?.email;
 
     useEffect(() => {
         if (timer > 0) {
             const intervalId = setInterval(() => {
-                setTimer(timer - 1);
+                setTimer((prevTimer) => prevTimer - 1);
             }, 1000);
             return () => clearInterval(intervalId);
         }
     }, [timer]);
 
-    const handleInputChange = (index, event) => {
+    const handleInputChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
         const updatedOtp = otp.split('');
         updatedOtp[index] = value;
         setOtp(updatedOtp.join(''));
 
         if (value.length === 1 && index < inputRefs.current.length - 1) {
-            inputRefs.current[index + 1].focus();
+            inputRefs.current[index + 1]?.focus();
         }
     };
 
-    const handleKeyDown = (index, event) => {
-        if (event.key === 'Backspace' && !inputRefs.current[index].value && index > 0) {
-            inputRefs.current[index - 1].focus();
+    const handleKeyDown = (index: number, event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Backspace' && !inputRefs.current[index]?.value && index > 0) {
+            inputRefs.current[index - 1]?.focus();
         }
     };
 
     const handleSubmit = async () => {
-        // if (otp.length < 4 || otp.includes('')) {
-        //     toast.warning('Please enter the OTP');
-        //     return;
-        // }
-        setLoading(true)
+        setLoading(true);
         try {
             const response = await axios.post('http://localhost:3002/otp', { email, otp });
 
             if (response.data.success) {
                 toast.success('Successfully registered!');
-                sessionStorage.setItem('otpVerified', 'true'); 
+                sessionStorage.setItem('otpVerified', 'true');
                 setTimeout(() => navigate('/login'), 1000);
             } else {
                 toast.error(response.data.message || 'Invalid OTP');
@@ -62,30 +61,29 @@ function Otp() {
             console.error('Error message:', error.message);
             toast.error(error.response?.data?.message || 'Something went wrong. Please try again.');
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     };
 
     const handleResentOtp = async () => {
-        setLoading(true)
+        setLoading(true);
         try {
             const response = await axios.post('http://localhost:3002/resend-otp', { email });
             if (response.data.success) {
                 toast.success('Resent OTP sent to mail');
-                setOtp('')
-                setTimer(60)
-                inputRefs.current[0].focus()
+                setOtp('');
+                setTimer(60);
+                inputRefs.current[0]?.focus();
             } else {
                 toast.error(response.data.message || 'Failed to resend OTP. Please try again.');
             }
         } catch (error) {
-            console.error('Error', error)
+            console.error('Error', error);
             toast.error('Failed to resend OTP.');
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
     }
-
 
     return (
         <div className="relative min-h-screen flex items-center justify-center">
@@ -102,7 +100,7 @@ function Otp() {
                         <input
                             key={index}
                             type="text"
-                            maxLength="1"
+                            maxLength={1}
                             className="w-12 h-12 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             onChange={(e) => handleInputChange(index, e)}
                             onKeyDown={(e) => handleKeyDown(index, e)}
@@ -128,9 +126,6 @@ function Otp() {
                     {loading ? 'Processing...' : 'Verify'}
                 </button>
 
-                {/* <div className="text-center mt-6">
-                    <a href="#" className="text-sm text-teal-500 hover:underline">Didn't receive the OTP? Resend OTP</a>
-                </div> */}
             </div>
 
             <ToastContainer />

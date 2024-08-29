@@ -1,23 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'sonner';
 
-function DoctorsRequest() {
-    const [doctorsArray, setDoctorsArray] = useState([]);
-    const [error, setError] = useState(null);
+interface Doctor {
+    _id: string;
+    name: string;
+    email: string;
+    category: string;
+    workingHospital: string;
+    yearsOfExperience: number;
+    isVerified: boolean;
+}
+
+const DoctorsRequest: React.FC = () => {
+    const [doctorsArray, setDoctorsArray] = useState<Doctor[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        axios.get('http://localhost:3002/admin/doctors')
+        axios.get<Doctor[]>('http://localhost:3002/admin/doctors')
             .then(response => setDoctorsArray(response.data))
-            .catch(error => {
+            .catch((error: AxiosError) => {
                 console.error('Error fetching doctor requests:', error);
                 setError('Failed to load doctor requests');
             });
     }, []);
 
-    const verifyDoctor = async (email) => {
+    const verifyDoctor = async (email: string) => {
         try {
             const result = await Swal.fire({
                 title: 'Are you sure?',
@@ -36,14 +45,14 @@ function DoctorsRequest() {
                     doctor.email === email ? { ...doctor, isVerified: true } : doctor
                 );
                 setDoctorsArray(updatedDoctors);
-                toast.success('Doctor verified successfully', { autoClose: 1000 });
+                toast.success('Doctor verified successfully');
             }
         } catch (error) {
-            handleError(error);
+            handleError(error as AxiosError);
         }
     };
 
-    const rejectDoctor = async (email) => {
+    const rejectDoctor = async (email: string) => {
         try {
             const result = await Swal.fire({
                 title: 'Are you sure?',
@@ -60,19 +69,19 @@ function DoctorsRequest() {
                 await axios.delete(`http://localhost:3002/admin/reject-doctor`, { params: { email } });
                 const updatedDoctors = doctorsArray.filter(doctor => doctor.email !== email);
                 setDoctorsArray(updatedDoctors);
-                toast.success('Doctor rejected and removed successfully', { autoClose: 1000 });
+                toast.success('Doctor rejected and removed successfully');
             }
         } catch (error) {
-            handleError(error);
+            handleError(error as AxiosError);
         }
     };
 
-    const handleError = (error) => {
+    const handleError = (error: AxiosError) => {
         if (error.response && error.response.status === 401) {
-            toast.error('Authorization failed, please login again', { autoClose: 1000 });
+            toast.error('Authorization failed, please login again');
         } else {
             console.error(error);
-            toast.error('Something went wrong, please try again later', { autoClose: 1000 });
+            toast.error('Something went wrong, please try again later');
         }
     };
 
@@ -80,7 +89,6 @@ function DoctorsRequest() {
 
     return (
         <div className="container mx-auto p-6">
-            <ToastContainer />
             <h1 className="text-3xl font-bold mb-6 text-center">Doctors Request</h1>
             {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
             <div className="overflow-x-auto">
@@ -102,7 +110,7 @@ function DoctorsRequest() {
                     <tbody>
                         {doctorsArray.length === 0 ? (
                             <tr>
-                                <td colSpan="8" className="py-4 px-4 text-gray-500 text-center">
+                                <td colSpan={8} className="py-4 px-4 text-gray-500 text-center">
                                     No doctor requests available
                                 </td>
                             </tr>

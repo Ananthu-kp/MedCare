@@ -1,12 +1,17 @@
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import GoogleIcon from '../../../public/svgs/GoogleIcon';
-import NurseLogin from "../../../src/assets/images/nurse.png";
+import  "../../../src/assets/images/nurse.png";
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+
+interface LoginFormValues {
+    email: string;
+    password: string;
+}
 
 function UserLogin() {
     const navigate = useNavigate();
@@ -27,7 +32,10 @@ function UserLogin() {
             .required('Password is required!')
     });
 
-    const handleSubmit = async (values, { setSubmitting }) => {
+    const handleSubmit = async (
+        values: LoginFormValues,
+        { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
+    ) => {
         try {
             const response = await axios.post('http://localhost:3002/login', values);
 
@@ -44,7 +52,7 @@ function UserLogin() {
             } else {
                 toast.error(response.data.message);
             }
-        } catch (error) {
+        } catch (error: any) {
             if (error.response?.status === 401) {
                 toast.error("Invalid credentials");
             } else if (error.response?.status === 403) {
@@ -52,8 +60,9 @@ function UserLogin() {
             } else {
                 toast.error("Something went wrong!");
             }
+        } finally {
+            setSubmitting(false);
         }
-        setSubmitting(false);
     };
 
     return (
@@ -74,7 +83,7 @@ function UserLogin() {
                     </div>
 
                     <div className="relative flex-grow flex items-end">
-                        <img src={NurseLogin} alt="Doctor" className="w-96 h-auto" />
+                        <img src={"../../../src/assets/images/nurse.png"} alt="Doctor" className="w-96 h-auto" />
                     </div>
                 </div>
 
@@ -130,7 +139,7 @@ function UserLogin() {
                                         type="button"
                                         className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 flex items-center justify-center"
                                     >
-                                        <GoogleIcon className="mr-2" />
+                                        <GoogleIcon  />
                                         Sign in with Google
                                     </button>
 

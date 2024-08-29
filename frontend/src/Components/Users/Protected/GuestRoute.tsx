@@ -7,7 +7,7 @@ const GuestRoute = ({ element: Component, ...rest }) => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true }); 
+      navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
