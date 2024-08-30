@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
+import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 
 interface Doctor {
     _id: string;
@@ -18,7 +19,7 @@ const DoctorsRequest: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        axios.get<Doctor[]>('http://localhost:3002/admin/doctors')
+        adminAxiosInstance.get<Doctor[]>(`/admin/doctors`)
             .then(response => setDoctorsArray(response.data))
             .catch((error: AxiosError) => {
                 console.error('Error fetching doctor requests:', error);
@@ -40,7 +41,7 @@ const DoctorsRequest: React.FC = () => {
             });
 
             if (result.isConfirmed) {
-                await axios.patch(`http://localhost:3002/admin/verify-doctor`, null, { params: { email } });
+                await adminAxiosInstance.patch(`/admin/verify-doctor`, {}, { params: { email } });
                 const updatedDoctors = doctorsArray.map(doctor =>
                     doctor.email === email ? { ...doctor, isVerified: true } : doctor
                 );
@@ -66,7 +67,7 @@ const DoctorsRequest: React.FC = () => {
             });
 
             if (result.isConfirmed) {
-                await axios.delete(`http://localhost:3002/admin/reject-doctor`, { params: { email } });
+                await adminAxiosInstance.delete(`/admin/reject-doctor`, { params: { email } });
                 const updatedDoctors = doctorsArray.filter(doctor => doctor.email !== email);
                 setDoctorsArray(updatedDoctors);
                 toast.success('Doctor rejected and removed successfully');

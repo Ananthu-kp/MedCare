@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Swal from 'sweetalert2';
+import { BASE_URL } from '../../Config/baseURL';
 
 interface LocationState {
     email: string;
@@ -48,7 +49,7 @@ const DoctorOtp: React.FC = () => {
         console.log("Submitting OTP:", { email: email, otp: otp });
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:3002/doctor/verify-otp', { email: email, otp: otp });
+            const response = await axios.post(`${BASE_URL}/doctor/verify-otp`, { email: email, otp: otp });
             console.log("Server response:", response.data);
             const isOTPValid = true;
             if (isOTPValid) {
@@ -80,7 +81,7 @@ const DoctorOtp: React.FC = () => {
     const handleResentOtp = async () => {
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:3002/doctor/resend-otp', { email });
+            const response = await axios.post(`${BASE_URL}/doctor/resend-otp`, { email });
             if (response.data.success) {
                 toast.success('Resent OTP sent to mail');
                 setOtp('');

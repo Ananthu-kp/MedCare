@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
+import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 
 // Define the types for the user data
 interface User {
@@ -17,7 +18,7 @@ const UsersList: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    axios.get('http://localhost:3002/admin/users')
+    adminAxiosInstance.get(`/admin/users`)
       .then(response => setUsersArray(response.data))
       .catch((error: AxiosError) => {
         console.error('Error fetching users:', error);
@@ -39,7 +40,7 @@ const UsersList: React.FC = () => {
       });
 
       if (result.isConfirmed) {
-        await axios.patch(`http://localhost:3002/admin/unblockUser?email=${email}`);
+        await adminAxiosInstance.patch(`/admin/unblockUser?email=${email}`);
         const updatedUsers = usersArray.map(user =>
           user.email === email ? { ...user, isBlocked: false } : user
         );
@@ -70,7 +71,7 @@ const UsersList: React.FC = () => {
       });
 
       if (result.isConfirmed) {
-        await axios.patch(`http://localhost:3002/admin/blockUser?email=${email}`);
+        await adminAxiosInstance.patch(`/admin/blockUser?email=${email}`);
         const updatedUsers = usersArray.map(user =>
           user.email === email ? { ...user, isBlocked: true } : user
         );

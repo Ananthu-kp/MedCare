@@ -4,6 +4,7 @@ import * as Yup from 'yup';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { BASE_URL } from '../../Config/baseURL';
 
 interface DoctorRegisterFormValues {
     name: string;
@@ -38,7 +39,7 @@ function DoctorRegister() {
         }
 
         try {
-            const response = await axios.post('http://localhost:3002/doctor/register', formData, {
+            const response = await axios.post(`${BASE_URL}/doctor/register`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

@@ -4,6 +4,7 @@ import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
 import { toast } from 'sonner';
+import { BASE_URL } from '../../Config/baseURL';
 
 function DoctorLoginPage() {
     const navigate = useNavigate();
@@ -26,7 +27,7 @@ function DoctorLoginPage() {
         }),
         onSubmit: async (values, { setSubmitting }) => {
             try {
-                const response = await axios.post('http://localhost:3002/doctor/login', values);
+                const response = await axios.post(`${BASE_URL}/doctor/login`, values);
                 if (response.data.success) {
                     sessionStorage.setItem('doctorToken', response.data.token);
                    

@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { BASE_URL } from '../../Config/baseURL';
 
 function LoginAdmin() {
     const navigate = useNavigate();
@@ -25,7 +26,7 @@ function LoginAdmin() {
     const handleSubmit = async (values: any, { setSubmitting }: any) => {
         console.log('Login form submitted:', values);
         try {
-            const response = await axios.post('http://localhost:3002/admin/login', values);
+            const response = await axios.post(`${BASE_URL}/admin/login`, values);
 
             console.log('Response data:', response.data);
 

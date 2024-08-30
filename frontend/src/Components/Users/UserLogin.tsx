@@ -6,6 +6,7 @@ import GoogleIcon from '../../../public/svgs/GoogleIcon';
 import  "../../../src/assets/images/nurse.png";
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { BASE_URL } from '../../Config/baseURL';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 
@@ -38,7 +39,7 @@ function UserLogin() {
         { setSubmitting }: { setSubmitting: (isSubmitting: boolean) => void }
     ) => {
         try {
-            const response = await axios.post('http://localhost:3002/login', values);
+            const response = await axios.post(`${BASE_URL}/login`, values);
 
             if (response.data.success) {
                 toast.success("Login successful!");

@@ -3,6 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { BASE_URL } from '../../Config/baseURL';
 
 interface LocationState {
   email?: string;
@@ -47,7 +48,7 @@ function Otp() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:3002/otp', { email, otp });
+            const response = await axios.post(`${BASE_URL}/otp`, { email, otp });
 
             if (response.data.success) {
                 toast.success('Successfully registered!');
@@ -68,7 +69,7 @@ function Otp() {
     const handleResentOtp = async () => {
         setLoading(true);
         try {
-            const response = await axios.post('http://localhost:3002/resend-otp', { email });
+            const response = await axios.post(`${BASE_URL}/resend-otp`, { email });
             if (response.data.success) {
                 toast.success('Resent OTP sent to mail');
                 setOtp('');

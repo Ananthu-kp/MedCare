@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { BASE_URL } from '../../Config/baseURL';
 
 // Define the type for the form values
 interface FormValues {
@@ -39,7 +40,7 @@ function UserSignup() {
   const handleSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const response = await axios.post('http://localhost:3002/signup', values);
+      const response = await axios.post(`${BASE_URL}/signup`, values);
       console.log('Response:', response.data);
 
       if (!response.data || !response.data.success) {
