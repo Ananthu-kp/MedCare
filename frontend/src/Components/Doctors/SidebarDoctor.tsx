@@ -11,7 +11,7 @@ function SidebarDoctor() {
     };
 
     return (
-        <div className={`fixed top-14 left-0 h-full bg-gray-100 text-gray-800 transition-transform ${isExpanded ? 'w-64' : 'w-16'} overflow-hidden shadow-md`}>
+        <div  className={`fixed top-14 left-0 h-full z-10 bg-gray-100 text-gray-800 transition-transform ${isExpanded ? 'w-64' : 'w-16'} overflow-hidden shadow-md`}>
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
                 <button 
                     className="text-2xl text-gray-800 hover:text-teal-400"
