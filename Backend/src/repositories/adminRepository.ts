@@ -91,17 +91,47 @@ class AdminRepository {
     }
 
 
-
     async getCategories() {
-        return await Category.find();
+        try {
+            return await Category.find();
+        } catch (error) {
+            console.log("Error from database:", error);
+            throw error;
+        }
     }
-
     async addCategory(name: string) {
-        return await Category.create({ name })
+        try {
+            return await Category.create({ name }) 
+        } catch (error) {
+            console.log("Error from database:", error);
+            throw error;
+        }
     }
 
     async deleteCategory(id: string) {
-        return await Category.findByIdAndDelete(id)
+        try {
+            return await Category.findByIdAndDelete(id)
+        } catch (error) {
+            console.log("Error from database:", error);
+            throw error;
+        }
+    }
+
+    async editCategory(id: string, newName: string) {
+        try {
+            const updatedCategory = await Category.findByIdAndUpdate(
+                id,
+                { name: newName },
+                { new: true } 
+            );
+            if (!updatedCategory) {
+                throw new Error("Category not found");
+            }
+            return updatedCategory;
+        } catch (error) {
+            console.log("Error from database:", error);
+            throw error;
+        }
     }
 
 }

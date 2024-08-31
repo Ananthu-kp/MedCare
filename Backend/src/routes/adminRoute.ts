@@ -19,6 +19,7 @@ router.delete('/reject-doctor', adminController.rejectDoctor);
 router.get('/categories', adminController.getCategories);
 router.post('/addCategory', adminController.addCategory);
 router.delete('/deleteCategory/:id', adminController.deleteCategory);
+router.patch('/editCategory/:id', adminController.editCategory)
 
 
 export default router

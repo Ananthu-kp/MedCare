@@ -141,30 +141,38 @@ class AdminService {
 
     async getCategories() {
         try {
-          const categories = await this._adminRepository.getCategories();
-          return categories;
+            const categories = await this._adminRepository.getCategories();
+            return categories;
         } catch (error) {
-          throw new Error('Error fetching categories');
+            throw new Error('Error fetching categories');
         }
-      }
-    
-      async addCategory(name: string) {
-        try {
-          const newCategory = await this._adminRepository.addCategory(name);
-          return newCategory;
-        } catch (error) {
-          throw new Error('Error adding category');
-        }
-      }
-    
-      async deleteCategory(id: string) {
-        try {
-          await this._adminRepository.deleteCategory(id);
-        } catch (error) {
-          throw new Error('Error deleting category');
-        }
-      }
+    }
 
+    async addCategory(name: string) {
+        try {
+            const newCategory = await this._adminRepository.addCategory(name);
+            return newCategory;
+        } catch (error) {
+            throw new Error('Error adding category');
+        }
+    }
+
+    async deleteCategory(id: string) {
+        try {
+            await this._adminRepository.deleteCategory(id);
+        } catch (error) {
+            throw new Error('Error deleting category');
+        }
+    }
+
+    async editCategory(id: string, newName: string) {
+        try {
+            const editedCategory = await this._adminRepository.editCategory(id, newName);
+            return editedCategory;
+        } catch (error) {
+            throw new Error('Error editing category');
+        }
+    }
 
 }
 

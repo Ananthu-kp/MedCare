@@ -118,33 +118,44 @@ class AdminController {
 
 
     async getCategories(req: Request, res: Response) {
-    try {
-      const categories = await adminServices.getCategories();
-      res.status(200).json(categories);
-    } catch (error) {
-        res.status(500).json("Something went wrong, please try again later");
+        try {
+            const categories = await adminServices.getCategories();
+            res.status(200).json(categories);
+        } catch (error) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
     }
-  }
 
-  async addCategory(req: Request, res: Response) {
-    try {
-      const { name } = req.body;
-      const newCategory = await adminServices.addCategory(name);
-      res.status(201).json(newCategory);
-    } catch (error) {
-        res.status(500).json("Something went wrong, please try again later");
+    async addCategory(req: Request, res: Response) {
+        try {
+            const { name } = req.body;
+            const newCategory = await adminServices.addCategory(name);
+            res.status(201).json(newCategory);
+        } catch (error) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
     }
-  }
 
-  async deleteCategory(req: Request, res: Response) {
-    try {
-      const { id } = req.params;
-      await adminServices.deleteCategory(id);
-      res.status(200).json({ message: "Category deleted successfully" });
-    } catch (error) {
-        res.status(500).json("Something went wrong, please try again later");
+    async deleteCategory(req: Request, res: Response) {
+        try {
+            const { id } = req.params;
+            await adminServices.deleteCategory(id);
+            res.status(200).json({ message: "Category deleted successfully" });
+        } catch (error) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
     }
-  }
+
+    async editCategory(req: Request, res: Response) {
+        try {
+            const { id } = req.params; 
+            const { name } = req.body; 
+            const updatedCategory = await adminServices.editCategory(id, name);
+            res.status(200).json({ message: "Category edited successfully", updatedCategory });
+        } catch (error) {
+            res.status(500).json("Something went wrong, please try again later");
+        }
+    }
 
 }
 
