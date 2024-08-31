@@ -43,6 +43,15 @@ class AdminRepository {
         }
     }
 
+    async findDoctorByEmail(email: string) {
+        try {
+            return await Doctor.findOne({ email }).exec();
+        } catch (error) {
+            console.error('Error finding doctor by email', error);
+            throw new Error('Error finding doctor by email');
+        }
+    }
+
     async verifyDoctor(email: string) {
         try {
             return await Doctor.updateOne({ email }, { isVerified: true });

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import AdminService from '../services/adminService';
+import doctorRepository from '../repositories/doctorRepository';
 
 const adminServices = new AdminService();
 
@@ -8,6 +9,20 @@ class AdminController {
     async login(req: Request, res: Response) {
         try {
             const { email, password } = req.body;
+
+            const doctor = await doctorRepository.findDoctorByEmail(email);
+            console.log('Doctor =>', doctor);
+
+            if (!doctor) {
+                res.status(401).json({ success: false, message: "Invalid credentials" });
+                return;
+            }
+
+            if (doctor.isBlocked) {
+                res.status(403).json({ success: false, message: "Your account has been blocked" });
+                return;
+            }
+
             const serviceResponse = await adminServices.login(email, password);
             res.status(200).json(serviceResponse);
         } catch (error) {

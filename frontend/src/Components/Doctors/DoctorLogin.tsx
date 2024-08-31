@@ -39,8 +39,10 @@ function DoctorLoginPage() {
             } catch (error: any) {
                 if (error.response && error.response.status === 401) {
                     toast.error('Invalid credentials');
+                } else if (error.response?.status === 403) {
+                    toast.error("Your account has been blocked");
                 } else {
-                    toast.error('An error occurred while logging in');
+                    toast.error("Something went wrong!");
                 }
             }
             setSubmitting(false);

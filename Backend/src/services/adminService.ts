@@ -14,6 +14,16 @@ class AdminService {
 
     async login(email: string, password: string) {
         try {
+
+            const doctor = await this._adminRepository.findDoctorByEmail(email);
+
+            if (!doctor) {
+                throw new Error("Wrong email")
+            }
+            if (doctor.isBlocked) {
+                throw new Error("Account is blocked")
+            }
+            
             const adminEmail = process.env.ADMIN_EMAIL;
             const adminPassword = process.env.ADMIN_PASS;
 

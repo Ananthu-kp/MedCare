@@ -22,6 +22,7 @@ import ProtectDoctor from './Components/Doctors/DoctorProtectors/ProtectDoctor';
 // styles
 import 'react-toastify/dist/ReactToastify.css';
 import { Toaster } from "sonner"
+import DoctorsListPage from './Pages/Admin/DoctorsListPage';
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />
           <Route path="/admin/users" element={<ProtectAdmin element={UsersListPage} />} />
           <Route path="/admin/doctor-requests" element={<ProtectAdmin element={DoctorsRequestPage} />} />
+          <Route path="/admin/doctors" element={<ProtectAdmin element={DoctorsListPage} />} />
 
           <Route path="/doctor/login" element={<DoctorLoginPage />} />
           <Route path="/doctor/register" element={<DoctorRegisterPage />} />

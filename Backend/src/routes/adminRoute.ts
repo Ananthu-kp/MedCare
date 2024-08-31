@@ -11,8 +11,8 @@ router.patch('/unblockUser', adminController.unBlockUser)
 router.patch('/blockUser', adminController.blockUser)
 
 router.get('/doctors', adminController.getDoctor);
-router.put('/block-doctor', adminController.blockDoctor);
-router.put('/unblock-doctor', adminController.unBlockDoctor);
+router.patch('/block-doctor', adminController.blockDoctor);
+router.patch('/unblock-doctor', adminController.unBlockDoctor);
 router.patch('/verify-doctor', adminController.verifyDoctor);
 router.delete('/reject-doctor', adminController.rejectDoctor);
 
