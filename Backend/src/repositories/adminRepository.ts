@@ -1,5 +1,6 @@
 import { User } from "../Model/userModel";
 import { Doctor } from "../Model/doctorModel";
+import Category from "../Model/categoryModel";
 
 
 class AdminRepository {
@@ -87,6 +88,20 @@ class AdminRepository {
             console.log("Error from database:", error);
             throw error;
         }
+    }
+
+
+
+    async getCategories() {
+        return await Category.find();
+    }
+
+    async addCategory(name: string) {
+        return await Category.create({ name })
+    }
+
+    async deleteCategory(id: string) {
+        return await Category.findByIdAndDelete(id)
     }
 
 }

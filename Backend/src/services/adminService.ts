@@ -14,16 +14,6 @@ class AdminService {
 
     async login(email: string, password: string) {
         try {
-
-            const doctor = await this._adminRepository.findDoctorByEmail(email);
-
-            if (!doctor) {
-                throw new Error("Wrong email")
-            }
-            if (doctor.isBlocked) {
-                throw new Error("Account is blocked")
-            }
-            
             const adminEmail = process.env.ADMIN_EMAIL;
             const adminPassword = process.env.ADMIN_PASS;
 
@@ -146,6 +136,34 @@ class AdminService {
             throw error;
         }
     }
+
+
+
+    async getCategories() {
+        try {
+          const categories = await this._adminRepository.getCategories();
+          return categories;
+        } catch (error) {
+          throw new Error('Error fetching categories');
+        }
+      }
+    
+      async addCategory(name: string) {
+        try {
+          const newCategory = await this._adminRepository.addCategory(name);
+          return newCategory;
+        } catch (error) {
+          throw new Error('Error adding category');
+        }
+      }
+    
+      async deleteCategory(id: string) {
+        try {
+          await this._adminRepository.deleteCategory(id);
+        } catch (error) {
+          throw new Error('Error deleting category');
+        }
+      }
 
 
 }

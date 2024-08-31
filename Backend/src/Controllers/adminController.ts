@@ -10,19 +10,6 @@ class AdminController {
         try {
             const { email, password } = req.body;
 
-            const doctor = await doctorRepository.findDoctorByEmail(email);
-            console.log('Doctor =>', doctor);
-
-            if (!doctor) {
-                res.status(401).json({ success: false, message: "Invalid credentials" });
-                return;
-            }
-
-            if (doctor.isBlocked) {
-                res.status(403).json({ success: false, message: "Your account has been blocked" });
-                return;
-            }
-
             const serviceResponse = await adminServices.login(email, password);
             res.status(200).json(serviceResponse);
         } catch (error) {
@@ -128,6 +115,36 @@ class AdminController {
             res.status(500).json("Something went wrong, please try again later");
         }
     }
+
+
+    async getCategories(req: Request, res: Response) {
+    try {
+      const categories = await adminServices.getCategories();
+      res.status(200).json(categories);
+    } catch (error) {
+        res.status(500).json("Something went wrong, please try again later");
+    }
+  }
+
+  async addCategory(req: Request, res: Response) {
+    try {
+      const { name } = req.body;
+      const newCategory = await adminServices.addCategory(name);
+      res.status(201).json(newCategory);
+    } catch (error) {
+        res.status(500).json("Something went wrong, please try again later");
+    }
+  }
+
+  async deleteCategory(req: Request, res: Response) {
+    try {
+      const { id } = req.params;
+      await adminServices.deleteCategory(id);
+      res.status(200).json({ message: "Category deleted successfully" });
+    } catch (error) {
+        res.status(500).json("Something went wrong, please try again later");
+    }
+  }
 
 }
 

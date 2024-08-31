@@ -16,5 +16,9 @@ router.patch('/unblock-doctor', adminController.unBlockDoctor);
 router.patch('/verify-doctor', adminController.verifyDoctor);
 router.delete('/reject-doctor', adminController.rejectDoctor);
 
+router.get('/categories', adminController.getCategories);
+router.post('/addCategory', adminController.addCategory);
+router.delete('/deleteCategory/:id', adminController.deleteCategory);
+
 
 export default router
