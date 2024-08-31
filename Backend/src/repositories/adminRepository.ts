@@ -14,7 +14,7 @@ class AdminRepository {
         }
     }
 
-    async unBlockUserRepository(email: string) {
+    async unBlockUser(email: string) {
         try {
             return await User.updateOne({ email }, { isBlocked: false });
         } catch (error) {
@@ -23,7 +23,7 @@ class AdminRepository {
         }
     }
 
-    async blockUserRespository(email: string) {
+    async blockUser(email: string) {
         try {
             return await User.updateOne({ email }, { isBlocked: true })
         } catch (error) {
@@ -43,7 +43,7 @@ class AdminRepository {
         }
     }
 
-    async verifyDoctorRepository(email: string) {
+    async verifyDoctor(email: string) {
         try {
             return await Doctor.updateOne({ email }, { isVerified: true });
         } catch (error) {
@@ -53,7 +53,7 @@ class AdminRepository {
     }
     
 
-    async blockDoctorRepository(email: string) {
+    async blockDoctor(email: string) {
         try {
             return await Doctor.updateOne({ email }, { isBlocked: true });
         } catch (error) {
@@ -62,7 +62,7 @@ class AdminRepository {
         }
     }
 
-    async unBlockDoctorRepository(email: string) {
+    async unBlockDoctor(email: string) {
         try {
             return await Doctor.updateOne({ email }, { isBlocked: false });
         } catch (error) {
@@ -71,7 +71,7 @@ class AdminRepository {
         }
     }
 
-    async rejectDoctorRepository(email: string) {
+    async rejectDoctor(email: string) {
         try {
             return await Doctor.deleteOne({ email });
         } catch (error) {

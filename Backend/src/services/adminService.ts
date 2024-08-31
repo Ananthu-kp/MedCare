@@ -5,14 +5,14 @@ import AdminRepository from '../repositories/adminRepository';
 dotenv.config();
 
 class AdminService {
-    private adminRepository: AdminRepository
+    private _adminRepository: AdminRepository
 
     constructor() {
-        this.adminRepository = new AdminRepository()
+        this._adminRepository = new AdminRepository()
     }
 
 
-    async loginService(email: string, password: string) {
+    async login(email: string, password: string) {
         try {
             const adminEmail = process.env.ADMIN_EMAIL;
             const adminPassword = process.env.ADMIN_PASS;
@@ -38,9 +38,9 @@ class AdminService {
     }
 
 
-    async getUserServices() {
+    async getUser() {
         try {
-            const users = await this.adminRepository.getUsers();
+            const users = await this._adminRepository.getUsers();
             return users;
         } catch (error) {
             console.error('Error fetching users in service:', error)
@@ -48,9 +48,9 @@ class AdminService {
         }
     }
 
-    async unBlockUserService(email: string) {
+    async unBlockUser(email: string) {
         try {
-            const response = await this.adminRepository.unBlockUserRepository(email);
+            const response = await this._adminRepository.unBlockUser(email);
             if (response.modifiedCount === 1) {
                 return "User unblocked successfully"
             } else {
@@ -61,9 +61,9 @@ class AdminService {
         }
     }
 
-    async blockUserService(email: string) {
+    async blockUser(email: string) {
         try {
-            const response = await this.adminRepository.blockUserRespository(email);
+            const response = await this._adminRepository.blockUser(email);
             if (response.modifiedCount === 1) {
                 return "User blocked successfully"
             } else {
@@ -75,9 +75,9 @@ class AdminService {
     }
 
 
-    async getDoctorServices() {
+    async getDoctor() {
         try {
-            const doctors = await this.adminRepository.getDoctors();
+            const doctors = await this._adminRepository.getDoctors();
             return doctors;
         } catch (error) {
             console.error('Error fetching doctors in service:', error);
@@ -85,9 +85,9 @@ class AdminService {
         }
     }
 
-    async blockDoctorService(email: string) {
+    async blockDoctor(email: string) {
         try {
-            const response = await this.adminRepository.blockDoctorRepository(email);
+            const response = await this._adminRepository.blockDoctor(email);
             if (response.modifiedCount === 1) {
                 return "Doctor blocked successfully";
             } else {
@@ -98,9 +98,9 @@ class AdminService {
         }
     }
 
-    async unBlockDoctorService(email: string) {
+    async unBlockDoctor(email: string) {
         try {
-            const response = await this.adminRepository.unBlockDoctorRepository(email);
+            const response = await this._adminRepository.unBlockDoctor(email);
             if (response.modifiedCount === 1) {
                 return "Doctor unblocked successfully";
             } else {
@@ -111,9 +111,9 @@ class AdminService {
         }
     }
 
-    async verifyDoctorService(email: string) {
+    async verifyDoctor(email: string) {
         try {
-            const response = await this.adminRepository.verifyDoctorRepository(email);
+            const response = await this._adminRepository.verifyDoctor(email);
             if (response.modifiedCount === 1) {
                 return "Doctor verified successfully";
             } else {
@@ -124,9 +124,9 @@ class AdminService {
         }
     }
 
-    async rejectDoctorService(email: string) {
+    async rejectDoctor(email: string) {
         try {
-            const response = await this.adminRepository.rejectDoctorRepository(email);
+            const response = await this._adminRepository.rejectDoctor(email);
             if (response.deletedCount === 1) {
                 return "Doctor rejected and removed successfully";
             } else {
