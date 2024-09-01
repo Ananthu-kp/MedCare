@@ -47,6 +47,14 @@ class DoctorService {
     async clearTempDoctorData(email: string): Promise<void> {
         await doctorRepository.clearTempDoctorData(email);
     }
+
+    async getCategories(): Promise<string[]> {
+        try {
+            return await doctorRepository.getAllCategories();
+        } catch (error) {
+            throw new Error('Service error while fetching categories');
+        }
+    }
 }
 
 export default new DoctorService();

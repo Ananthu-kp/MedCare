@@ -8,5 +8,6 @@ router.post('/register', DoctorController.register);
 router.post('/verify-otp', DoctorController.verifyOtp);
 router.post('/resend-otp', DoctorController.resendOtp);
 router.post('/login', DoctorController.login);
+router.get('/categories', DoctorController.getCategories);
 
 export default router;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useFormik, FormikHelpers } from 'formik';
 import * as Yup from 'yup';
 import axios from 'axios';
@@ -20,8 +20,26 @@ interface DoctorRegisterFormValues {
 
 function DoctorRegister() {
     const [certificatePreview, setCertificatePreview] = useState<string | null>(null);
-    const [generalError, setGeneralError] = useState<string | null>(null);  // General error state
+    const [generalError, setGeneralError] = useState<string | null>(null); 
+    const [categories, setCategories] = useState<string[]>([]); 
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await axios.get(`${BASE_URL}/doctor/categories`); 
+                if (response.data.success) {
+                    setCategories(response.data.categories); 
+                } else {
+                    setGeneralError('Error fetching categories.');
+                }
+            } catch (error) {
+                setGeneralError('Error fetching categories.');
+            }
+        };
+
+        fetchCategories();
+    }, []);
 
     const handleButton = async (values: DoctorRegisterFormValues, { setSubmitting }: FormikHelpers<DoctorRegisterFormValues>) => {
         const formData = new FormData();
@@ -153,10 +171,11 @@ function DoctorRegister() {
                                 className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             >
                                 <option value="">Select Category</option>
-                                <option value="Nutrition">Nutrition</option>
-                                <option value="Cardiology">Cardiology</option>
-                                <option value="Orthopedics">Orthopedics</option>
-                                <option value="Dermatology">Dermatology</option>
+                                {categories.map((category, index) => (
+                                    <option key={index} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
                             </select>
                             {formik.touched.category && formik.errors.category ? <p className="text-red-500">{formik.errors.category}</p> : null}
                         </div>
@@ -204,39 +223,29 @@ function DoctorRegister() {
                             />
                             {formik.touched.confirmPassword && formik.errors.confirmPassword ? <p className="text-red-500">{formik.errors.confirmPassword}</p> : null}
                         </div>
-                        <div className="col-span-2">
-                            <label htmlFor="certificate" className="block text-sm font-medium text-gray-700">Upload Certificate</label>
+                        <div>
+                            <label htmlFor="certificate" className="block text-sm font-medium text-gray-700">Certificate</label>
                             <input
                                 type="file"
                                 id="certificate"
-                                name="certificate"
                                 onChange={handleFileChange}
                                 className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {certificatePreview && (
-                                <img
-                                    src={certificatePreview}
-                                    alt="Certificate Preview"
-                                    className="mt-2 h-24 w-auto object-cover border border-gray-300 rounded-lg"
-                                />
-                            )}
+                            {certificatePreview && <img src={certificatePreview} alt="Certificate Preview" className="mt-2 w-32 h-32 object-cover" />}
                             {formik.touched.certificate && formik.errors.certificate ? <p className="text-red-500">{formik.errors.certificate}</p> : null}
                         </div>
                     </div>
-                    <button
-                        type="submit"
-                        disabled={formik.isSubmitting}
-                        className="mt-6 w-full bg-teal-500 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-600 focus:ring-2 focus:ring-teal-400 focus:outline-none"
-                    >
-                        {formik.isSubmitting ? 'Registering...' : 'Register'}
-                    </button>
+                    <div className="flex justify-between items-center">
+                        <Link to="/doctor/login" className="text-teal-600 hover:underline">Already have an account? Login</Link>
+                        <button
+                            type="submit"
+                            disabled={formik.isSubmitting}
+                            className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        >
+                            {formik.isSubmitting ? 'Submitting...' : 'Register'}
+                        </button>
+                    </div>
                 </form>
-                <p className="mt-4 text-sm text-gray-600 text-center">
-                    Already have an account?{' '}
-                    <Link to="/doctor/login" className="text-teal-500 hover:underline">
-                        Login
-                    </Link>
-                </p>
             </div>
         </div>
     );

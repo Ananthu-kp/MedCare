@@ -1,3 +1,4 @@
+import Category from "../Model/categoryModel";
 import { Doctor, DoctorType } from "../Model/doctorModel";
 
 class DoctorRepository {
@@ -25,6 +26,17 @@ class DoctorRepository {
 
     async clearTempDoctorData(email: string): Promise<void> {
         await Doctor.updateOne({ email }, { $unset: { otp: 1, tempData: 1, otpCreatedAt: 1 } });
+    }
+
+    async getAllCategories(): Promise<string[]> {
+        try {
+            const categories = await Category.find().select('name');
+            return categories.map(category => category.name); 
+            console.log(categories);
+            
+        } catch (error) {
+            throw new Error('Error fetching categories from the database.');
+        }
     }
 }
 

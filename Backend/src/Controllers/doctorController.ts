@@ -138,6 +138,18 @@ class DoctorController {
             res.status(500).json({ message: "Something went wrong, please try again later" });
         }
     }
+
+    async getCategories(req: Request, res: Response): Promise<void> {
+        try {
+            const categories = await doctorService.getCategories();
+            res.json({ success: true, categories });
+        } catch (error) {
+            res.status(500).json({ success: false, message: 'Error fetching categories.' });
+        }
+    }
+    
+    
+
 }
 
 export default new DoctorController();
