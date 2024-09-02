@@ -3,7 +3,7 @@ import doctorService from "../services/doctorService";
 import doctorRepository from "../repositories/doctorRepository";
 import bcryptUtil from "../utils/bcryptUtil";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
-import { certificateUpload } from '../config/multer';
+import { certificateUpload, profileUpload } from '../config/multer';
 
 class DoctorController {
     async register(req: Request, res: Response): Promise<void> {
@@ -127,7 +127,7 @@ class DoctorController {
             const accessToken = generateAccessToken(doctor.email);
             const refreshToken = generateRefreshToken(doctor.email);
 
-            console.log(accessToken)            
+            console.log(accessToken)
 
             res.status(200).json({
                 success: true,
@@ -186,6 +186,48 @@ class DoctorController {
             res.status(500).json({ message: 'Server error' });
         }
     };
+
+    async uploadProfileImage(req: Request, res: Response): Promise<void> {
+        
+        profileUpload.single('profileImage')(req, res, async (err: any) => {
+            console.log(1)
+            if (err) {
+                console.error('Multer Error:', err);
+                return res.status(400).json({ success: false, message: "Error uploading file", error: err.message });
+            }
+            console.log(2)
+            
+            const profileImage = req.file;
+            console.log(profileImage)
+            if (!profileImage) {
+                return res.status(400).json({ success: false, message: "Profile image file is required" });
+            }
+            
+            console.log(3)
+            try {
+                console.log(4)
+                const doctorId = (req as any).user.id; 
+                const profileImageUrl = profileImage.filename;
+                console.log(profileImageUrl);
+                console.log(5)
+                
+                const result = await doctorService.updateDoctorProfileImage(doctorId, profileImageUrl);
+                
+                console.log(6)
+                if (result.success) {
+                    console.log(7 )
+                    return res.status(200).json({ success: true, profileImageUrl });
+                } else {
+                    console.log(8)
+                    return res.status(500).json({ success: false, message: "Failed to update profile image" });
+                }
+            } catch (error) {
+                console.log(9)
+                console.error('Error saving profile image:', error);
+                return res.status(500).json({ success: false, message: "Error saving profile image" });
+            }
+        });
+    }
 }
 
 

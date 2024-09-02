@@ -14,6 +14,7 @@ dbConnection();
 app.use(morgan(':method :url :status :response-time ms'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static("Public"));
 app.use(cors({
     origin: 'http://localhost:5173',
     methods:    'GET, POST, PUT, DELETE, PATCH',

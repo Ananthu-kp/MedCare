@@ -3,6 +3,7 @@ import { FiCamera, FiEdit2 } from 'react-icons/fi';
 import axios from 'axios';
 import { BASE_URL } from '../../Config/baseURL';
 import { toast } from 'sonner';
+import doctorAxiosInstance from '../../Config/AxiosInstance/doctorInstance';
 
 interface FormData {
   [key: string]: string | number;
@@ -62,6 +63,7 @@ function EditModal({
 function DoctorProfile() {
   const [isOfficialModalOpen, setIsOfficialModalOpen] = useState(false);
   const [isPersonalModalOpen, setIsPersonalModalOpen] = useState(false);
+  const [profileImage, setProfileImage] = useState<File | null>(null);
   const [doctorDetails, setDoctorDetails] = useState({
     name: '',
     email: '',
@@ -71,6 +73,7 @@ function DoctorProfile() {
     yearsOfExperience: 0,
     consultationFee: '',
     address: '',
+    profileImageUrl: '',
   });
 
   const [officialDetails, setOfficialDetails] = useState<FormData>({
@@ -86,6 +89,40 @@ function DoctorProfile() {
     phone: '',
     address: '',
   });
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+
+      setProfileImage(file);
+      handleImageUpload(file)
+    }
+  };
+
+  const handleImageUpload = (file: File) => {
+    console.log(file)
+    const formData = new FormData();
+    formData.append('profileImage', file);
+
+    doctorAxiosInstance
+      .put('/upload-profile-image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+      .then((response) => {
+        const { profileImageUrl } = response.data;
+        setDoctorDetails((prevDetails) => ({
+          ...prevDetails,
+          profileImageUrl,
+        }));
+        toast.success('Profile image updated successfully!');
+      })
+      .catch((error) => {
+        console.error('Error uploading profile image:', error);
+        toast.error('Failed to upload profile image.');
+      });
+  };
 
   useEffect(() => {
     console.log('Fetching doctor details...');
@@ -111,6 +148,7 @@ function DoctorProfile() {
             email: doctorData.email,
             phone: doctorData.phone,
             address: doctorData.address,
+            profileIMG: doctorData.profileImg
           });
           // toast.success("Doctor details fetched successfully!");
         })
@@ -200,11 +238,15 @@ function DoctorProfile() {
   return (
     <div className="relative w-full h-[200px] bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
       <div className="absolute bottom-[-60px] left-10 w-[150px] h-[150px] bg-white border-4 rounded-full flex items-center justify-center">
-        <input
-          type="file"
-          className="opacity-0 absolute w-full h-full cursor-pointer"
-          accept="image/*"
-        />
+        <img src={`${BASE_URL}/${personalDetails.profileIMG}`} alt="" />
+        <form encType="multipart/form-data">
+          <input
+            type="file"
+            className="opacity-0 absolute w-full h-full cursor-pointer"
+            accept="image/*"
+            onChange={handleImageChange}
+          />
+        </form>
         <FiCamera className="text-gray-500 text-4xl" />
       </div>
       <div className="absolute bottom-[-100px] left-20">

@@ -49,6 +49,13 @@ class DoctorRepository {
       async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
         return await Doctor.findOneAndUpdate({email: doctorId}, personalDetails, { new: true });
       }
+
+      async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
+        return await Doctor.findOneAndUpdate(
+            {email: doctorId},
+            { profileImg: profileImageUrl }
+        );
+    }
 }
 
 export default new DoctorRepository();

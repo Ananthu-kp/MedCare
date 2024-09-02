@@ -15,7 +15,7 @@ const certificateStorage = multer.diskStorage({
 
 const profileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(uploadDir, 'profiles'));
+        cb(null, 'Public');
     },
     filename: (req, file, cb) => {
         const ext = path.extname(file.originalname);
@@ -36,5 +36,5 @@ export const certificateUpload = multer({
 export const profileUpload = multer({
     storage: profileStorage,
     fileFilter: allowAllFileFilter,
-    limits: { fileSize: 2 * 1024 * 1024 }
+    limits: { fileSize: 5 * 1024 * 1024 }
 });

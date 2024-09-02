@@ -67,6 +67,16 @@ class DoctorService {
       async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
         return await doctorRepository.updatePersonalDetails(doctorId, personalDetails);
       }
+
+      async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
+        try {
+            const updatedDoctor = await doctorRepository.updateDoctorProfileImage(doctorId, profileImageUrl);
+            return { success: true, doctor: updatedDoctor };
+        } catch (error) {
+            console.error('Error updating doctor profile image:', error);
+            return { success: false };
+        }
+    }
 }
 
 export default new DoctorService();
