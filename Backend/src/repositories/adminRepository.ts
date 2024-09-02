@@ -1,9 +1,10 @@
 import { User } from "../Model/userModel";
 import { Doctor } from "../Model/doctorModel";
 import Category from "../Model/categoryModel";
+import { IAdminRepository } from "../interfaces/adminRepository.interface";
 
 
-class AdminRepository {
+class AdminRepository implements IAdminRepository{
 
     async getUsers() {
         try {
