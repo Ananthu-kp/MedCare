@@ -55,6 +55,18 @@ class DoctorService {
             throw new Error('Service error while fetching categories');
         }
     }
+
+    async getDoctorProfile(doctorId: string): Promise<DoctorType | null> {
+        return await doctorRepository.findDoctorById(doctorId);
+      }
+    
+      async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await doctorRepository.updateOfficialDetails(doctorId, officialDetails);
+      }
+    
+      async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await doctorRepository.updatePersonalDetails(doctorId, personalDetails);
+      }
 }
 
 export default new DoctorService();

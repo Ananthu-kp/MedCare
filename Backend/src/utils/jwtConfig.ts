@@ -15,8 +15,7 @@ interface JwtPayload {
 }
 
 interface CustomRequest extends Request {
-    id?: string;
-    email?: string;
+    user?: { id: string; email?: string };
 }
 
 export const generateAccessToken = (userId: string): string => {
@@ -47,7 +46,7 @@ export const verifyToken = (req: CustomRequest, res: Response, next: NextFunctio
                 return res.status(401).json({ message: 'Access denied. Invalid token.' });
             }
         } else {
-            req.id = (decoded as JwtPayload).userId;
+            req.user = { id: (decoded as JwtPayload).userId, email: (decoded as JwtPayload).email };
             next();
         }
     });

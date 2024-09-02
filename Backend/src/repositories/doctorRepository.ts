@@ -32,12 +32,23 @@ class DoctorRepository {
         try {
             const categories = await Category.find().select('name');
             return categories.map(category => category.name); 
-            console.log(categories);
             
         } catch (error) {
             throw new Error('Error fetching categories from the database.');
         }
     }
+
+    async findDoctorById(doctorId: string): Promise<DoctorType | null> {
+        return await Doctor.findOne({email: doctorId});
+      }
+    
+      async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await Doctor.findOneAndUpdate({email: doctorId}, officialDetails, { new: true });
+      }
+    
+      async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await Doctor.findOneAndUpdate({email: doctorId}, personalDetails, { new: true });
+      }
 }
 
 export default new DoctorRepository();

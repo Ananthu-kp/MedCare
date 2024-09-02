@@ -29,7 +29,8 @@ function DoctorLoginPage() {
             try {
                 const response = await axios.post(`${BASE_URL}/doctor/login`, values);
                 if (response.data.success) {
-                    sessionStorage.setItem('doctorToken', response.data.token);
+                    sessionStorage.setItem('doctorToken', response.data.accessToken);
+                    sessionStorage.setItem('doctorRefreshToken', response.data.refreshToken);
                    
                         navigate('/doctor', {state: {message: "Login successfully"}});
                    

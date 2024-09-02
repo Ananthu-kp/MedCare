@@ -12,10 +12,10 @@ class DoctorController {
                 console.error('Multer Error:', err);
                 return res.status(400).json({ success: false, message: "Error uploading file", error: err.message });
             }
-    
+
             console.log('Request Body:', req.body);
             console.log('Uploaded File:', req.file);
-            try { 
+            try {
                 const { name, email, phone, category, experience, hospital, password, confirmPassword } = req.body;
                 const certificate = req.file;
 
@@ -26,19 +26,19 @@ class DoctorController {
                 if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword || !certificate) {
                     return res.status(400).json({ message: 'All fields are required.' });
                 }
-    
+
                 if (password !== confirmPassword) {
                     return res.status(400).json({ success: false, message: "Passwords do not match" });
                 }
-    
+
                 const hashedPassword = await bcryptUtil.hashPassword(password);
-    
+
                 const result = await doctorService.registerDoctor({
                     name, email, phone, category, yearsOfExperience: experience, workingHospital: hospital,
                     password: hashedPassword, otp: "", createdAt: new Date(),
                     certificateUrl: certificate.path
                 });
-    
+
                 if (result.success) {
                     try {
                         await doctorRepository.saveOtp(email, result.otp);
@@ -48,7 +48,7 @@ class DoctorController {
                         return res.status(500).json({ success: false, message: "Error saving OTP" });
                     }
                 } else {
-                    return res.status(409).json(result); 
+                    return res.status(409).json(result);
                 }
             } catch (error) {
                 console.error('Error registering doctor:', error);
@@ -57,27 +57,27 @@ class DoctorController {
         });
     }
 
-    
+
 
     async verifyOtp(req: Request, res: Response): Promise<void> {
         try {
-          const { email, otp } = req.body;
-          console.log('Request Body:', req.body);
-          console.log("Received Data:", { email, otp });
-      
-          const result = await doctorService.verifyOtp(email, otp);
-          if (result.success) {
-            await doctorService.clearTempDoctorData(email);
-          }
-      
-          res.status(result.success ? 200 : 400).json(result);
+            const { email, otp } = req.body;
+            console.log('Request Body:', req.body);
+            console.log("Received Data:", { email, otp });
+
+            const result = await doctorService.verifyOtp(email, otp);
+            if (result.success) {
+                await doctorService.clearTempDoctorData(email);
+            }
+
+            res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
-          console.error('Error in verifyOtp:', error);
-          res.status(500).json({ message: "Something went wrong, please try again later" });
+            console.error('Error in verifyOtp:', error);
+            res.status(500).json({ message: "Something went wrong, please try again later" });
         }
-      }
-    
-    
+    }
+
+
 
     async resendOtp(req: Request, res: Response): Promise<void> {
         try {
@@ -113,7 +113,7 @@ class DoctorController {
                 return;
             }
 
-            if (!doctor.isVerified) { 
+            if (!doctor.isVerified) {
                 res.status(403).json({ success: false, message: "Your account is not verified" });
                 return;
             }
@@ -127,11 +127,13 @@ class DoctorController {
             const accessToken = generateAccessToken(doctor.email);
             const refreshToken = generateRefreshToken(doctor.email);
 
+            console.log(accessToken)            
+
             res.status(200).json({
                 success: true,
                 message: "Login successful",
-                accessToken,
-                refreshToken,
+                accessToken: accessToken,
+                refreshToken: refreshToken,
             });
         } catch (error) {
             console.error('Error logging in doctor:', error);
@@ -147,9 +149,45 @@ class DoctorController {
             res.status(500).json({ success: false, message: 'Error fetching categories.' });
         }
     }
-    
-    
 
+    async getDoctorProfile(req: Request, res: Response): Promise<void> {
+        try {
+            const doctorId = (req as any).user.id;
+            const doctorProfile = await doctorService.getDoctorProfile(doctorId);
+            console.log(doctorProfile)
+            if (!doctorProfile) {
+                res.status(404).json({ message: 'Doctor not found' });
+                return;
+            }
+            res.json(doctorProfile);
+        } catch (error) {
+            res.status(500).json({ message: 'Server error' });
+        }
+    }
+
+    async updateOfficialDetails(req: Request, res: Response): Promise<void> {
+        try {
+            const doctorId = (req as any).user.id;
+            const officialDetails = req.body;
+            const updatedDoctor = await doctorService.updateOfficialDetails(doctorId, officialDetails);
+            res.json(updatedDoctor);
+        } catch (error) {
+            res.status(500).json({ message: 'Server error' });
+        }
+    }
+
+    async updatePersonalDetails(req: Request, res: Response): Promise<void> {
+        try {
+            const doctorId = (req as any).user.id;
+            const personalDetails = req.body;
+            const updatedDoctor = await doctorService.updatePersonalDetails(doctorId, personalDetails);
+            res.json(updatedDoctor);
+        } catch (error) {
+            res.status(500).json({ message: 'Server error' });
+        }
+    };
 }
+
+
 
 export default new DoctorController();
