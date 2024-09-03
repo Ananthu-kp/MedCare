@@ -4,31 +4,30 @@ import doctorRepository from "../repositories/doctorRepository";
 import bcryptUtil from "../utils/bcryptUtil";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
 import { certificateUpload, profileUpload } from '../config/multer';
+import { HttpStatus } from '../utils/httpStatus';
 
 class DoctorController {
     async register(req: Request, res: Response): Promise<void> {
         certificateUpload.single('certificate')(req, res, async (err) => {
             if (err) {
                 console.error('Multer Error:', err);
-                return res.status(400).json({ success: false, message: "Error uploading file", error: err.message });
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Error uploading file", error: err.message });
             }
 
-            console.log('Request Body:', req.body);
-            console.log('Uploaded File:', req.file);
             try {
                 const { name, email, phone, category, experience, hospital, password, confirmPassword } = req.body;
                 const certificate = req.file;
 
                 if (!certificate) {
-                    return res.status(400).json({ success: false, message: "Certificate file is required" });
+                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Certificate file is required" });
                 }
 
-                if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword || !certificate) {
-                    return res.status(400).json({ message: 'All fields are required.' });
+                if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword) {
+                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'All fields are required.' });
                 }
 
                 if (password !== confirmPassword) {
-                    return res.status(400).json({ success: false, message: "Passwords do not match" });
+                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Passwords do not match" });
                 }
 
                 const hashedPassword = await bcryptUtil.hashPassword(password);
@@ -42,42 +41,36 @@ class DoctorController {
                 if (result.success) {
                     try {
                         await doctorRepository.saveOtp(email, result.otp);
-                        return res.status(200).json({ success: true, message: 'Registration successful!' });
+                        return res.status(HttpStatus.OK).json({ success: true, message: 'Registration successful!' });
                     } catch (error) {
                         console.error('Error saving OTP:', error);
-                        return res.status(500).json({ success: false, message: "Error saving OTP" });
+                        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving OTP" });
                     }
                 } else {
-                    return res.status(409).json(result);
+                    return res.status(HttpStatus.CONFLICT).json(result);
                 }
             } catch (error) {
                 console.error('Error registering doctor:', error);
-                return res.status(500).json({ success: false, message: "Error registering doctor" });
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error registering doctor" });
             }
         });
     }
 
-
-
     async verifyOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email, otp } = req.body;
-            console.log('Request Body:', req.body);
-            console.log("Received Data:", { email, otp });
 
             const result = await doctorService.verifyOtp(email, otp);
             if (result.success) {
                 await doctorService.clearTempDoctorData(email);
             }
 
-            res.status(result.success ? 200 : 400).json(result);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyOtp:', error);
-            res.status(500).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }
-
-
 
     async resendOtp(req: Request, res: Response): Promise<void> {
         try {
@@ -85,16 +78,16 @@ class DoctorController {
 
             const doctor = await doctorRepository.findDoctorByEmail(email);
             if (!doctor) {
-                res.status(404).json({ success: false, message: "Doctor not found" });
+                res.status(HttpStatus.NOT_FOUND).json({ success: false, message: "Doctor not found" });
                 return;
             }
 
             const result = await doctorService.resendOtp(email);
 
-            res.status(result.success ? 200 : 400).json(result);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error resending OTP:', error);
-            res.status(500).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }
 
@@ -104,32 +97,30 @@ class DoctorController {
 
             const doctor = await doctorRepository.findDoctorByEmail(email);
             if (!doctor) {
-                res.status(401).json({ success: false, message: "Invalid credentials" });
+                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
                 return;
             }
 
             if (doctor.isBlocked) {
-                res.status(403).json({ success: false, message: "Your account has been blocked" });
+                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account has been blocked" });
                 return;
             }
 
             if (!doctor.isVerified) {
-                res.status(403).json({ success: false, message: "Your account is not verified" });
+                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account is not verified" });
                 return;
             }
 
             const isMatch = await bcryptUtil.comparePassword(password, doctor.password);
             if (!isMatch) {
-                res.status(401).json({ success: false, message: "Invalid credentials" });
+                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
                 return;
             }
 
             const accessToken = generateAccessToken(doctor.email);
             const refreshToken = generateRefreshToken(doctor.email);
 
-            console.log(accessToken)
-
-            res.status(200).json({
+            res.status(HttpStatus.OK).json({
                 success: true,
                 message: "Login successful",
                 accessToken: accessToken,
@@ -137,16 +128,16 @@ class DoctorController {
             });
         } catch (error) {
             console.error('Error logging in doctor:', error);
-            res.status(500).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }
 
     async getCategories(req: Request, res: Response): Promise<void> {
         try {
             const categories = await doctorService.getCategories();
-            res.json({ success: true, categories });
+            res.status(HttpStatus.OK).json({ success: true, categories });
         } catch (error) {
-            res.status(500).json({ success: false, message: 'Error fetching categories.' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error fetching categories.' });
         }
     }
 
@@ -154,14 +145,13 @@ class DoctorController {
         try {
             const doctorId = (req as any).user.id;
             const doctorProfile = await doctorService.getDoctorProfile(doctorId);
-            console.log(doctorProfile)
             if (!doctorProfile) {
-                res.status(404).json({ message: 'Doctor not found' });
+                res.status(HttpStatus.NOT_FOUND).json({ message: 'Doctor not found' });
                 return;
             }
-            res.json(doctorProfile);
+            res.status(HttpStatus.OK).json(doctorProfile);
         } catch (error) {
-            res.status(500).json({ message: 'Server error' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
         }
     }
 
@@ -170,9 +160,9 @@ class DoctorController {
             const doctorId = (req as any).user.id;
             const officialDetails = req.body;
             const updatedDoctor = await doctorService.updateOfficialDetails(doctorId, officialDetails);
-            res.json(updatedDoctor);
+            res.status(HttpStatus.OK).json(updatedDoctor);
         } catch (error) {
-            res.status(500).json({ message: 'Server error' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
         }
     }
 
@@ -181,55 +171,41 @@ class DoctorController {
             const doctorId = (req as any).user.id;
             const personalDetails = req.body;
             const updatedDoctor = await doctorService.updatePersonalDetails(doctorId, personalDetails);
-            res.json(updatedDoctor);
+            res.status(HttpStatus.OK).json(updatedDoctor);
         } catch (error) {
-            res.status(500).json({ message: 'Server error' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
         }
     };
 
     async uploadProfileImage(req: Request, res: Response): Promise<void> {
-        
         profileUpload.single('profileImage')(req, res, async (err: any) => {
-            console.log(1)
             if (err) {
                 console.error('Multer Error:', err);
-                return res.status(400).json({ success: false, message: "Error uploading file", error: err.message });
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Error uploading file", error: err.message });
             }
-            console.log(2)
-            
+
             const profileImage = req.file;
-            console.log(profileImage)
             if (!profileImage) {
-                return res.status(400).json({ success: false, message: "Profile image file is required" });
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Profile image file is required" });
             }
-            
-            console.log(3)
+
             try {
-                console.log(4)
-                const doctorId = (req as any).user.id; 
+                const doctorId = (req as any).user.id;
                 const profileImageUrl = profileImage.filename;
-                console.log(profileImageUrl);
-                console.log(5)
-                
+
                 const result = await doctorService.updateDoctorProfileImage(doctorId, profileImageUrl);
-                
-                console.log(6)
+
                 if (result.success) {
-                    console.log(7 )
-                    return res.status(200).json({ success: true, profileImageUrl });
+                    return res.status(HttpStatus.OK).json({ success: true, profileImageUrl });
                 } else {
-                    console.log(8)
-                    return res.status(500).json({ success: false, message: "Failed to update profile image" });
+                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Failed to update profile image" });
                 }
             } catch (error) {
-                console.log(9)
                 console.error('Error saving profile image:', error);
-                return res.status(500).json({ success: false, message: "Error saving profile image" });
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving profile image" });
             }
         });
     }
 }
-
-
 
 export default new DoctorController();
