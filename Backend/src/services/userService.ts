@@ -81,7 +81,10 @@ class UserService {
                 phone: '',
             };
 
-            await userRepository.createUser(newUser);
+            delete newUser.tempData;
+            delete newUser.otpCreatedAt;
+
+            await userRepository.createGoogleUser(newUser);
             return this.generateTokens(newUser);
         }
 
@@ -91,6 +94,7 @@ class UserService {
 
         return this.generateTokens(user);
     }
+
 
     private generateTokens(user: UserType) {
         const accessToken = generateAccessToken(user.email.toString());

@@ -30,6 +30,14 @@ const userSchema = new Schema<UserType>({
     otpCreatedAt: { type: Date, default: Date.now, expires: '5m' }
 });
 
+userSchema.pre('save', function (next) {
+    if (this.googleId) {
+        this.tempData = undefined;
+        this.otpCreatedAt = undefined;
+    }
+    next();
+});
+
 
 userSchema.index({ otpCreatedAt: 1 }, { expireAfterSeconds: 300 });
 

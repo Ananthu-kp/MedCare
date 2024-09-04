@@ -101,7 +101,9 @@ function UserLogin() {
                         sessionStorage.setItem("userToken", loginResponse.data.accessToken);
                         sessionStorage.setItem("userDetails", JSON.stringify(loginResponse.data.userDetails));
                         toast.success("Google login successful!");
-                        navigate("/");
+                        setTimeout(() => {
+                            navigate("/");
+                        }, 1200)
                     } else {
                         toast.error(loginResponse.data.message);
                     }

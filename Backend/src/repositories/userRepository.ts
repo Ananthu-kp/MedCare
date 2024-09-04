@@ -35,6 +35,12 @@ class UserRepository {
         return User.findOne({ googleId });
     }
 
+    async createGoogleUser(user: UserType): Promise<UserType> {
+        const { tempData, otpCreatedAt, ...userData } = user;
+        return new User(userData).save();
+    }
+    
+
 }
 
 export default new UserRepository();
