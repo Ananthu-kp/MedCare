@@ -2,6 +2,7 @@ import userRepository from "../repositories/userRepository";
 import bcryptUtil from "../utils/bcryptUtil";
 import { UserType } from "../Model/userModel";
 import { sendOtpEmail } from '../config/nodeMailer';
+import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
 
 class UserService {
     async registerUser(user: UserType): Promise<{ success: boolean; message: string; otp: string }> {
@@ -65,6 +66,37 @@ class UserService {
             console.error('Failed to resend OTP:', error);
             return { success: false, message: 'Failed to resend OTP' };
         }
+    }
+
+    async loginWithGoogle(profile: any): Promise<{ success: boolean; message: string; accessToken?: string; refreshToken?: string }> {
+        const user = await userRepository.findUserByEmail(profile.email);
+
+        if (!user) {
+            const newUser: UserType = {
+                email: profile.email,
+                name: profile.name,
+                googleId: profile.id,
+                password: await bcryptUtil.hashPassword('randompassword' + Date.now()),
+                isBlocked: false,
+                phone: '',
+            };
+
+            await userRepository.createUser(newUser);
+            return this.generateTokens(newUser);
+        }
+
+        if (user.isBlocked) {
+            return { success: false, message: "Your account has been blocked" };
+        }
+
+        return this.generateTokens(user);
+    }
+
+    private generateTokens(user: UserType) {
+        const accessToken = generateAccessToken(user.email.toString());
+        const refreshToken = generateRefreshToken(user.email.toString());
+
+        return { success: true, message: "Login successful", accessToken, refreshToken };
     }
 
 }

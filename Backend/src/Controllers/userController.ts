@@ -109,6 +109,19 @@ class UserController {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }
+
+    async googleLogin(req: Request, res: Response): Promise<void> {
+        try {
+            const { profile } = req.body;
+
+            const result = await userService.loginWithGoogle(profile);
+
+            res.status(result.success ? HttpStatus.OK : HttpStatus.FORBIDDEN).json(result);
+        } catch (error) {
+            console.error('Error in Google login:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
 }
 
 export default new UserController();

@@ -14,7 +14,7 @@ class UserRepository {
         if (!user) {
             throw new Error('User not found when trying to save OTP');
         }
-    
+
         await User.updateOne({ email }, { otp, tempData: true, otpCreatedAt: new Date() });
     }
 
@@ -24,12 +24,17 @@ class UserRepository {
     }
 
     async findTempUserByEmail(email: string): Promise<UserType | null> {
-        return User.findOne({ email, tempData: true})
+        return User.findOne({ email, tempData: true })
     }
 
     async clearTempUserData(email: string): Promise<void> {
         await User.updateOne({ email }, { $unset: { otp: 1, tempData: 1, otpCreatedAt: 1 } });
     }
+
+    async findUserByGoogleId(googleId: string): Promise<UserType | null> {
+        return User.findOne({ googleId });
+    }
+
 }
 
 export default new UserRepository();
