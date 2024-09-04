@@ -1,14 +1,16 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 // @ts-ignore
 import GoogleIcon from '../../../public/svgs/GoogleIcon';
-import  "../../../src/assets/images/nurse.png";
+import "../../../src/assets/images/nurse.png";
 import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import { BASE_URL } from '../../Config/baseURL';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { googleLogout, useGoogleLogin } from '@react-oauth/google'
+
 
 interface LoginFormValues {
     email: string;
@@ -66,6 +68,57 @@ function UserLogin() {
             setSubmitting(false);
         }
     };
+
+    // Google Authentication
+    const [user, setUser] = useState<any>(null);
+
+    const googleLogin = useGoogleLogin({
+        onSuccess: (codeResponse) => setUser(codeResponse),
+        onError: (error) => {
+            console.error('Google login failed:', error);
+            toast.error("Google login failed");
+        }
+    });
+
+    useEffect(() => {
+        if (user) {
+            const fetchProfileAndLogin = async () => {
+                try {
+                    const profileResponse = await axios.get(
+                        `https://www.googleapis.com/oauth2/v1/userinfo?access_token=${user.access_token}`, {
+                        headers: {
+                            Authorization: `Bearer ${user.access_token}`,
+                            Accept: 'application/json',
+                        },
+                    }
+                    );
+
+                    const profile = profileResponse.data;
+
+                    const loginResponse = await axios.post(`${BASE_URL}/google-login`, { profile });
+
+                    if (loginResponse.data.success) {
+                        sessionStorage.setItem("userToken", loginResponse.data.accessToken);
+                        sessionStorage.setItem("userDetails", JSON.stringify(loginResponse.data.userDetails));
+                        toast.success("Google login successful!");
+                        navigate("/");
+                    } else {
+                        toast.error(loginResponse.data.message);
+                    }
+                } catch (error: any) {
+                    if (error.response?.status === 401) {
+                        toast.error("Invalid credentials");
+                    } else if (error.response?.status === 403) {
+                        toast.error("Your account has been blocked");
+                    } else {
+                        toast.error("Something went wrong!");
+                    }
+                }
+            };
+
+            fetchProfileAndLogin();
+        }
+    }, [user]);
 
     return (
         <div className="min-h-screen flex">
@@ -139,9 +192,10 @@ function UserLogin() {
 
                                     <button
                                         type="button"
+                                        onClick={() => googleLogin()}
                                         className="w-full bg-white border border-gray-300 text-gray-700 py-2 px-4 rounded-lg shadow hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-teal-500 flex items-center justify-center"
                                     >
-                                        <GoogleIcon  />
+                                        <GoogleIcon />
                                         Sign in with Google
                                     </button>
 
