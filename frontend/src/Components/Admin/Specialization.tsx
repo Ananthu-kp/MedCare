@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
+import { FaSave, FaTimes } from 'react-icons/fa'; 
 
 interface Category {
   _id: string;
@@ -21,6 +22,7 @@ const Specialization: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState<string>('');
+  const [originalCategoryName, setOriginalCategoryName] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,14 +36,18 @@ const Specialization: React.FC = () => {
 
   const handleAddCategory = async (values: { name: string }, { resetForm }: any) => {
     try {
-      const existingCategory = categories.find(category => category.name === values.name);
+      const newCategoryName = values.name.trim().toLowerCase();
+      const existingCategory = categories.find(category =>
+        category.name.trim().toLowerCase() === newCategoryName
+      );
+
       if (existingCategory) {
         toast.error('Category already exists');
         return;
       }
 
       const { data } = await adminAxiosInstance.post('/admin/addCategory', { name: values.name });
-      setCategories([...categories, data]); 
+      setCategories([...categories, data]);
       resetForm();
       toast.success('Category added successfully');
     } catch (error) {
@@ -65,7 +71,11 @@ const Specialization: React.FC = () => {
     }
 
     try {
-      const existingCategory = categories.find(category => category.name === name && category._id !== id);
+      const newCategoryName = name.trim().toLowerCase();
+      const existingCategory = categories.find(category =>
+        category.name.trim().toLowerCase() === newCategoryName && category._id !== id
+      );
+
       if (existingCategory) {
         toast.error('Category name already exists');
         return;
@@ -86,6 +96,11 @@ const Specialization: React.FC = () => {
         toast.error('Something went wrong, please try again later');
       }
     }
+  };
+
+  const handleCancelEdit = () => {
+    setEditCategoryId(null);
+    setEditCategoryName(originalCategoryName);
   };
 
   const handleDeleteCategory = async (id: string) => {
@@ -159,17 +174,28 @@ const Specialization: React.FC = () => {
                       </td>
                       <td className="py-3 px-4">
                         {editCategoryId === category._id ? (
-                          <button
-                            onClick={() => handleEditCategory(category._id, editCategoryName)}
-                            className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-400 transition duration-300 mr-2"
-                          >
-                            Save
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              onClick={() => handleEditCategory(category._id, editCategoryName)}
+                              className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-400 transition duration-300 mr-2 flex items-center"
+                            >
+                              <FaSave className="mr-2" />
+                              Save
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="bg-gray-500 text-white px-4 py-2 rounded-full hover:bg-gray-400 transition duration-300 flex items-center"
+                            >
+                              <FaTimes className="mr-2" />
+                              Cancel
+                            </button>
+                          </div>
                         ) : (
                           <div className="flex space-x-2">
                             <button
                               onClick={() => {
                                 setEditCategoryId(category._id);
+                                setOriginalCategoryName(category.name); 
                                 setEditCategoryName(category.name);
                               }}
                               className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-400 transition duration-300"
@@ -211,7 +237,7 @@ const Specialization: React.FC = () => {
                 <ErrorMessage name="name" component="div" className="text-red-500 mb-2" />
                 <button
                   type="submit"
-                  className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-400 transition duration-300"
+                  className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-400 transition duration-300 w-full flex items-center justify-center"
                 >
                   Add Category
                 </button>
