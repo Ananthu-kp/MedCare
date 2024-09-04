@@ -1,9 +1,15 @@
 import { Router } from 'express'
 import AdminController from '../Controllers/adminController'
+import AdminRepository from '../Repositories/adminRepository';
+import AdminService from '../Services/adminService';
 
 
 const router = Router();
-const adminController = new AdminController();
+const adminRepository = new AdminRepository();
+const adminService = new AdminService(adminRepository)
+const adminController = new AdminController(adminService);
+
+
 
 router.post('/login', adminController.login)
 router.get('/users', adminController.getUser)

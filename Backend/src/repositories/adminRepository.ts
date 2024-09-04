@@ -1,7 +1,7 @@
 import { User } from "../Model/userModel";
 import { Doctor } from "../Model/doctorModel";
 import Category from "../Model/categoryModel";
-import { IAdminRepository } from "../interfaces/adminRepository.interface";
+import { IAdminRepository } from "../Interfaces/adminRepository.interface";
 
 
 class AdminRepository implements IAdminRepository{

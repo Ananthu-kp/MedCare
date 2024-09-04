@@ -1,17 +1,16 @@
 import dotenv from 'dotenv';
 import { generateAccessToken } from "../utils/jwtConfig";
-import { IAdminService } from '../interfaces/adminService.interface';
-import { IAdminRepository } from '../interfaces/adminRepository.interface';
-import AdminRepository from '../repositories/adminRepository';
+import { IAdminService } from '../Interfaces/adminService.interface';
+import { IAdminRepository } from '../Interfaces/adminRepository.interface';
 
 dotenv.config();
 
 class AdminService  implements IAdminService {
     private _adminRepository: IAdminRepository
 
-    constructor() {
-        this._adminRepository = new AdminRepository()
-    }
+    constructor(adminRepository: IAdminRepository) {
+        this._adminRepository = adminRepository
+    } 
 
 
     async login(email: string, password: string) {

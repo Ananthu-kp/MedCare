@@ -1,16 +1,20 @@
 import { Request, Response } from 'express';
-import AdminService from '../services/adminService';
+import { IAdminService } from '../Interfaces/adminService.interface'
 import { HttpStatus } from '../utils/httpStatus';
 
-const adminServices = new AdminService();
 
 class AdminController {
+    private _adminService: IAdminService;
 
-    async login(req: Request, res: Response) {
+    constructor(_adminService: IAdminService) {
+        this._adminService = _adminService;
+    }
+
+    login = async (req: Request, res: Response) => {
         try {
             const { email, password } = req.body;
 
-            const serviceResponse = await adminServices.login(email, password);
+            const serviceResponse = await this._adminService.login(email, password);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error) {
             if (error instanceof Error) {
@@ -27,9 +31,9 @@ class AdminController {
         }
     }
 
-    async getUser(req: Request, res: Response) {
+    getUser = async (req: Request, res: Response) => {
         try {
-            const users = await adminServices.getUser();
+            const users = await this._adminService.getUser();
             res.status(HttpStatus.OK).json(users);
         } catch (error) {
             if (error instanceof Error) {
@@ -40,29 +44,29 @@ class AdminController {
         }
     }
 
-    async unBlockUser(req: Request, res: Response) {
+    unBlockUser = async (req: Request, res: Response) => {
         try {
             const email = req.query.email as string;
-            const serviceResponse = await adminServices.unBlockUser(email);
+            const serviceResponse = await this._adminService.unBlockUser(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async blockUser(req: Request, res: Response) {
+    blockUser = async (req: Request, res: Response) => {
         try {
             const email = req.query.email as string;
-            const serviceResponse = await adminServices.blockUser(email);
+            const serviceResponse = await this._adminService.blockUser(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async getDoctor(req: Request, res: Response) {
+    getDoctor = async (req: Request, res: Response) => {
         try {
-            const doctors = await adminServices.getDoctor();
+            const doctors = await this._adminService.getDoctor();
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
             if (error instanceof Error) {
@@ -73,30 +77,30 @@ class AdminController {
         }
     }
 
-    async blockDoctor(req: Request, res: Response) {
+    blockDoctor = async (req: Request, res: Response) => {
         try {
             const email = req.query.email as string;
-            const serviceResponse = await adminServices.blockDoctor(email);
+            const serviceResponse = await this._adminService.blockDoctor(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async unBlockDoctor(req: Request, res: Response) {
+    unBlockDoctor = async (req: Request, res: Response) => {
         try {
             const email = req.query.email as string;
-            const serviceResponse = await adminServices.unBlockDoctor(email);
+            const serviceResponse = await this._adminService.unBlockDoctor(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async verifyDoctor(req: Request, res: Response) {
+    verifyDoctor = async (req: Request, res: Response) => {
         try {
             const email = req.query.email as string;
-            const serviceResponse = await adminServices.verifyDoctor(email);
+            const serviceResponse = await this._adminService.verifyDoctor(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
             console.error('Error in verifyDoctorController:', error.message);
@@ -104,50 +108,51 @@ class AdminController {
         }
     }
 
-    async rejectDoctor(req: Request, res: Response) {
+    rejectDoctor = async (req: Request, res: Response) => {
         try {
             const email = req.query.email as string;
-            const serviceResponse = await adminServices.rejectDoctor(email);
+            const serviceResponse = await this._adminService.rejectDoctor(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async getCategories(req: Request, res: Response) {
+    getCategories = async (req: Request, res: Response) => {
         try {
-            const categories = await adminServices.getCategories();
+            const categories = await this._adminService.getCategories();
             res.status(HttpStatus.OK).json(categories);
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async addCategory(req: Request, res: Response) {
+    addCategory = async (req: Request, res: Response) => {
         try {
             const { name } = req.body;
-            const newCategory = await adminServices.addCategory(name);
+            const newCategory = await this._adminService.addCategory(name);
+            if (newCategory)
             res.status(HttpStatus.CREATED).json(newCategory);
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async deleteCategory(req: Request, res: Response) {
+    deleteCategory = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
-            await adminServices.deleteCategory(id);
+            await this._adminService.deleteCategory(id);
             res.status(HttpStatus.OK).json({ message: "Category deleted successfully" });
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
 
-    async editCategory(req: Request, res: Response) {
+    editCategory = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
             const { name } = req.body;
-            const updatedCategory = await adminServices.editCategory(id, name);
+            const updatedCategory = await this._adminService.editCategory(id, name);
             res.status(HttpStatus.OK).json({ message: "Category edited successfully", updatedCategory });
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
