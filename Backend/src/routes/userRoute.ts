@@ -8,5 +8,8 @@ router.post('/otp', userController.verifyOtp);
 router.post('/resend-otp', userController.resendOtp);
 router.post('/login', userController.login);
 router.post('/google-login', userController.googleLogin);
+router.post('/forgot-password', userController.otpForPassReset)
+router.post('/verifyForget-otp', userController.verifyForgotOtp)
+router.post('/verifyResend-otp', userController.resendForgotOtp)
 
 export default router;

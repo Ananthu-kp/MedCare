@@ -103,6 +103,54 @@ class UserService {
         return { success: true, message: "Login successful", accessToken, refreshToken };
     }
 
+
+    async requestOtpForPasswordReset(email: string): Promise<{ success: boolean; message: string; otp?: string }> {
+        const user = await userRepository.findUserByEmail(email)
+        if (!user) {
+            return { success: false, message: 'User not found' };
+        }
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString()
+        console.log('Password reset otp ->', otp)
+
+        try {
+            user.otp = otp;
+            await sendOtpEmail(email, otp);
+            return { success: true, message: 'OTP sent to your email', otp }
+        } catch (error) {
+            console.error('Failed to send OTP:', error);
+            return { success: false, message: 'Failed to send OTP' };
+        }
+    }
+
+    async verifyForgotOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
+        const user = await userRepository.findUserByEmail(email);
+        if (!user) {
+            return { success: false, message: 'User not found' }
+        }
+        return { success: true, message: 'OTP verified successfully' }
+    }
+
+    async resendForgotOtp(email: string): Promise<{ success: boolean; message: string }> {
+        const user = await userRepository.findUserByEmail(email);
+
+        if (!user) {
+            return { success: false, message: 'User not found' }
+        }
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString()
+        console.log("Resend otp =>", otp)
+
+        try {
+            await sendOtpEmail(email, otp, true);
+            return { success: true, message: 'OTP resent to your email' }
+        } catch (error) {
+            console.error('Failed to send OTP:', error);
+            return { success: false, message: 'Failed to send OTP' };
+        }
+    }
+
+
 }
 
 

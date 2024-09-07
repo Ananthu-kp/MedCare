@@ -24,6 +24,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { Toaster } from "sonner"
 import DoctorsListPage from './Pages/Admin/DoctorsListPage';
 import SpecializationPage from './Pages/Admin/SpecializationPage';
+import UserForgotPass from './Components/Users/UserForgotPass';
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/login" element={<GuestRoute element={LoginPage} />} />
           <Route path="/otp" element={<OtpProtect element={OtpPage} />} />
           <Route path="/" element={<HomePage />} />
+          <Route path="/forgot-password" element={<UserForgotPass />} />
 
           <Route path="/admin/login" element={<LoginPageAdmin />} />
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />

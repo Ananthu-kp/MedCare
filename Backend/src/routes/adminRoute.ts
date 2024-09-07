@@ -1,8 +1,7 @@
 import { Router } from 'express'
 import AdminController from '../Controllers/adminController'
 import AdminRepository from '../Repositories/adminRepository';
-import AdminService from '../Services/adminService';
-
+import AdminService from '../services/adminService';
 
 const router = Router();
 const adminRepository = new AdminRepository();

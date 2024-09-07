@@ -40,7 +40,7 @@ class UserController {
     async verifyOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email, otp } = req.body;
-            console.log("Received Data:", { email, otp }); 
+            console.log("Received Data:", { email, otp });
 
             const result = await userService.verifyOtp(email, otp);
             if (result.success) {
@@ -57,12 +57,6 @@ class UserController {
     async resendOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email } = req.body;
-
-            const user = await userRepository.findUserByEmail(email);
-            if (!user) {
-                res.status(HttpStatus.NOT_FOUND).json({ success: false, message: "User not found" });
-                return;
-            }
 
             const result = await userService.resendOtp(email);
 
@@ -119,6 +113,45 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.FORBIDDEN).json(result);
         } catch (error) {
             console.error('Error in Google login:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
+    async otpForPassReset(req: Request, res: Response) {
+        try {
+            const { email } = req.body;
+            console.log("email 9888888",email)
+            if (!email) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ message: "Email is required" });
+            }
+            const result = await userService.requestOtpForPasswordReset(email)
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+        } catch (error) {
+            console.error('Error in Google login:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
+    async verifyForgotOtp(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, otp } = req.body;
+
+            const result = await userService.verifyForgotOtp(email, otp);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+        } catch (error) {
+            console.error('Error in verifyForgotOtp:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
+    async resendForgotOtp(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body;
+            const result = await userService.resendForgotOtp(email)
+
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+        } catch (error) {
+            console.error('Error in resendForgotOtp:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }

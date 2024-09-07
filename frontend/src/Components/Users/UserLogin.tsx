@@ -162,7 +162,7 @@ function UserLogin() {
                                             name="email"
                                             placeholder="Enter your email"
                                             className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                                        />
+                                        /> 
                                         <ErrorMessage name="email" component="div" className="text-red-600 text-sm mt-1" />
                                     </div>
 
@@ -179,7 +179,9 @@ function UserLogin() {
                                     </div>
 
                                     <div className="text-right mb-4">
-                                        <a href="#" className="text-sm text-teal-500 hover:underline">Forgot password?</a>
+                                        <Link to={"/forgot-password"}>
+                                            <p className="text-sm text-teal-500 hover:underline">Forgot password</p>
+                                        </Link>
                                     </div>
 
                                     <button
