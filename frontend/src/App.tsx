@@ -25,6 +25,7 @@ import { Toaster } from "sonner"
 import DoctorsListPage from './Pages/Admin/DoctorsListPage';
 import SpecializationPage from './Pages/Admin/SpecializationPage';
 import UserForgotPass from './Components/Users/UserForgotPass';
+import RecoverPassword from './Components/Users/RecoverPassword';
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
           <Route path="/otp" element={<OtpProtect element={OtpPage} />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/forgot-password" element={<UserForgotPass />} />
+          <Route path="/recover-password" element={<RecoverPassword />} />
 
           <Route path="/admin/login" element={<LoginPageAdmin />} />
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />

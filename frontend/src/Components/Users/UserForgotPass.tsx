@@ -4,6 +4,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { BASE_URL } from '../../Config/baseURL';
+import { useNavigate } from 'react-router-dom';
 
 function UserForgotPass() {
     const [timer, setTimer] = useState<number>(0); 
@@ -12,6 +13,7 @@ function UserForgotPass() {
     const [loading, setLoading] = useState<boolean>(false);
     const [isOtpSent, setIsOtpSent] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
+    const navigate = useNavigate()
 
 
     useEffect(() => {
@@ -50,11 +52,12 @@ function UserForgotPass() {
             return
         }
         try {
-            console.log("ttttttttttqqqqqqqq")
             const response = await axios.post(`${BASE_URL}/verifyForget-otp`, { email, otp });
-            console.log("tttttttttt")
             if (response.data.success) {
                 toast.success('OTP Verified!');
+                setTimeout(() => {
+                    navigate('/recover-password')
+                }, 1000)
             } else {
                 toast.error(response.data.message || 'Invalid OTP');
             }
