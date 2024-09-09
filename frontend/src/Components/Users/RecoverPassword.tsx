@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 
 function RecoverPassword() {
+
     const [loading, setLoading] = useState<boolean>(false);
     const navigate = useNavigate();
 
@@ -20,13 +21,20 @@ function RecoverPassword() {
             .required('Please confirm your password'),
     });
 
+
     const handleSubmit = async (values: { newPassword: string; confirmPassword: string }) => {
         setLoading(true);
         try {
-            const email = sessionStorage.getItem('email'); // get the email from session storage or state
+            const email = sessionStorage.getItem('email');
+            alert(email)
+            if (!email) {
+                toast.error('Email is not found. Please retry the process.');
+                setLoading(false);
+                return;
+            }
             const response = await axios.post(`${BASE_URL}/recover-password`, {
                 email,
-                password: values.newPassword,
+                newPassword: values.newPassword,
             });
 
             if (response.data.success) {
@@ -43,6 +51,7 @@ function RecoverPassword() {
             setLoading(false);
         }
     };
+
 
     return (
         <div className="min-h-screen flex">
@@ -116,9 +125,8 @@ function RecoverPassword() {
                                     {/* Proceed Button */}
                                     <button
                                         type="submit"
-                                        className={`w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 ${
-                                            loading ? 'bg-teal-400 cursor-not-allowed' : ''
-                                        }`}
+                                        className={`w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 ${loading ? 'bg-teal-400 cursor-not-allowed' : ''
+                                            }`}
                                         disabled={isSubmitting || loading}
                                     >
                                         {loading ? 'Processing...' : 'Proceed'}

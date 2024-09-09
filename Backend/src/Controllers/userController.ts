@@ -120,7 +120,6 @@ class UserController {
     async otpForPassReset(req: Request, res: Response) {
         try {
             const { email } = req.body;
-            console.log("email 9888888",email)
             if (!email) {
                 return res.status(HttpStatus.BAD_REQUEST).json({ message: "Email is required" });
             }
@@ -155,6 +154,26 @@ class UserController {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }
+
+    async resetPassword(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, otp, newPassword } = req.body;
+    
+            const otpResult = await userService.verifyForgotOtp(email, otp);
+            if (!otpResult.success) {
+                res.status(HttpStatus.BAD_REQUEST).json(otpResult);
+                return;
+            }
+    
+            const result = await userService.updatePassword(email, newPassword);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
+    
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+    
 }
 
 export default new UserController();

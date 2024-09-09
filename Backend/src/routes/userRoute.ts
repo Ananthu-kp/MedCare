@@ -11,5 +11,6 @@ router.post('/google-login', userController.googleLogin);
 router.post('/forgot-password', userController.otpForPassReset)
 router.post('/verifyForget-otp', userController.verifyForgotOtp)
 router.post('/verifyResend-otp', userController.resendForgotOtp)
+router.post('/recover-password', userController.resetPassword)
 
 export default router;

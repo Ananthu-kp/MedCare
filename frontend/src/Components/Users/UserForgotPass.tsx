@@ -7,7 +7,7 @@ import { BASE_URL } from '../../Config/baseURL';
 import { useNavigate } from 'react-router-dom';
 
 function UserForgotPass() {
-    const [timer, setTimer] = useState<number>(0); 
+    const [timer, setTimer] = useState<number>(0);
     const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
     const [otp, setOtp] = useState<string>('');
     const [loading, setLoading] = useState<boolean>(false);
@@ -42,11 +42,19 @@ function UserForgotPass() {
         }
     };
 
-    const storedOtp = sessionStorage.getItem('otp')
-    const storedresendOtp = sessionStorage.getItem('resendotp')
     const handleSubmitOtpVerification = async () => {
         setLoading(true);
-        if (otp !== storedOtp) {
+
+        if (otp.length < 4) {
+            toast.warn('Please enter the OTP');
+            setLoading(false);
+            return;
+        }
+
+        const storedOtp = sessionStorage.getItem('otp')
+        const storedresendOtp = sessionStorage.getItem('resendotp')
+
+        if (otp !== storedOtp && otp !== storedresendOtp) {
             toast.error('Invalid OTP');
             setLoading(false);
             return
@@ -131,9 +139,11 @@ function UserForgotPass() {
                                     if (response.data.success) {
                                         toast.success('OTP sent to your email');
                                         setEmail(values.email);
-                                        setOtp(''); 
-                                        setTimer(60); 
+                                        setOtp('');
+                                        setTimer(60);
                                         setIsOtpSent(true);
+
+                                        sessionStorage.setItem('email', values.email);
 
                                         sessionStorage.setItem('otp', response.data.otp); // store the otp
 
@@ -174,6 +184,9 @@ function UserForgotPass() {
                                     </div>
 
                                     {/* OTP input fields */}
+                                    <div className="mb-4 text-center">
+                                        <p className="text-sm">Enter 4 digit OTP to verify your email</p>
+                                    </div>
                                     <div className="flex justify-center space-x-4 mb-6">
                                         {[...Array(4)].map((_, index) => (
                                             <input
@@ -190,12 +203,13 @@ function UserForgotPass() {
 
                                     {/* OTP Timer */}
                                     <div className="text-center text-gray-600 mb-6">
-                                        {timer > 0 ? (
+                                        {isOtpSent && timer > 0 ? (
                                             <p>00:{timer < 10 ? `0${timer}` : timer}</p>
-                                        ) : (
+                                        ) : (isOtpSent && (
                                             <p className="text-teal-500 hover:underline cursor-pointer" onClick={handleResendOtp}>
                                                 <u>Resend OTP?</u>
                                             </p>
+                                        )
                                         )}
                                     </div>
 

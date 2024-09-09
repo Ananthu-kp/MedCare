@@ -40,6 +40,9 @@ class UserRepository {
         return new User(userData).save();
     }
     
+    async updatePassword(email: string, hashedPassword: string): Promise<void> {
+        await User.updateOne({ email }, { password: hashedPassword });
+    }
 
 }
 

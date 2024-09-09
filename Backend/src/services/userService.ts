@@ -131,7 +131,7 @@ class UserService {
         return { success: true, message: 'OTP verified successfully' }
     }
 
-    async resendForgotOtp(email: string): Promise<{ success: boolean; message: string }> {
+    async resendForgotOtp(email: string): Promise<{ success: boolean; message: string, otp?: string }> {
         const user = await userRepository.findUserByEmail(email);
 
         if (!user) {
@@ -143,13 +143,27 @@ class UserService {
 
         try {
             await sendOtpEmail(email, otp, true);
-            return { success: true, message: 'OTP resent to your email' }
+            return { success: true, message: 'OTP resent to your email', otp }
         } catch (error) {
             console.error('Failed to send OTP:', error);
             return { success: false, message: 'Failed to send OTP' };
         }
     }
 
+    async updatePassword(email: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+        if (!newPassword) {
+            return { success: false, message: 'Password cannot be empty' };
+        }
+        
+        try {
+            const hashedPassword = await bcryptUtil.hashPassword(newPassword);
+            await userRepository.updatePassword(email, hashedPassword);
+            return { success: true, message: 'Password updated successfully' };
+        } catch (error) {
+            console.error('Error updating password:', error);
+            return { success: false, message: 'Failed to update password' };
+        }
+    }
 
 }
 
