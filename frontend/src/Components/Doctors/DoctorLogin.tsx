@@ -31,9 +31,9 @@ function DoctorLoginPage() {
                 if (response.data.success) {
                     sessionStorage.setItem('doctorToken', response.data.accessToken);
                     sessionStorage.setItem('doctorRefreshToken', response.data.refreshToken);
-                   
-                        navigate('/doctor', {state: {message: "Login successfully"}});
-                   
+
+                    navigate('/doctor', { state: { message: "Login successfully" } });
+
                 } else {
                     toast.error('Invalid email or password');
                 }
@@ -101,7 +101,9 @@ function DoctorLoginPage() {
                             </div>
 
                             <div className="text-right mb-4">
-                                <a href="#" className="text-sm text-teal-500 hover:underline">Forgot password?</a>
+                                <Link to={'/doctor/forgot-password'}>
+                                    <p className='text-sm text-teal-500 hover:underline'>Forgot Password</p>
+                                </Link>
                             </div>
 
                             <button

@@ -206,6 +206,63 @@ class DoctorController {
             }
         });
     }
+
+    async otpForPassReset(req: Request, res: Response) {
+        try {
+            const { email } = req.body;
+            if (!email) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ message: 'Email is required' });
+            }
+            const result = await doctorService.requestOtpForPasswordReset(email);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+        } catch (error) {
+            console.error('Error in reset password', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Something went wrong'})
+        }
+    }
+
+    async verifyForgotOtp(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, otp } = req.body;
+            const result = await doctorService.verifyForgotOtp(email, otp);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
+        } catch (error) {
+            console.error('Error in verifyForgotOtp:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
+    async resendForgotOtp(req: Request, res: Response): Promise<void> {
+        try {
+            const { email } = req.body;
+            const result = await doctorService.resendForgotOtp(email)
+
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+        } catch (error) {
+            console.error('Error in resendForgotOtp:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
+    async resetPassword(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, otp, newPassword } = req.body;
+    
+            const otpResult = await doctorService.verifyForgotOtp(email, otp);
+            if (!otpResult.success) {
+                res.status(HttpStatus.BAD_REQUEST).json(otpResult);
+                return;
+            }
+    
+            const result = await doctorService.updatePassword(email, newPassword);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
+    
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+    }
+
 }
 
 export default new DoctorController();

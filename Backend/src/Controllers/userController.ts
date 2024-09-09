@@ -126,7 +126,7 @@ class UserController {
             const result = await userService.requestOtpForPasswordReset(email)
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
         } catch (error) {
-            console.error('Error in Google login:', error);
+            console.error('Error in reset password:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
     }

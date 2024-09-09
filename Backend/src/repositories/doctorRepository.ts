@@ -56,6 +56,10 @@ class DoctorRepository {
             { profileImg: profileImageUrl }
         );
     }
+
+    async updatePassword(email: string, hashedPassword: string): Promise<void> {
+        await Doctor.updateOne({ email }, { password: hashedPassword });
+    }
 }
 
 export default new DoctorRepository();

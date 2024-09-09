@@ -15,7 +15,7 @@ class DoctorService {
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log("your otp ->", otp);
-        
+
         await sendOtpEmail(savedDoctor.email, otp);
         return { success: true, message: 'Doctor registered successfully', otp };
     }
@@ -23,11 +23,11 @@ class DoctorService {
     async verifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
         const isOtpValid = await doctorRepository.verifyOtp(email, otp);
         if (!isOtpValid) {
-          return { success: false, message: "Invalid OTP" };
+            return { success: false, message: "Invalid OTP" };
         }
-      
+
         return { success: true, message: "OTP verified successfully" };
-      }
+    }
 
     async resendOtp(email: string): Promise<{ success: boolean; message: string }> {
         const doctor = await doctorRepository.findDoctorByEmail(email);
@@ -37,7 +37,7 @@ class DoctorService {
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log("resend otp -> ", otp);
-        
+
         await sendOtpEmail(doctor.email, otp);
         await doctorRepository.saveOtp(email, otp);
 
@@ -58,17 +58,17 @@ class DoctorService {
 
     async getDoctorProfile(doctorId: string): Promise<DoctorType | null> {
         return await doctorRepository.findDoctorById(doctorId);
-      }
-    
-      async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return await doctorRepository.updateOfficialDetails(doctorId, officialDetails);
-      }
-    
-      async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return await doctorRepository.updatePersonalDetails(doctorId, personalDetails);
-      }
+    }
 
-      async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
+    async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await doctorRepository.updateOfficialDetails(doctorId, officialDetails);
+    }
+
+    async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await doctorRepository.updatePersonalDetails(doctorId, personalDetails);
+    }
+
+    async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
         try {
             const updatedDoctor = await doctorRepository.updateDoctorProfileImage(doctorId, profileImageUrl);
             return { success: true, doctor: updatedDoctor };
@@ -77,6 +77,68 @@ class DoctorService {
             return { success: false };
         }
     }
+
+    async requestOtpForPasswordReset(email: string): Promise<{ success: boolean; message: string; otp?: string }> {
+        const doctor = await doctorRepository.findDoctorByEmail(email)
+        if (!doctor) {
+            return { success: false, message: 'Doctor not found' };
+        }
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString()
+        console.log("Password Reset OTP: ", otp)
+
+        try {
+            doctor.otp = otp;
+            await sendOtpEmail(email, otp);
+            return { success: true, message: 'OTP sent to your email', otp}
+        } catch (error) {
+            console.error('Failed to send OTP:', error);
+            return { success: false, message: 'Failed to send OTP' };
+        }
+    }
+
+    async verifyForgotOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
+        const doctor = await doctorRepository.findDoctorByEmail(email);
+        if (!doctor) {
+            return { success: false, message: 'Doctor not found' }
+        }
+        return { success: true, message: 'OTP verified successfully'}
+    }
+
+    async resendForgotOtp(email: string): Promise<{ success: boolean; message: string, otp?: string }> {
+        const doctor = await doctorRepository.findDoctorByEmail(email);
+
+        if (!doctor) {
+            return { success: false, message: 'Doctor not found' }
+        }
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString()
+        console.log("Resend otp =>", otp)
+
+        try {
+            await sendOtpEmail(email, otp, true);
+            return { success: true, message: 'OTP resent to your email', otp }
+        } catch (error) {
+            console.error('Failed to send OTP:', error);
+            return { success: false, message: 'Failed to send OTP' };
+        }
+    }
+
+    async updatePassword(email: string, newPassword: string): Promise<{ success: boolean; message: string }> {
+        if (!newPassword) {
+            return { success: false, message: 'Password cannot be empty' };
+        }
+        
+        try {
+            const hashedPassword = await bcryptUtil.hashPassword(newPassword);
+            await doctorRepository.updatePassword(email, hashedPassword);
+            return { success: true, message: 'Password updated successfully' };
+        } catch (error) {
+            console.error('Error updating password:', error);
+            return { success: false, message: 'Failed to update password' };
+        }
+    }
+
 }
 
 export default new DoctorService();

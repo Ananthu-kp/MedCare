@@ -26,6 +26,8 @@ import DoctorsListPage from './Pages/Admin/DoctorsListPage';
 import SpecializationPage from './Pages/Admin/SpecializationPage';
 import UserForgotPass from './Components/Users/UserForgotPass';
 import RecoverPassword from './Components/Users/RecoverPassword';
+import DoctorForgotPage from './Pages/Doctor/DoctorForgotPage';
+import RecoverPasswordPage from './Pages/Doctor/RecoverPasswordPage';
 
 function App() {
   return (
@@ -44,12 +46,14 @@ function App() {
           <Route path="/admin/users" element={<ProtectAdmin element={UsersListPage} />} />
           <Route path="/admin/doctor-requests" element={<ProtectAdmin element={DoctorsRequestPage} />} />
           <Route path="/admin/doctors" element={<ProtectAdmin element={DoctorsListPage} />} />
-          <Route path="/admin/categories" element={<ProtectAdmin element={SpecializationPage} />} />
+          <Route path="/admin/categories" element={<ProtectAdmin element={SpecializationPage} />} />z
 
           <Route path="/doctor/login" element={<DoctorLoginPage />} />
           <Route path="/doctor/register" element={<DoctorRegisterPage />} />
           <Route path="/doctor/otp" element={<Otp_Page />} />
           <Route path="/doctor" element={<ProtectDoctor element={DoctorProfilePage} />} />
+          <Route path="/doctor/forgot-password" element={<DoctorForgotPage />} />
+          <Route path="/doctor/recover-password" element={<RecoverPasswordPage />} />
         </Routes>
       </Router>
       <Toaster richColors position="top-right" />
