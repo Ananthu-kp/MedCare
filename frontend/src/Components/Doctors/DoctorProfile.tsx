@@ -238,7 +238,8 @@ function DoctorProfile() {
   return (
     <div className="relative w-full h-[200px] bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
       <div className="absolute bottom-[-60px] left-10 w-[150px] h-[150px] bg-white border-4 rounded-full flex items-center justify-center">
-        <img src={`${BASE_URL}/${personalDetails.profileIMG}`} alt="" />
+        <img src={`${BASE_URL}/${personalDetails.profileIMG}`} alt="" 
+        className='rounded-full object-cover h-[150px]'/>
         <form encType="multipart/form-data">
           <input
             type="file"
