@@ -125,7 +125,16 @@ class DoctorController {
                 message: "Login successful",
                 accessToken: accessToken,
                 refreshToken: refreshToken,
-            });
+                doctor: {
+                    name: doctor.name,
+                    email: doctor.email,
+                    category: doctor.category,
+                    experience: doctor.yearsOfExperience,
+                    hospital: doctor.workingHospital,
+                    consultationfee: doctor.consultationfee,
+                    profileImg: doctor.profileImg,
+                }
+            })
         } catch (error) {
             console.error('Error logging in doctor:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });

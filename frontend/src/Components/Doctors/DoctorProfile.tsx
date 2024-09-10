@@ -37,6 +37,7 @@ function EditModal({
               placeholder={key.replace(/([A-Z])/g, ' $1').trim()}
               value={formData[key]}
               onChange={handleChange}
+              disabled={key === 'email' || key === 'profileIMG'}
               className="w-full p-2 border rounded"
             />
           ))}
@@ -71,7 +72,7 @@ function DoctorProfile() {
     category: '',
     workingHospital: '',
     yearsOfExperience: 0,
-    consultationFee: '',
+    consultationfee: '',
     address: '',
     profileImageUrl: '',
   });
@@ -80,7 +81,7 @@ function DoctorProfile() {
     category: '',
     workingHospital: '',
     yearsOfExperience: 0,
-    consultationFee: '',
+    consultationfee: '',
   });
 
   const [personalDetails, setPersonalDetails] = useState<FormData>({
@@ -141,7 +142,7 @@ function DoctorProfile() {
             category: doctorData.category,
             workingHospital: doctorData.workingHospital,
             yearsOfExperience: doctorData.yearsOfExperience,
-            consultationFee: doctorData.consultationFee,
+            consultationfee: doctorData.consultationfee,
           });
           setPersonalDetails({
             name: doctorData.name,
@@ -150,7 +151,6 @@ function DoctorProfile() {
             address: doctorData.address,
             profileIMG: doctorData.profileImg
           });
-          // toast.success("Doctor details fetched successfully!");
         })
         .catch((error) => {
           if (error.response) {
@@ -182,6 +182,7 @@ function DoctorProfile() {
   };
 
   const handleSaveOfficialDetails = () => {
+    console.log(officialDetails.consultationfee);
     const storedToken = sessionStorage.getItem('doctorToken');
     if (storedToken) {
       axios
@@ -229,17 +230,19 @@ function DoctorProfile() {
     e: React.ChangeEvent<HTMLInputElement>,
     setDetails: React.Dispatch<React.SetStateAction<FormData>>
   ) => {
+    const { name, value } = e.target;
+    if (name === 'email' || name === 'profileIMG') return;
     setDetails((prevDetails) => ({
       ...prevDetails,
-      [e.target.name]: e.target.value,
+      [name]: value,
     }));
   };
 
   return (
     <div className="relative w-full h-[200px] bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
       <div className="absolute bottom-[-60px] left-10 w-[150px] h-[150px] bg-white border-4 rounded-full flex items-center justify-center">
-        <img src={`${BASE_URL}/${personalDetails.profileIMG}`} alt="" 
-        className='rounded-full object-cover h-[150px]'/>
+        <img src={`${BASE_URL}/${personalDetails.profileIMG}`} alt=""
+          className='rounded-full object-cover h-[150px]' />
         <form encType="multipart/form-data">
           <input
             type="file"
@@ -274,7 +277,7 @@ function DoctorProfile() {
           <div className="mt-4">
             <p><strong>Hospital:</strong> {officialDetails.workingHospital}</p>
             <p><strong>Experience:</strong> {officialDetails.yearsOfExperience}</p>
-            <p><strong>Fee:</strong> {officialDetails.consultationFee}</p>
+            <p><strong>Fee:</strong> {officialDetails.consultationfee}</p>
           </div>
         </div>
 
