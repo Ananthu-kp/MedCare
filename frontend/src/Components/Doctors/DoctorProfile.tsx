@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import doctorAxiosInstance from '../../Config/AxiosInstance/doctorInstance';
 
 interface FormData {
-  [key: string]: string | number;
+  [key: string]: string | number | boolean;
 }
 
 function EditModal({
@@ -35,7 +35,7 @@ function EditModal({
               type="text"
               name={key}
               placeholder={key.replace(/([A-Z])/g, ' $1').trim()}
-              value={formData[key]}
+              value={formData[key] as string}
               onChange={handleChange}
               disabled={key === 'email' || key === 'profileIMG'}
               className="w-full p-2 border rounded"
@@ -75,6 +75,7 @@ function DoctorProfile() {
     consultationfee: '',
     address: '',
     profileImageUrl: '',
+    availability: true,
   });
 
   const [officialDetails, setOfficialDetails] = useState<FormData>({
@@ -90,6 +91,12 @@ function DoctorProfile() {
     phone: '',
     address: '',
   });
+
+  const [availability, setAvailability] = useState<boolean>(true);
+
+  const handleAvailabilityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setAvailability(e.target.value === 'Active');
+  };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -138,6 +145,7 @@ function DoctorProfile() {
           console.log('Doctor Data:', response.data);
           const doctorData = response.data;
           setDoctorDetails(doctorData);
+          setAvailability(doctorData.availability);
           setOfficialDetails({
             category: doctorData.category,
             workingHospital: doctorData.workingHospital,
@@ -167,6 +175,27 @@ function DoctorProfile() {
       console.log('No token found.');
     }
   }, []);
+
+  const handleSaveAvailability = () => {
+    const storedToken = sessionStorage.getItem('doctorToken');
+    if (storedToken) {
+      axios
+        .put(
+          `${BASE_URL}/doctor/doctor/availability`,
+          { availability },
+          {
+            headers: { Authorization: `Bearer ${storedToken}` },
+          }
+        )
+        .then(() => {
+          toast.success('Availability status updated successfully!');
+        })
+        .catch((error) => {
+          console.error('Error updating availability:', error);
+          toast.error('Failed to update availability.');
+        });
+    }
+  };
 
   const handleOfficialEditClick = () => {
     setIsOfficialModalOpen(true);
@@ -240,6 +269,22 @@ function DoctorProfile() {
 
   return (
     <div className="relative w-full h-[200px] bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
+      {/* Availability Dropdown */}
+      <div className="absolute top-4 right-4">
+        <label htmlFor="availability" className="block font-semibold mb-2 text-white">
+          Availability
+        </label>
+        <select
+          id="availability"
+          value={availability ? 'Active' : 'Inactive'}
+          onChange={handleAvailabilityChange}
+          onBlur={handleSaveAvailability}  
+          className="bg-white p-2 border rounded"
+        >
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+      </div>
       <div className="absolute bottom-[-60px] left-10 w-[150px] h-[150px] bg-white border-4 rounded-full flex items-center justify-center">
         <img src={`${BASE_URL}/${personalDetails.profileIMG}`} alt=""
           className='rounded-full object-cover h-[150px]' />

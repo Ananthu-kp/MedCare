@@ -272,6 +272,18 @@ class DoctorController {
         }
     }
 
+    async updateAvailability(req: Request, res: Response) {
+        try {
+          const doctorId = req.params.id;
+          const { availability } = req.body; 
+          const updatedDoctor = await doctorService.updateAvailability(doctorId, availability);
+          return res.json(updatedDoctor);
+        } catch (error) {
+            console.error('Error update availability:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+        }
+      }
+
 }
 
 export default new DoctorController();

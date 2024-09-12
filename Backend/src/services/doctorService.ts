@@ -139,6 +139,16 @@ class DoctorService {
         }
     }
 
-}
+    async updateAvailability(doctorId: string, availability: boolean) {
+        console.log("111111111111111111")
+        const updatedDoctor = await doctorRepository.updateDoctorAvailability(doctorId, availability);
+        console.log("hiiiii",updatedDoctor)
+        if (!updatedDoctor) {
+          throw new Error('Failed to update availability');
+        }
+        return updatedDoctor;
+      }
 
+}
+ 
 export default new DoctorService();

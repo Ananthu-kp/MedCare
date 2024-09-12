@@ -31,28 +31,28 @@ class DoctorRepository {
     async getAllCategories(): Promise<string[]> {
         try {
             const categories = await Category.find().select('name');
-            return categories.map(category => category.name); 
-            
+            return categories.map(category => category.name);
+
         } catch (error) {
             throw new Error('Error fetching categories from the database.');
         }
     }
 
     async findDoctorById(doctorId: string): Promise<DoctorType | null> {
-        return await Doctor.findOne({email: doctorId});
-      }
-    
-      async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return await Doctor.findOneAndUpdate({email: doctorId}, officialDetails, { new: true });
-      }
-    
-      async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return await Doctor.findOneAndUpdate({email: doctorId}, personalDetails, { new: true });
-      }
+        return await Doctor.findOne({ email: doctorId });
+    }
 
-      async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
+    async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await Doctor.findOneAndUpdate({ email: doctorId }, officialDetails, { new: true });
+    }
+
+    async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
+        return await Doctor.findOneAndUpdate({ email: doctorId }, personalDetails, { new: true });
+    }
+
+    async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
         return await Doctor.findOneAndUpdate(
-            {email: doctorId},
+            { email: doctorId },
             { profileImg: profileImageUrl }
         );
     }
@@ -60,6 +60,16 @@ class DoctorRepository {
     async updatePassword(email: string, hashedPassword: string): Promise<void> {
         await Doctor.updateOne({ email }, { password: hashedPassword });
     }
+
+    async updateDoctorAvailability(doctorId: string, availability: boolean) {
+        return Doctor.findByIdAndUpdate(
+            doctorId,
+            { availability },
+            { new: true }
+        );
+    }
+
 }
+
 
 export default new DoctorRepository();
