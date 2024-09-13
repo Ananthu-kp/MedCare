@@ -178,15 +178,12 @@ function DoctorProfile() {
 
   const handleSaveAvailability = () => {
     const storedToken = sessionStorage.getItem('doctorToken');
+    console.log('Updating availability:', availability); 
+  
     if (storedToken) {
-      axios
-        .put(
-          `${BASE_URL}/doctor/doctor/availability`,
-          { availability },
-          {
-            headers: { Authorization: `Bearer ${storedToken}` },
-          }
-        )
+      axios.put(`${BASE_URL}/doctor/availability`, { availability, email: doctorDetails.email }, {
+          headers: { Authorization: `Bearer ${storedToken}` },
+        })
         .then(() => {
           toast.success('Availability status updated successfully!');
         })
@@ -196,6 +193,7 @@ function DoctorProfile() {
         });
     }
   };
+  
 
   const handleOfficialEditClick = () => {
     setIsOfficialModalOpen(true);
@@ -278,8 +276,12 @@ function DoctorProfile() {
           id="availability"
           value={availability ? 'Active' : 'Inactive'}
           onChange={handleAvailabilityChange}
-          onBlur={handleSaveAvailability}  
-          className="bg-white p-2 border rounded"
+          onBlur={handleSaveAvailability}
+          className={`p-2 border rounded transition-colors duration-300 ease-in-out ${
+            availability
+              ? 'bg-green-100 border-green-400 text-green-600'
+              : 'bg-red-100 border-red-400 text-red-600'
+          }`}
         >
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>

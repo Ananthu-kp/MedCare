@@ -226,7 +226,7 @@ class DoctorController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
         } catch (error) {
             console.error('Error in reset password', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Something went wrong'})
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Something went wrong' })
         }
     }
 
@@ -256,16 +256,16 @@ class DoctorController {
     async resetPassword(req: Request, res: Response): Promise<void> {
         try {
             const { email, otp, newPassword } = req.body;
-    
+
             const otpResult = await doctorService.verifyForgotOtp(email, otp);
             if (!otpResult.success) {
                 res.status(HttpStatus.BAD_REQUEST).json(otpResult);
                 return;
             }
-    
+
             const result = await doctorService.updatePassword(email, newPassword);
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
-    
+
         } catch (error) {
             console.error('Error resetting password:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
@@ -274,15 +274,15 @@ class DoctorController {
 
     async updateAvailability(req: Request, res: Response) {
         try {
-          const doctorId = req.params.id;
-          const { availability } = req.body; 
-          const updatedDoctor = await doctorService.updateAvailability(doctorId, availability);
-          return res.json(updatedDoctor);
+            const { email, availability } = req.body;
+
+            const updatedDoctor = await doctorService.updateAvailability(email, availability);
+            res.json(updatedDoctor);
         } catch (error) {
-            console.error('Error update availability:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            console.error('Error updating availability:', error);
+            res.status(500).json({ message: "Something went wrong, please try again later" });
         }
-      }
+    }
 
 }
 

@@ -17,7 +17,7 @@ router.get('/doctor', verifyToken,DoctorController.getDoctorProfile);
 router.put('/doctor/official', verifyToken, DoctorController.updateOfficialDetails);
 router.put('/doctor/personal', verifyToken, DoctorController.updatePersonalDetails);
 router.put('/upload-profile-image', verifyToken, DoctorController.uploadProfileImage);
-router.put('/availability', verifyToken, DoctorController.updateAvailability)
+router.put('/availability', DoctorController.updateAvailability);
 
 
 export default router;

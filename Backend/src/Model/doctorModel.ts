@@ -30,7 +30,7 @@ const doctorSchema = new Schema<DoctorType>({
     category: { type: String, required: true },
     password: { type: String, required: true },
     profileImg: { type: String },
-    availability: { type: Boolean },
+    availability: { type: Boolean, default: false },
     consultationfee: { type: Number },
     isBlocked: { type: Boolean, default: false },
     isVerified: { type: Boolean, default: false },

@@ -56,7 +56,7 @@ function App() {
           <Route path="/doctor/recover-password" element={<RecoverPasswordPage />} />
         </Routes>
       </Router>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="top-right" closeButton />
     </>
   );
 }

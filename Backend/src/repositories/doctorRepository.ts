@@ -61,14 +61,25 @@ class DoctorRepository {
         await Doctor.updateOne({ email }, { password: hashedPassword });
     }
 
-    async updateDoctorAvailability(doctorId: string, availability: boolean) {
-        return Doctor.findByIdAndUpdate(
-            doctorId,
-            { availability },
-            { new: true }
-        );
-    }
+    async updateDoctorAvailability(email: string, availability: boolean) {
+        try {
+            const updatedDoctor = await Doctor.findOneAndUpdate(
+                { email },
+                { availability },
+                { new: true }
+            );
 
+            if (!updatedDoctor) {
+                console.error('No doctor found with the given ID');
+            }
+
+            return updatedDoctor;
+        } catch (error) {
+            console.error('Error in updateDoctorAvailability repository:', error);
+            throw error;
+        }
+    }
+    
 }
 
 
