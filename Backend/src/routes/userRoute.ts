@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import userController from '../Controllers/userController';
+import { verifyToken } from '../utils/jwtConfig';
 
 const router = Router();
 
@@ -12,5 +13,8 @@ router.post('/forgot-password', userController.otpForPassReset)
 router.post('/verifyForget-otp', userController.verifyForgotOtp)
 router.post('/verifyResend-otp', userController.resendForgotOtp)
 router.post('/recover-password', userController.resetPassword)
+router.get('/profile', verifyToken, userController.getUserProfile)
+router.put('/personal', verifyToken, userController.updatePersonalDetails)
+router.put('/upload-profile-image', verifyToken, userController.uploadProfileImage)
 
 export default router;

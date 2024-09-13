@@ -165,6 +165,24 @@ class UserService {
         }
     }
 
+    async getUserProfile(email: string): Promise<UserType | null> {
+        return await userRepository.findUserByEmail(email);
+    }
+
+    async updatePersonalDetails(email: string, personalDetails: Partial<UserType>): Promise<UserType | null> {
+        return await userRepository.updatePersonalDetails(email, personalDetails);
+    }
+
+    async updateUserProfileImage(email: string, profileImageUrl: string) {
+        try {
+            const updatedUser = await userRepository.updateUserProfileImage(email, profileImageUrl);
+            return { success: true, doctor: updatedUser };
+        } catch (error) {
+            console.error('Error updating doctor profile image:', error);
+            return { success: false };
+        }
+    }
+
 }
 
 

@@ -4,6 +4,7 @@ import userRepository from "../repositories/userRepository";
 import bcrypt from "bcrypt";
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
 import { HttpStatus } from "../utils/httpStatus";
+import { profileUpload } from "../config/multer";
 
 class UserController {
     async register(req: Request, res: Response): Promise<void> {
@@ -172,6 +173,61 @@ class UserController {
             console.error('Error resetting password:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
         }
+    }
+
+    async getUserProfile(req: Request, res: Response): Promise<void> {
+        try {
+            const userId = (req as any).user.id;
+            const userProfile = await userService.getUserProfile(userId);
+            if (!userProfile) {
+                res.status(HttpStatus.NOT_FOUND).json({ message: 'Doctor not found' });
+                return;
+            }
+            res.status(HttpStatus.OK).json(userProfile);
+        } catch (error) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+        }
+    }
+
+    async updatePersonalDetails(req: Request, res: Response): Promise<void> {
+        try {
+            const userId = (req as any).user.id;
+            const personalDetails = req.body;
+            const updatedUser = await userService.updatePersonalDetails(userId, personalDetails);
+            res.status(HttpStatus.OK).json(updatedUser);
+        } catch (error) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+        }
+    };
+
+    async uploadProfileImage(req: Request, res: Response): Promise<void> {
+        profileUpload.single('profileImage')(req, res, async (err: any) => {
+            if (err) {
+                console.error('Multer Error:', err);
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Error uploading file", error: err.message });
+            }
+
+            const profileImage = req.file;
+            if (!profileImage) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Profile image file is required" });
+            }
+
+            try {
+                const userId = (req as any).user.id;
+                const profileImageUrl = profileImage.filename;
+
+                const result = await userService.updateUserProfileImage(userId, profileImageUrl);
+
+                if (result.success) {
+                    return res.status(HttpStatus.OK).json({ success: true, profileImageUrl });
+                } else {
+                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Failed to update profile image" });
+                }
+            } catch (error) {
+                console.error('Error saving profile image:', error);
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving profile image" });
+            }
+        });
     }
     
 }

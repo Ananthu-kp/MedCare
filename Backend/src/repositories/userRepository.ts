@@ -44,6 +44,17 @@ class UserRepository {
         await User.updateOne({ email }, { password: hashedPassword });
     }
 
+    async updatePersonalDetails(email: string, personalDetails: Partial<UserType>): Promise<UserType | null> {
+        return await User.findOneAndUpdate({ email }, personalDetails, { new: true });
+    }
+
+    async updateUserProfileImage(email: string, profileImageUrl: string) {
+        return await User.findOneAndUpdate(
+            { email },
+            { profileImg: profileImageUrl }
+        );
+    }
+
 }
 
 export default new UserRepository();

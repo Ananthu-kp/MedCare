@@ -28,6 +28,7 @@ import UserForgotPass from './Components/Users/UserForgotPass';
 import RecoverPassword from './Components/Users/RecoverPassword';
 import DoctorForgotPage from './Pages/Doctor/DoctorForgotPage';
 import RecoverPasswordPage from './Pages/Doctor/RecoverPasswordPage';
+import UserProfilePage from './Pages/User/UserProfilePage';
 
 function App() {
   return (
@@ -40,6 +41,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/forgot-password" element={<UserForgotPass />} />
           <Route path="/recover-password" element={<RecoverPassword />} />
+          <Route path='/profile' element={<UserProfilePage />} />
 
           <Route path="/admin/login" element={<LoginPageAdmin />} />
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />
