@@ -42,3 +42,77 @@ export const sendOtpEmail = async (email: string, otp: string, isResend: boolean
         throw new Error('Email not sent');
     }
 };
+
+export const sendVerificationEmail = async (email: string) => {
+    const subject = 'Doctor Registration Verified';
+    const message = `
+        <p style="color: #555; font-size: 1.1em; text-align: center;">
+            Congratulations! Your registration has been successfully verified.
+        </p>
+        <p style="color: #555; text-align: center; font-size: 0.9em;">
+            You can now start using the MedCare platform. Thank you for your patience.
+        </p>
+        <p style="color: #555; text-align: center; font-size: 0.9em;">
+            Regards,<br />MedCare Team
+        </p>
+    `;
+
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject,
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; max-width: 600px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+            <h1 style="color: #333; text-align: center;">Registration Verified</h1>
+            ${message}
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #aaa; text-align: center; font-size: 0.8em;">© 2024 MedCare. All rights reserved.</p>
+        </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('Verification email sent');
+    } catch (error) {
+        console.error('Error sending verification email:', error);
+        throw new Error('Verification email not sent');
+    }
+};
+
+export const sendRejectionEmail = async (email: string) => {
+    const subject = 'Doctor Registration Rejected';
+    const message = `
+        <p style="color: #555; font-size: 1.1em; text-align: center;">
+            We regret to inform you that your registration has been rejected.
+        </p>
+        <p style="color: #555; text-align: center; font-size: 0.9em;">
+            If you have any questions or need further clarification, please contact our support team.
+        </p>
+        <p style="color: #555; text-align: center; font-size: 0.9em;">
+            Regards,<br />MedCare Team
+        </p>
+    `;
+
+    const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject,
+        html: `
+        <div style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px; max-width: 600px; margin: auto; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);">
+            <h1 style="color: #333; text-align: center;">Registration Rejected</h1>
+            ${message}
+            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;" />
+            <p style="color: #aaa; text-align: center; font-size: 0.8em;">© 2024 MedCare. All rights reserved.</p>
+        </div>
+        `,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('Rejection email sent');
+    } catch (error) {
+        console.error('Error sending rejection email:', error);
+        throw new Error('Rejection email not sent');
+    }
+};

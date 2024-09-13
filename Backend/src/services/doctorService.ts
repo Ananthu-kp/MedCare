@@ -38,7 +38,7 @@ class DoctorService {
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log("resend otp -> ", otp);
 
-        await sendOtpEmail(doctor.email, otp);
+        await sendOtpEmail(doctor.email, otp, true);
         await doctorRepository.saveOtp(email, otp);
 
         return { success: true, message: "OTP sent successfully" };

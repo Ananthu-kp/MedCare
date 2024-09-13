@@ -158,6 +158,30 @@ class AdminController {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
         }
     }
+
+
+    AdminVerifyDoctor = async (req: Request, res: Response) => {
+        try {
+            const email = req.query.email as string;
+            const serviceResponse = await this._adminService.verifyDoctor(email);
+    
+            res.status(HttpStatus.OK).json(serviceResponse);
+        } catch (error: any) {
+            console.error('Error in verifyDoctorController:', error.message);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+        }
+    }
+    
+    AdminRejectDoctor = async (req: Request, res: Response) => {
+        try {
+            const email = req.query.email as string;
+            const serviceResponse = await this._adminService.rejectDoctor(email);
+    
+            res.status(HttpStatus.OK).json(serviceResponse);
+        } catch (error: any) {
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+        }
+    }
 }
 
 export default AdminController;

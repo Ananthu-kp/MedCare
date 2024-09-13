@@ -2,15 +2,16 @@ import dotenv from 'dotenv';
 import { generateAccessToken } from "../utils/jwtConfig";
 import { IAdminService } from '../Interfaces/adminService.interface';
 import { IAdminRepository } from '../Interfaces/adminRepository.interface';
+import { sendRejectionEmail, sendVerificationEmail } from '../config/nodeMailer';
 
 dotenv.config();
 
-class AdminService  implements IAdminService {
+class AdminService implements IAdminService {
     private _adminRepository: IAdminRepository
 
     constructor(adminRepository: IAdminRepository) {
         this._adminRepository = adminRepository
-    } 
+    }
 
 
     async login(email: string, password: string) {
@@ -116,6 +117,7 @@ class AdminService  implements IAdminService {
         try {
             const response = await this._adminRepository.verifyDoctor(email);
             if (response.modifiedCount === 1) {
+                await sendVerificationEmail(email);
                 return "Doctor verified successfully";
             } else {
                 throw new Error("Can't verify doctor");
@@ -129,6 +131,7 @@ class AdminService  implements IAdminService {
         try {
             const response = await this._adminRepository.rejectDoctor(email);
             if (response.deletedCount === 1) {
+                await sendRejectionEmail(email);
                 return "Doctor rejected and removed successfully";
             } else {
                 throw new Error("Can't reject doctor");
