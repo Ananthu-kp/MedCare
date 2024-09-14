@@ -16,5 +16,6 @@ router.post('/recover-password', userController.resetPassword)
 router.get('/profile', verifyToken, userController.getUserProfile)
 router.put('/personal', verifyToken, userController.updatePersonalDetails)
 router.put('/upload-profile-image', verifyToken, userController.uploadProfileImage)
+router.get('/selectDoctor', userController.getDoctors)
 
 export default router;

@@ -1,3 +1,4 @@
+import { Doctor, DoctorType } from "../Model/doctorModel";
 import { User, UserType } from "../Model/userModel";
 
 class UserRepository {
@@ -39,7 +40,7 @@ class UserRepository {
         const { tempData, otpCreatedAt, ...userData } = user;
         return new User(userData).save();
     }
-    
+
     async updatePassword(email: string, hashedPassword: string): Promise<void> {
         await User.updateOne({ email }, { password: hashedPassword });
     }
@@ -53,6 +54,15 @@ class UserRepository {
             { email },
             { profileImg: profileImageUrl }
         );
+    }
+
+    async getAllDoctors(): Promise<DoctorType[]> {
+        try {
+            return await Doctor.find({ isBlocked: false, isVerified: true, availability: true }).exec();
+        } catch (error) {
+            console.error('Error fetching doctors from the database:', error);
+            throw new Error('Error fetching doctors from the database');
+        }
     }
 
 }

@@ -3,6 +3,7 @@ import bcryptUtil from "../utils/bcryptUtil";
 import { UserType } from "../Model/userModel";
 import { sendOtpEmail } from '../config/nodeMailer';
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
+import { DoctorType } from "../Model/doctorModel";
 
 class UserService {
     async registerUser(user: UserType): Promise<{ success: boolean; message: string; otp: string }> {
@@ -180,6 +181,15 @@ class UserService {
         } catch (error) {
             console.error('Error updating doctor profile image:', error);
             return { success: false };
+        }
+    }
+
+    async getAllDoctors(): Promise<DoctorType[]> {
+        try {
+            return await userRepository.getAllDoctors();
+        } catch (error) {
+            console.error('Error in getAllDoctors service:', error);
+            throw new Error('Error getting all doctors');
         }
     }
 

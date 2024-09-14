@@ -1,9 +1,30 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Swal from 'sweetalert2';
 import "../../../../src/assets/images/doctor1.png";
 import { Link } from 'react-router-dom';
 
 function HeroSection() {
-    const isLoggedIn = sessionStorage.getItem('userToken')
+    const isLoggedIn = sessionStorage.getItem('userToken');
+    const navigate = useNavigate();
+
+    const handleAppointmentClick = () => {
+        if (isLoggedIn) {
+            navigate('/selectDoctor');
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'You need to log in',
+                text: 'Please log in to book an appointment.',
+                confirmButtonText: 'Login',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    navigate('/login');
+                }
+            });
+        }
+    };
+
     return (
         <section className="relative text-white py-20">
             <div
@@ -13,19 +34,35 @@ function HeroSection() {
             <div className="container mx-auto flex flex-col-reverse lg:flex-row justify-between items-center px-4">
                 <div className="w-full lg:w-1/2 flex-shrink-0">
                     <h2 className="text-4xl font-bold">Expert Advice Is Now Just A Call Away !!</h2>
-                    <p className="mt-4 text-lg">MedCare connects you with expert doctors through easy consultations,chat etc.. <br /> Get reliable medical advice from the comfort of your home.</p>
+                    <p className="mt-4 text-lg">
+                        MedCare connects you with expert doctors through easy consultations, chat etc.. <br /> 
+                        Get reliable medical advice from the comfort of your home.
+                    </p>
                     <div className="mt-8 space-x-4">
-                        <button className="bg-white text-gray-600 font-semibold py-2 px-6 rounded">Get Appointments</button>
+                        <button
+                            onClick={handleAppointmentClick}
+                            className="bg-white text-gray-600 font-semibold py-2 px-6 rounded"
+                        >
+                            Get Appointments
+                        </button>
                         {!isLoggedIn && (
-                            <Link to="/doctor/login">  
+                            <Link to="/doctor/login">
                                 <button className="border border-white py-2 px-6 rounded">Doctor Login</button>
                             </Link>
                         )}
                     </div>
                 </div>
                 <div className="relative w-full lg:w-1/2 flex-shrink-0">
-                    <img src={"../../../../src/assets/images/doctor1.png"} alt="Doctor" className="w-full h-auto" style={{ marginLeft: '-40%', marginTop: '50px' }} />
-                    <div className="absolute top-1/4 right-0 transform -translate-x-1/2 space-y-4" style={{ marginTop: '-110px' }}>
+                    <img
+                        src={"../../../../src/assets/images/doctor1.png"}
+                        alt="Doctor"
+                        className="w-full h-auto"
+                        style={{ marginLeft: '-40%', marginTop: '50px' }}
+                    />
+                    <div
+                        className="absolute top-1/4 right-0 transform -translate-x-1/2 space-y-4"
+                        style={{ marginTop: '-110px' }}
+                    >
                         <div className="bg-white bg-opacity-70 p-4 rounded-lg shadow-lg max-w-xs text-center">
                             <span className="text-2xl font-bold">15+</span>
                             <br />

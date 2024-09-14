@@ -229,6 +229,17 @@ class UserController {
             }
         });
     }
+
+
+    async getDoctors(req: Request, res: Response): Promise<void> {
+        try {
+            const doctors = await userService.getAllDoctors();
+            res.status(HttpStatus.OK).json(doctors);
+        } catch (error) {
+            console.error('Error fetching doctors:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
+        }
+    }
     
 }
 

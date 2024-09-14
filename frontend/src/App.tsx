@@ -29,6 +29,7 @@ import RecoverPassword from './Components/Users/RecoverPassword';
 import DoctorForgotPage from './Pages/Doctor/DoctorForgotPage';
 import RecoverPasswordPage from './Pages/Doctor/RecoverPasswordPage';
 import UserProfilePage from './Pages/User/UserProfilePage';
+import SelectDoctorPage from './Pages/User/SelectDoctorPage';
 
 function App() {
   return (
@@ -42,6 +43,7 @@ function App() {
           <Route path="/forgot-password" element={<UserForgotPass />} />
           <Route path="/recover-password" element={<RecoverPassword />} />
           <Route path='/profile' element={<UserProfilePage />} />
+          <Route path='/selectDoctor' element={<SelectDoctorPage />} />
 
           <Route path="/admin/login" element={<LoginPageAdmin />} />
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />
