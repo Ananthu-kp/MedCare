@@ -30,6 +30,7 @@ import DoctorForgotPage from './Pages/Doctor/DoctorForgotPage';
 import RecoverPasswordPage from './Pages/Doctor/RecoverPasswordPage';
 import UserProfilePage from './Pages/User/UserProfilePage';
 import SelectDoctorPage from './Pages/User/SelectDoctorPage';
+import DoctorSlotPage from './Pages/Doctor/DoctorSlotPage';
 
 function App() {
   return (
@@ -58,6 +59,7 @@ function App() {
           <Route path="/doctor" element={<ProtectDoctor element={DoctorProfilePage} />} />
           <Route path="/doctor/forgot-password" element={<DoctorForgotPage />} />
           <Route path="/doctor/recover-password" element={<RecoverPasswordPage />} />
+          <Route path='/doctor/slots' element={<DoctorSlotPage />} />
         </Routes>
       </Router>
       <Toaster richColors position="top-right" closeButton />

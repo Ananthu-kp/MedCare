@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUser, FaBars } from 'react-icons/fa';
+import { FaUser, FaBars, FaCalendarAlt } from 'react-icons/fa';
 
 function SidebarDoctor() {
     const [isExpanded, setIsExpanded] = useState(false);
@@ -11,9 +11,9 @@ function SidebarDoctor() {
     };
 
     return (
-        <div  className={`fixed top-14 left-0 h-full z-10 bg-gray-100 text-gray-800 transition-transform ${isExpanded ? 'w-64' : 'w-16'} overflow-hidden shadow-md`}>
+        <div className={`fixed top-14 left-0 h-full z-10 bg-gray-100 text-gray-800 transition-transform ${isExpanded ? 'w-64' : 'w-16'} overflow-hidden shadow-md`}>
             <div className="flex items-center justify-between p-4 border-b border-gray-200">
-                <button 
+                <button
                     className="text-2xl text-gray-800 hover:text-teal-400"
                     onClick={handleToggle}
                 >
@@ -26,12 +26,21 @@ function SidebarDoctor() {
             <div className="mt-6">
                 <ul>
                     <li>
-                        <button 
-                            className="flex items-center p-4 hover:text-teal-400 w-full text-left" 
+                        <button
+                            className="flex items-center p-4 hover:text-teal-400 w-full text-left"
                             onClick={() => navigate('/doctor')}
                         >
                             <FaUser className="text-xl mr-3" />
                             {isExpanded && <span>Doctor Profile</span>}
+                        </button>
+                    </li>
+                    <li>
+                        <button
+                            className="flex items-center p-4 hover:text-teal-400 w-full text-left"
+                            onClick={() => navigate('/doctor/slots')}
+                        >
+                            <FaCalendarAlt className="text-xl mr-3" />
+                            {isExpanded && <span>Allocate Slots</span>}
                         </button>
                     </li>
                 </ul>

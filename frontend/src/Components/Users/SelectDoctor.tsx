@@ -32,7 +32,7 @@ function SelectDoctor() {
 
     return (
         <div className="container mx-auto py-10 pl-10">
-            <h1 className="text-2xl font-bold mb-6 text-center">Select a Doctor</h1>
+            <h1 className="text-2xl font-bold mb-6 text-center">Select your Expert</h1>
             <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-5 gap-5">
                 {doctors.map((doctor) => {
                     const imageUrl = doctor.profileImg
