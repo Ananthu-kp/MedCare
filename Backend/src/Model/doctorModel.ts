@@ -1,5 +1,12 @@
 import { Schema, model } from "mongoose";
 
+type SlotType = {
+    date: string;
+    startTime: string;
+    endTime: string;
+    available: boolean;
+}
+
 type DoctorType = {
     name: string;
     email: string;
@@ -19,7 +26,15 @@ type DoctorType = {
     createdAt?: Date;
     tempData?: boolean;
     otpCreatedAt?: Date;
+    slots?: SlotType[];
 }
+
+const slotSchema = new Schema<SlotType>({
+    date: { type: String, required: true },
+    startTime: { type: String, required: true },
+    endTime: { type: String, required: true },
+    available: { type: Boolean, default: true }
+})
 
 const doctorSchema = new Schema<DoctorType>({
     name: { type: String, required: true },
@@ -39,7 +54,8 @@ const doctorSchema = new Schema<DoctorType>({
     otp: { type: String },
     createdAt: { type: Date, default: Date.now },
     tempData: { type: Boolean, default: false },
-    otpCreatedAt: { type: Date, default: Date.now, expires: '5m' }
+    otpCreatedAt: { type: Date, default: Date.now, expires: '5m' },
+    slots: [slotSchema]
 });
 
 doctorSchema.index({ otpCreatedAt: 1 }, { expireAfterSeconds: 300 });

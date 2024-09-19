@@ -151,6 +151,15 @@ class DoctorService {
             throw error;
         }
     }
+
+    async addSlots(email: string, slot: any) {
+        return doctorRepository.addSlotToDoctor(email, slot);
+    }
+
+    async getSlots(email: string) {
+        const doctor = await doctorRepository.getSlotsForDoctor(email);
+        return doctor ? doctor.slots : [];
+    }
     
 }
  

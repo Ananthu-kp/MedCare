@@ -18,6 +18,8 @@ router.put('/doctor/official', verifyToken, DoctorController.updateOfficialDetai
 router.put('/doctor/personal', verifyToken, DoctorController.updatePersonalDetails);
 router.put('/upload-profile-image', verifyToken, DoctorController.uploadProfileImage);
 router.put('/availability', DoctorController.updateAvailability);
+router.get('/slots/:email', verifyToken, DoctorController.getSlots);
+router.post('/slots', verifyToken, DoctorController.addSlot)
 
 
 export default router;

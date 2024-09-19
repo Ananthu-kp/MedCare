@@ -284,6 +284,36 @@ class DoctorController {
         }
     }
 
+
+    async addSlot(req: Request, res: Response): Promise<void> {
+        try {
+            const { email, date, startTime, endTime, available } = req.body;
+
+            if (!email || !date || !startTime || !endTime) {
+                res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'All fields are required.' })
+                return
+            }
+
+            const slot = { date, startTime, endTime, available };
+            await doctorService.addSlots(email, slot);
+            res.status(HttpStatus.OK).json({ success: true, message: 'Slot added successfully' })
+        } catch (error) {
+            console.error('Error adding slot:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error adding slot' })
+        }
+    }
+
+    async getSlots(req: Request, res: Response): Promise<void> {
+        try {
+            const email = req.params.email;
+            const slots = await doctorService.getSlots(email);
+            res.status(HttpStatus.OK).json(slots)
+        } catch (error) {
+            console.error('Error fetching slots:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error fetching slots' })
+        }
+    }
+
 }
 
 export default new DoctorController();

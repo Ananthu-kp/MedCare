@@ -79,7 +79,18 @@ class DoctorRepository {
             throw error;
         }
     }
-    
+
+    async addSlotToDoctor(email: string, slot: any) {
+        return Doctor.findOneAndUpdate(
+            { email },
+            { $push: { slots: slot } },
+            { new: true }
+        )
+    }
+
+    async getSlotsForDoctor(email: string) {
+        return Doctor.findOne({ email }).select('slots')
+    }
 }
 
 
