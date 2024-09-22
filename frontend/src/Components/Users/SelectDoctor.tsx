@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { BASE_URL } from '../../Config/baseURL';
+import { useNavigate } from 'react-router-dom';
 
 type Doctor = {
     _id: string;
@@ -16,6 +17,11 @@ type Doctor = {
 
 function SelectDoctor() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const navigate = useNavigate()
+
+    const handleBookApointment = (doctorId: string) => {
+        navigate(`/doctorDetails/${doctorId}`)
+    }
 
     useEffect(() => {
         const fetchDoctors = async () => {
@@ -58,7 +64,7 @@ function SelectDoctor() {
                                 <p className="text-gray-600 mb-1 text-sm">Hospital: {doctor.workingHospital}</p>
                                 <p className="text-gray-600 mb-1 text-sm">Experience: {doctor.yearsOfExperience} years</p>
                                 <p className="text-gray-600 mb-2 text-sm">Consultation Fee: ₹{doctor.consultationfee || 'N/A'}</p>
-                                <button
+                                <button onClick={() => handleBookApointment(doctor._id)}
                                     className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors mt-auto text-sm"
                                 >
                                     Book Appointment

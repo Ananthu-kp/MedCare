@@ -159,16 +159,16 @@ class UserController {
     async resetPassword(req: Request, res: Response): Promise<void> {
         try {
             const { email, otp, newPassword } = req.body;
-    
+
             const otpResult = await userService.verifyForgotOtp(email, otp);
             if (!otpResult.success) {
                 res.status(HttpStatus.BAD_REQUEST).json(otpResult);
                 return;
             }
-    
+
             const result = await userService.updatePassword(email, newPassword);
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
-    
+
         } catch (error) {
             console.error('Error resetting password:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
@@ -240,7 +240,39 @@ class UserController {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
         }
     }
-    
+
+
+    async getDoctorDetails(req: Request, res: Response): Promise<void> {
+        try {
+            const doctorId = req.params.id;
+            const doctorDetails = await userService.getDoctorDetails(doctorId)
+
+            if (!doctorDetails) {
+                res.status(HttpStatus.NOT_FOUND).json({ message: 'Doctor not found' });
+                return
+            }
+
+            res.status(HttpStatus.OK).json(doctorDetails)
+        } catch (error) {
+            console.error('Error fetching doctor details:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error fetching doctor details" });
+        }
+    }
+
+    async getDoctorAvailableSlots(req: Request, res: Response): Promise<void> {
+        try {
+            const doctorId = req.params.id;
+            console.log(doctorId,"eeeeeeeee")
+            const availableSlots = await userService.getDoctorAvailableSlots(doctorId);
+            console.log("aaaa", availableSlots)
+
+            res.status(HttpStatus.OK).json(availableSlots);
+        } catch (error) {
+            console.error('Error fetching available slots:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error fetching available slots" });
+        }
+    }
+
 }
 
 export default new UserController();

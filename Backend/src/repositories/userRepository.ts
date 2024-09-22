@@ -65,6 +65,23 @@ class UserRepository {
         }
     }
 
+    async findDoctorById(id: string): Promise<DoctorType | null> {
+        return Doctor.findById(id).exec()
+    }
+
+    async getAvailableSlotsByDoctorId(doctorId: string): Promise<any[]> {
+        try {
+            const doctor = await Doctor.findById(doctorId).exec();
+            console.log("Doctor found:", doctor);
+    
+            return doctor ? (doctor.slots || []).filter(slot => slot.available) : [];
+        } catch (error) {
+            console.error("Error fetching doctor:", error);
+            return [];
+        }
+    }
+    
+
 }
 
 export default new UserRepository();

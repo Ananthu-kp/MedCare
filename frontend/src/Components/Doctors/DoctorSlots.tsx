@@ -38,25 +38,31 @@ function DoctorSlots({ email }: { email: string }) {
   useEffect(() => {
     const fetchSlots = async () => {
       try {
-        const response = await doctorAxiosInstance.get(`/slots/${email}` );
-        console.log(response)
-        setSlots(response.data);
-
-        const formattedEvents: CustomEvent[] = [];
-
-        response.data.forEach((slot: Slot) => {
+        const response = await doctorAxiosInstance.get(`/slots/${email}`);
+        console.log(response);
+        const today = moment().startOf('day').toDate(); 
+  
+        // Filter out past slots
+        const validSlots = response.data.filter((slot: Slot) => {
+          const slotEnd = new Date(`${slot.date}T${slot.endTime}`);
+          return slotEnd >= today; 
+        });
+  
+        setSlots(validSlots);
+  
+        const formattedEvents: CustomEvent[] = validSlots.map((slot: Slot) => {
           const startDate = new Date(`${slot.date}T${slot.startTime}`);
           const endDate = new Date(`${slot.date}T${slot.endTime}`);
-
-          formattedEvents.push({
+  
+          return {
             start: startDate,
             end: endDate,
             title: slot.available ? 'Available Slot' : 'Booked Slot',
             backgroundColor: slot.available ? 'green' : 'red',
             available: slot.available,
-          });
+          };
         });
-
+  
         setEvents(formattedEvents);
       } catch (error) {
         console.error('Error fetching slots:', error);
@@ -64,6 +70,7 @@ function DoctorSlots({ email }: { email: string }) {
     };
     fetchSlots();
   }, [email]);
+  
 
   const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
     const today = moment().startOf('day').toDate();
@@ -87,6 +94,10 @@ function DoctorSlots({ email }: { email: string }) {
     const response = await doctorAxiosInstance.get(`/slots/${email}?date=${formattedDate}`);
     const existingSlots = response.data;
 
+    if (existingSlots.length > 0) {
+      toast.warning('Slot already allocated for this day.');
+      return;  
+    }
     // Check for conflicts
     const isConflict = existingSlots.some((slot: Slot) => {
       const slotStart = new Date(`${slot.date}T${slot.startTime}`);
@@ -182,7 +193,7 @@ function DoctorSlots({ email }: { email: string }) {
     const isPast = date < today;
     return {
       style: {
-        backgroundColor: isSelected ? 'lightgreen' : '',
+        backgroundColor: isSelected ? 'lightgreen' : isPast ? 'lightgrey' : '',
         opacity: isPast ? 0.5 : 1,
         cursor: isPast ? 'not-allowed' : 'pointer',
         PointerEvents: isPast ? 'none' : 'auto',
