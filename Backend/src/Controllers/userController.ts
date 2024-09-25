@@ -241,38 +241,6 @@ class UserController {
         }
     }
 
-
-    async getDoctorDetails(req: Request, res: Response): Promise<void> {
-        try {
-            const doctorId = req.params.id;
-            const doctorDetails = await userService.getDoctorDetails(doctorId)
-
-            if (!doctorDetails) {
-                res.status(HttpStatus.NOT_FOUND).json({ message: 'Doctor not found' });
-                return
-            }
-
-            res.status(HttpStatus.OK).json(doctorDetails)
-        } catch (error) {
-            console.error('Error fetching doctor details:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error fetching doctor details" });
-        }
-    }
-
-    async getDoctorAvailableSlots(req: Request, res: Response): Promise<void> {
-        try {
-            const doctorId = req.params.id;
-            console.log(doctorId,"eeeeeeeee")
-            const availableSlots = await userService.getDoctorAvailableSlots(doctorId);
-            console.log("aaaa", availableSlots)
-
-            res.status(HttpStatus.OK).json(availableSlots);
-        } catch (error) {
-            console.error('Error fetching available slots:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error fetching available slots" });
-        }
-    }
-
 }
 
 export default new UserController();

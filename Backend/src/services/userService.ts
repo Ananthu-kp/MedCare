@@ -193,23 +193,6 @@ class UserService {
         }
     }
 
-    async getDoctorDetails(id: string): Promise<DoctorType | null> {
-        try {
-            return await userRepository.findDoctorById(id)
-        } catch (error) {
-            console.error('Error in getDoctorDetails service:', error);
-            throw new Error('Error getDoctorDetails');
-        }
-    }
-
-    async getDoctorAvailableSlots(doctorId: string): Promise<any[]> {
-        try {
-            return await userRepository.getAvailableSlotsByDoctorId(doctorId)
-        } catch (error) {
-            console.error('Error in getDoctorAvailableSlots service:', error);
-            throw new Error('Error getDoctorAvailableSlots');
-        }
-    }
 
 }
 
