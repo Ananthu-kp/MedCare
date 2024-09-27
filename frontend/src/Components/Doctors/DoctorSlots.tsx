@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { RRule, RRuleSet } from 'rrule'; 
+import { RRule, RRuleSet } from 'rrule';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { toast } from 'sonner';
 import doctorAxiosInstance from '../../Config/AxiosInstance/doctorInstance';
@@ -32,28 +32,28 @@ function DoctorSlots({ email }: { email: string }) {
   const [startTime, setStartTime] = useState<string>('');
   const [endTime, setEndTime] = useState<string>('');
   const [showTimeForm, setShowTimeForm] = useState<boolean>(false);
-  const [recurrence, setRecurrence] = useState<string>('none'); 
-  const [repeatDates, setRepeatDates] = useState<Date[]>([]); 
+  const [recurrence, setRecurrence] = useState<string>('none');
+  const [repeatDates, setRepeatDates] = useState<Date[]>([]);
 
   useEffect(() => {
     const fetchSlots = async () => {
       try {
         const response = await doctorAxiosInstance.get(`/slots/${email}`);
         console.log(response);
-        const today = moment().startOf('day').toDate(); 
-  
+        const today = moment().startOf('day').toDate();
+
         // Filter out past slots
         const validSlots = response.data.filter((slot: Slot) => {
           const slotEnd = new Date(`${slot.date}T${slot.endTime}`);
-          return slotEnd >= today; 
+          return slotEnd >= today;
         });
-  
+
         setSlots(validSlots);
-  
+
         const formattedEvents: CustomEvent[] = validSlots.map((slot: Slot) => {
           const startDate = new Date(`${slot.date}T${slot.startTime}`);
           const endDate = new Date(`${slot.date}T${slot.endTime}`);
-  
+
           return {
             start: startDate,
             end: endDate,
@@ -62,7 +62,7 @@ function DoctorSlots({ email }: { email: string }) {
             available: slot.available,
           };
         });
-  
+
         setEvents(formattedEvents);
       } catch (error) {
         console.error('Error fetching slots:', error);
@@ -70,7 +70,7 @@ function DoctorSlots({ email }: { email: string }) {
     };
     fetchSlots();
   }, [email]);
-  
+
 
   const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
     const today = moment().startOf('day').toDate();
@@ -79,15 +79,25 @@ function DoctorSlots({ email }: { email: string }) {
     }
 
     setSelectedDay(slotInfo.start);
-    setShowTimeForm(true); 
+    setShowTimeForm(true);
   };
+
+
 
   const handleTimeSubmit = async () => {
     if (!selectedDay || !startTime || !endTime) {
       toast.warning('Please set the Timing');
       return;
     }
-    
+
+    const now = new Date();
+    const selectedDateStart = moment(selectedDay).startOf('day').toDate();
+
+    // Check if the start or end time is already passed for today's date
+    if (selectedDateStart <= now && new Date(`${moment(selectedDay).format('YYYY-MM-DD')}T${startTime}`) <= now) {
+      toast.warning('Cannot allocate a time that already passed.');
+      return;
+    }
 
     const formattedDate = moment(selectedDay).format('YYYY-MM-DD');
 
@@ -96,7 +106,7 @@ function DoctorSlots({ email }: { email: string }) {
 
     if (existingSlots.length > 0) {
       toast.warning('Slot already allocated for this day.');
-      return;  
+      return;
     }
     // Check for conflicts
     const isConflict = existingSlots.some((slot: Slot) => {
@@ -112,20 +122,42 @@ function DoctorSlots({ email }: { email: string }) {
       toast.error('Time slot conflicts with an existing slot.');
       return;
     }
-    
-    const timeSlot = {
-      email,
-      date: formattedDate,
-      startTime,
-      endTime,
-      available: true,
-    };
 
-    console.log("Time slot:", timeSlot)
+    // Handle multi-day slots
+    const startDateTime = new Date(`${formattedDate}T${startTime}`);
+    const endDateTime = new Date(`${formattedDate}T${endTime}`);
+    let multiDaySlot = false;
+
+    if (endDateTime <= startDateTime) {
+      multiDaySlot = true;
+    }
 
     try {
-      const response =  await doctorAxiosInstance.post(`/slots`, timeSlot);
+      const timeSlot = {
+        email,
+        date: formattedDate,
+        startTime,
+        endTime: multiDaySlot ? '23:59' : endTime,
+        available: true,
+      };
+
+      console.log("Time slot:", timeSlot)
+
+      const response = await doctorAxiosInstance.post(`/slots`, timeSlot);
       console.log(response)
+
+      // Save the slot for the next day if multi-day
+      if (multiDaySlot) {
+        const nextDay = moment(selectedDay).add(1, 'days').format('YYYY-MM-DD');
+        const nextDaySlot = {
+          email,
+          date: nextDay,
+          startTime: '00:00',
+          endTime,
+          available: true,
+        };
+        await doctorAxiosInstance.post(`/slots`, nextDaySlot);
+      }
 
       let recurrenceDates: Date[] = [];
       if (recurrence === 'daily') {
@@ -139,7 +171,7 @@ function DoctorSlots({ email }: { email: string }) {
         const rule = new RRule({
           freq: RRule.WEEKLY,
           dtstart: selectedDay,
-          count: 4, 
+          count: 4,
         });
         recurrenceDates = rule.all().filter(date => date.toDateString() !== selectedDay.toDateString())
       } else if (recurrence === 'specific-dates' && repeatDates.length > 0) {
