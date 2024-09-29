@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
-import { RRule, RRuleSet } from 'rrule';
+import { RRule } from 'rrule';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { toast } from 'sonner';
 import doctorAxiosInstance from '../../Config/AxiosInstance/doctorInstance';
@@ -34,6 +34,7 @@ function DoctorSlots({ email }: { email: string }) {
   const [showTimeForm, setShowTimeForm] = useState<boolean>(false);
   const [recurrence, setRecurrence] = useState<string>('none');
   const [repeatDates, setRepeatDates] = useState<Date[]>([]);
+  const [currentMonth, setCurrentMonth] = useState<Date>(new Date()); // Track active month
 
   useEffect(() => {
     const fetchSlots = async () => {
@@ -71,18 +72,19 @@ function DoctorSlots({ email }: { email: string }) {
     fetchSlots();
   }, [email]);
 
-
   const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
     const today = moment().startOf('day').toDate();
-    if (slotInfo.start < today) {
+    const selectedMonth = moment(slotInfo.start).month();
+    const activeMonth = moment(currentMonth).month();
+
+    // Check if the selected day is within the active month and not in the past
+    if (slotInfo.start < today || selectedMonth !== activeMonth) {
       return;
     }
 
     setSelectedDay(slotInfo.start);
     setShowTimeForm(true);
   };
-
-
 
   const handleTimeSubmit = async () => {
     if (!selectedDay || !startTime || !endTime) {
@@ -101,25 +103,22 @@ function DoctorSlots({ email }: { email: string }) {
 
     const formattedDate = moment(selectedDay).format('YYYY-MM-DD');
 
-    const response = await doctorAxiosInstance.get(`/slots/${email}?date=${formattedDate}`);
-    const existingSlots = response.data;
-
-    if (existingSlots.length > 0) {
-      toast.warning('Slot already allocated for this day.');
-      return;
-    }
-    // Check for conflicts
-    const isConflict = existingSlots.some((slot: Slot) => {
+    // Check for conflicts using adjusted logic to handle overlaps
+    const existingSlots = slots.filter((slot) => {
       const slotStart = new Date(`${slot.date}T${slot.startTime}`);
       const slotEnd = new Date(`${slot.date}T${slot.endTime}`);
       const newSlotStart = new Date(`${formattedDate}T${startTime}`);
       const newSlotEnd = new Date(`${formattedDate}T${endTime}`);
 
-      return newSlotStart < slotEnd && newSlotEnd > slotStart;
+      // Check for overlap or if the slot spills into the next day
+      return (
+        (slotStart <= newSlotEnd && newSlotStart < slotEnd) ||
+        (newSlotEnd <= newSlotStart && newSlotEnd < slotEnd)
+      );
     });
 
-    if (isConflict) {
-      toast.error('Time slot conflicts with an existing slot.');
+    if (existingSlots.length > 0) {
+      toast.warning('Slot already allocated or overlaps with an existing slot.');
       return;
     }
 
@@ -141,10 +140,10 @@ function DoctorSlots({ email }: { email: string }) {
         available: true,
       };
 
-      console.log("Time slot:", timeSlot)
+      console.log('Time slot:', timeSlot);
 
       const response = await doctorAxiosInstance.post(`/slots`, timeSlot);
-      console.log(response)
+      console.log(response);
 
       // Save the slot for the next day if multi-day
       if (multiDaySlot) {
@@ -166,16 +165,16 @@ function DoctorSlots({ email }: { email: string }) {
           dtstart: selectedDay,
           count: 7,
         });
-        recurrenceDates = rule.all().filter(date => date.toDateString() !== selectedDay.toDateString())
+        recurrenceDates = rule.all().filter((date) => date.toDateString() !== selectedDay.toDateString());
       } else if (recurrence === 'weekly') {
         const rule = new RRule({
           freq: RRule.WEEKLY,
           dtstart: selectedDay,
           count: 4,
         });
-        recurrenceDates = rule.all().filter(date => date.toDateString() !== selectedDay.toDateString())
+        recurrenceDates = rule.all().filter((date) => date.toDateString() !== selectedDay.toDateString());
       } else if (recurrence === 'specific-dates' && repeatDates.length > 0) {
-        recurrenceDates = repeatDates.filter(date => date.toDateString() !== selectedDay.toDateString())
+        recurrenceDates = repeatDates.filter((date) => date.toDateString() !== selectedDay.toDateString());
       }
 
       if (recurrenceDates.length > 0) {
@@ -236,79 +235,98 @@ function DoctorSlots({ email }: { email: string }) {
   return (
     <div className="container mx-auto py-10">
       <h1 className="text-2xl font-bold mb-6 text-center">Manage Doctor Slots</h1>
-      <div className="calendar-container p-4">
+      <div className="flex justify-center">
         <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
           endAccessor="end"
+          style={{ height: 500, width: '100%' }}
           selectable
           onSelectSlot={handleSlotSelect}
-          style={{ height: 500 }}
-          views={['month']}
           eventPropGetter={eventPropGetter}
           dayPropGetter={dayPropGetter}
+          onNavigate={(date) => setCurrentMonth(date)}
         />
       </div>
-
       {/* Time Input Form */}
       {showTimeForm && selectedDay && (
-        <div className="time-input-form mt-6">
-          <h2 className="text-xl mb-4">Set Slot Timing for {moment(selectedDay).format('MMMM Do YYYY')}</h2>
+        <div className="time-input-form mt-6 p-6 bg-gray-100 rounded-lg shadow-md">
+          <h2 className="text-xl font-semibold mb-4 text-center">
+            Set Slot Timing for {moment(selectedDay).format('MMMM Do YYYY')}
+          </h2>
           <div className="flex flex-col gap-4">
-            <label>
-              Start Time:
+            {/* Start Time */}
+            <div className="flex flex-col gap-2">
+              <label className="text-lg font-medium">Start Time:</label>
               <input
                 type="time"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="border p-2"
+                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </label>
-            <label>
-              End Time:
+            </div>
+
+            {/* End Time */}
+            <div className="flex flex-col gap-2">
+              <label className="text-lg font-medium">End Time:</label>
               <input
                 type="time"
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
-                className="border p-2"
+                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </label>
+            </div>
 
-            <label>
-              Recurrence:
-              <select value={recurrence} onChange={handleRecurrenceChange} className="border p-2">
+            {/* Recurrence */}
+            <div className="flex flex-col gap-2">
+              <label className="text-lg font-medium">Recurrence:</label>
+              <select
+                value={recurrence}
+                onChange={handleRecurrenceChange}
+                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
                 <option value="none">None</option>
                 <option value="daily">Daily</option>
                 <option value="weekly">Weekly</option>
                 <option value="specific-dates">Specific Dates</option>
               </select>
-            </label>
+            </div>
 
+            {/* Specific Dates */}
             {recurrence === 'specific-dates' && (
-              <div>
-                <h3>Select Specific Dates</h3>
+              <div className="flex flex-col gap-2">
+                <label className="text-lg font-medium">Select Specific Dates:</label>
                 <input
                   type="date"
                   onChange={handleSpecificDateSelection}
-                  className="border p-2"
+                  className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
                 {repeatDates.length > 0 && (
-                  <ul>
+                  <ul className="mt-2 list-disc pl-6">
                     {repeatDates.map((date, index) => (
-                      <li key={index}>{moment(date).format('MMMM Do YYYY')}</li>
+                      <li key={index} className="text-lg">
+                        {moment(date).format('MMMM Do YYYY')}
+                      </li>
                     ))}
                   </ul>
                 )}
               </div>
             )}
 
-            <button onClick={handleTimeSubmit} className="bg-blue-500 text-white p-2 mt-4">
-              Save Slot
-            </button>
+            {/* Submit Button */}
+            <div className="flex justify-center mt-4">
+              <button
+                onClick={handleTimeSubmit}
+                className="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition duration-200"
+              >
+                Save Slot
+              </button>
+            </div>
           </div>
         </div>
       )}
+
     </div>
   );
 }
