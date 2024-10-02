@@ -46,6 +46,7 @@ function App() {
           <Route path="/recover-password" element={<RecoverPassword />} />
           <Route path='/profile' element={<UserProfilePage />} />
           <Route path='/selectDoctor' element={<SelectDoctorPage />} />
+          <Route path='/doctorDetails/:doctorId' element={<DoctorDetails />} />
 
           <Route path="/admin/login" element={<LoginPageAdmin />} />
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />
@@ -61,7 +62,6 @@ function App() {
           <Route path="/doctor/forgot-password" element={<DoctorForgotPage />} />
           <Route path="/doctor/recover-password" element={<RecoverPasswordPage />} />
           <Route path='/doctor/slots' element={<DoctorSlotPage />} />
-          <Route path='/doctorDetails/:doctorId' element={<DoctorDetails />} />
         </Routes>
       </Router>
       <Toaster richColors position="top-right" closeButton />
