@@ -62,8 +62,6 @@ function SelectDoctor() {
                                 <h2 className="text-lg font-bold mb-2">{doctor.name}</h2>
                                 <p className="text-gray-600 mb-1 text-sm">{doctor.category}</p>
                                 <p className="text-gray-600 mb-1 text-sm">Hospital: {doctor.workingHospital}</p>
-                                <p className="text-gray-600 mb-1 text-sm">Experience: {doctor.yearsOfExperience} years</p>
-                                <p className="text-gray-600 mb-2 text-sm">Consultation Fee: ₹{doctor.consultationfee || 'N/A'}</p>
                                 <button onClick={() => handleBookApointment(doctor._id)}
                                     className="bg-blue-500 text-white px-3 py-1 rounded-lg hover:bg-blue-600 transition-colors mt-auto text-sm"
                                 >

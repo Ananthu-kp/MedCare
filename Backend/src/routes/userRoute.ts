@@ -17,5 +17,7 @@ router.get('/profile', verifyToken, userController.getUserProfile)
 router.put('/personal', verifyToken, userController.updatePersonalDetails)
 router.put('/upload-profile-image', verifyToken, userController.uploadProfileImage)
 router.get('/selectDoctor', userController.getDoctors)
+router.get('/doctors/:id', userController.getDoctorDetails);
+router.get('/slot/:id', userController.getDoctorSlots);
 
 export default router;

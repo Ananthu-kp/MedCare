@@ -3,7 +3,7 @@ import bcryptUtil from "../utils/bcryptUtil";
 import { UserType } from "../Model/userModel";
 import { sendOtpEmail } from '../config/nodeMailer';
 import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
-import { DoctorType } from "../Model/doctorModel";
+import { DoctorType, SlotType } from "../Model/doctorModel";
 
 class UserService {
     async registerUser(user: UserType): Promise<{ success: boolean; message: string; otp: string }> {
@@ -192,7 +192,13 @@ class UserService {
             throw new Error('Error getting all doctors');
         }
     }
-
+    async getDoctorDetails(id: string): Promise<DoctorType | null> {
+        return userRepository.getDoctorById(id);
+      }
+    
+      async getDoctorSlots(id: string): Promise<SlotType[]> {
+        return userRepository.getDoctorSlots(id);
+      }
 
 }
 

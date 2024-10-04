@@ -241,6 +241,28 @@ class UserController {
         }
     }
 
+    async getDoctorDetails(req: Request, res: Response): Promise<void> {
+        const id = req.params.id;
+        try {
+          const doctor = await userService.getDoctorDetails(id);
+          res.json(doctor);
+        } catch (error) {
+            console.error('Error fetching doctors11111111:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
+        }
+      }
+    
+      async getDoctorSlots(req: Request, res: Response): Promise<void> {
+        const id = req.params.id;
+        try {
+          const slots = await userService.getDoctorSlots(id);
+          res.json(slots);
+        } catch (error) {
+            console.error('Error fetching doctors22222222222:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
+        }
+      }
+
 }
 
 

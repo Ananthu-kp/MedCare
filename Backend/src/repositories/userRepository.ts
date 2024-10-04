@@ -1,4 +1,4 @@
-import { Doctor, DoctorType } from "../Model/doctorModel";
+import { Doctor, DoctorType, SlotType } from "../Model/doctorModel";
 import { User, UserType } from "../Model/userModel";
 
 class UserRepository {
@@ -65,6 +65,28 @@ class UserRepository {
         }
     }
 
+    async getDoctorById(id: string): Promise<DoctorType | null> {
+        try {
+          const doctor = await Doctor.findById(id);
+          return doctor;
+        } catch (error) {
+          console.error('Error fetching doctor:', error);
+          return null;
+        }
+      }
+
+      async getDoctorSlots(id: string): Promise<SlotType[]> {
+        try {
+          const doctor = await Doctor.findById(id);
+          if (!doctor) {
+            return [];
+          }
+          return doctor.slots ?? [];
+        } catch (error) {
+          console.error('Error fetching doctor slots:', error);
+          return [];
+        }
+      }
 
 }
 

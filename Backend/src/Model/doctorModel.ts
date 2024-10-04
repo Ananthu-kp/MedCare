@@ -62,4 +62,4 @@ doctorSchema.index({ otpCreatedAt: 1 }, { expireAfterSeconds: 300 });
 
 const Doctor = model<DoctorType>('Doctor', doctorSchema);
 
-export { Doctor, DoctorType };
+export { Doctor, DoctorType, SlotType };

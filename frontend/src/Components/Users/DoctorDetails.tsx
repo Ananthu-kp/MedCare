@@ -22,23 +22,23 @@ function DoctorDetails() {
 
   useEffect(() => {
     const fetchDoctorDetails = async () => {
-        try {
-            const response = await axios.get(`${BASE_URL}/doctor/${doctorId}`);
-            console.log(response.data)
-            if (!response.data) {
-                console.error(`No doctor found with ID: ${doctorId}`);
-                return;
-            }
-            setDoctor(response.data);
-        } catch (error) {
-            console.error('Error fetching doctor details:', error);
+      try {
+        const response = await axios.get(`${BASE_URL}/doctors/${doctorId}`);
+        console.log(response.data);
+        if (!response.data) {
+          console.error(`No doctor found with ID: ${doctorId}`);
+          return;
         }
+        setDoctor(response.data);
+      } catch (error) {
+        console.error('Error fetching doctor details:', error);
+      }
     };
-    
 
     const fetchDoctorSlots = async () => {
       try {
-        const response = await axios.get(`${BASE_URL}/slots/${doctorId}`);
+        const response = await axios.get(`${BASE_URL}/slot/${doctorId}`);
+        console.log(response.data)
         setSlots(response.data);
 
         const formattedEvents = response.data.map((slot: Slot) => ({
@@ -62,6 +62,8 @@ function DoctorDetails() {
     style: {
       backgroundColor: event.backgroundColor || 'blue',
       color: 'white',
+      borderRadius: '5px',
+      padding: '2px 5px',
     },
   });
 
@@ -70,7 +72,7 @@ function DoctorDetails() {
       const slotDate = new Date(slot.start).toDateString();
       return slotDate === date.toDateString();
     });
-    
+
     return {
       style: {
         backgroundColor: hasSlots ? 'white' : 'lightgrey',
@@ -81,23 +83,35 @@ function DoctorDetails() {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto py-10 px-4">
       {doctor && (
-        <div className="doctor-details mb-6 text-center">
-          <img 
-            src={`${BASE_URL}/Public/${doctor.profileImg}`} 
-            alt={doctor.name} 
-            className="rounded-full w-32 h-32 mx-auto mb-4"
-          />
-          <h2 className="text-2xl font-bold">{doctor.name}</h2>
-          <p>Category: {doctor.category}</p>
-          <p>Experience: {doctor.yearsOfExperience} years</p>
-          <p>Consultation Fee: ₹{doctor.consultationfee}</p>
-          <p>Hospital: {doctor.workingHospital}</p>
+        <div className="doctor-details bg-white shadow-lg rounded-lg p-6 mb-8">
+          <div className="flex flex-col items-center">
+            <img
+              src={`${BASE_URL}/Public/${doctor.profileImg}`}
+              alt={doctor.name}
+              className="rounded-full w-32 h-32 object-cover mb-4"
+            />
+            <h2 className="text-3xl font-bold text-gray-800">{doctor.name}</h2>
+            <p className="text-gray-500 text-lg mt-2">{doctor.category}</p>
+          </div>
+
+          <div className="doctor-info mt-6">
+            <p className="text-gray-700 text-center">
+              <span className="font-semibold">Experience:</span> {doctor.yearsOfExperience} years
+            </p>
+            <p className="text-gray-700 text-center mt-2">
+              <span className="font-semibold">Consultation Fee:</span> ₹{doctor.consultationfee}
+            </p>
+            <p className="text-gray-700 text-center mt-2">
+              <span className="font-semibold">Hospital:</span> {doctor.workingHospital}
+            </p>
+          </div>
         </div>
       )}
 
-      <div className="calendar-container p-4">
+      <div className="calendar-container bg-white shadow-lg rounded-lg p-6">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Available Slots</h3>
         <Calendar
           localizer={localizer}
           events={events}
@@ -106,7 +120,8 @@ function DoctorDetails() {
           style={{ height: 500 }}
           eventPropGetter={eventPropGetter}
           dayPropGetter={dayPropGetter}
-          selectable={false} 
+          selectable={false}
+          className="rounded-lg overflow-hidden"
         />
       </div>
     </div>
