@@ -184,14 +184,15 @@ class UserService {
         }
     }
 
-    async getAllDoctors(): Promise<DoctorType[]> {
+    async getAllDoctors(name?: string): Promise<DoctorType[]> {
         try {
-            return await userRepository.getAllDoctors();
+            return await userRepository.getAllDoctors(name);
         } catch (error) {
             console.error('Error in getAllDoctors service:', error);
             throw new Error('Error getting all doctors');
         }
     }
+    
     async getDoctorDetails(id: string): Promise<DoctorType | null> {
         return userRepository.getDoctorById(id);
       }

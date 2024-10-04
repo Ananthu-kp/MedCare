@@ -37,11 +37,11 @@ function Navbar() {
     <header className="w-full py-3 text-gray-900 bg-white shadow-md z-20">
       <div className="container mx-auto flex justify-between items-center px-4 relative">
         <h1 className="text-2xl font-bold text-teal-500">MEDCARE</h1>
-        <nav className="flex-1 flex justify-center space-x-8">
+        {/* <nav className="flex-1 flex justify-center space-x-8">
           <a href="/" className="text-gray-700 hover:text-teal-500">Home</a>
           <a href="#services" className="text-gray-700 hover:text-teal-500">Services</a>
           <a href="#about" className="text-gray-700 hover:text-teal-500">About</a>
-        </nav>
+        </nav> */}
         <div className="flex items-center gap-4 relative">
           {!isAuthenticated ? (
             <>

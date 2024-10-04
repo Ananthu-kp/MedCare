@@ -233,13 +233,15 @@ class UserController {
 
     async getDoctors(req: Request, res: Response): Promise<void> {
         try {
-            const doctors = await userService.getAllDoctors();
+            const { name } = req.query; 
+            const doctors = await userService.getAllDoctors(name as string); 
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
             console.error('Error fetching doctors:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
         }
     }
+    
 
     async getDoctorDetails(req: Request, res: Response): Promise<void> {
         const id = req.params.id;

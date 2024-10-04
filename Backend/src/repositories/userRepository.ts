@@ -56,14 +56,24 @@ class UserRepository {
         );
     }
 
-    async getAllDoctors(): Promise<DoctorType[]> {
+    async getAllDoctors(name?: string): Promise<DoctorType[]> {
         try {
-            return await Doctor.find({ isBlocked: false, isVerified: true, availability: true }).exec();
+            const query: any = {
+                isBlocked: false,
+                isVerified: true,
+                availability: true
+            };
+            if (name) {
+                query.name = { $regex: name, $options: 'i' }; 
+            }
+    
+            return await Doctor.find(query).exec();
         } catch (error) {
             console.error('Error fetching doctors from the database:', error);
             throw new Error('Error fetching doctors from the database');
         }
     }
+    
 
     async getDoctorById(id: string): Promise<DoctorType | null> {
         try {

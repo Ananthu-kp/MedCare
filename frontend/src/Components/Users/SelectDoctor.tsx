@@ -17,6 +17,7 @@ type Doctor = {
 
 function SelectDoctor() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate()
 
     const handleBookApointment = (doctorId: string) => {
@@ -24,21 +25,39 @@ function SelectDoctor() {
     }
 
     useEffect(() => {
-        const fetchDoctors = async () => {
+        const fetchDoctors = async (query: string = '') => {
             try {
-                const response = await axios.get(`${BASE_URL}/selectDoctor`);
+                const response = await axios.get(`${BASE_URL}/selectDoctor`, {
+                    params: { name: query }
+                });
                 console.log(response.data);
                 setDoctors(response.data);
             } catch (error) {
                 console.error('Error fetching doctor data:', error);
             }
         };
-        fetchDoctors();
-    }, []);
+        fetchDoctors(searchQuery);
+    }, [searchQuery]);
+
+    const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchQuery(event.target.value)
+    }
 
     return (
         <div className="container mx-auto py-10 pl-10">
             <h1 className="text-2xl font-bold mb-6 text-center">Select your Expert</h1>
+            {/* Search Input */}
+            <div className="mb-6">
+                <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={handleSearch}
+                    placeholder="Search Doctors"
+                    className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
+                />
+            </div>
+
+            {doctors.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-5 lg:grid-cols-5 gap-5">
                 {doctors.map((doctor) => {
                     const imageUrl = doctor.profileImg
@@ -72,6 +91,11 @@ function SelectDoctor() {
                     );
                 })}
             </div>
+            ): (
+                <div className='text-center text-gray-500 mt-10'>
+                    No such Doctor found
+                </div>
+            )}
         </div>
     );
 };
