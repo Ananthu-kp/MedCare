@@ -16,15 +16,31 @@ interface Doctor {
 const DoctorsList: React.FC = () => {
   const [doctorsArray, setDoctorsArray] = useState<Doctor[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
-    adminAxiosInstance.get(`/admin/doctors`)
-      .then(response => setDoctorsArray(response.data))
-      .catch((error: AxiosError) => {
-        console.error('Error fetching doctors:', error);
-        setError('Failed to load doctors');
-      });
-  }, []);
+    const fetchDoctors = async (query: string = '') => {
+      try {
+        const response = await adminAxiosInstance.get<Doctor[]>(`/admin/doctors`, {
+          params: { name: query },
+        })
+        setDoctorsArray(response.data)
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error('Error fetching Doctors:', error.response?.data);
+          setError('Failed to load Doctors');
+        } else {
+          console.error('Unexpected error:', error);
+          setError('Unexpected error occurred');
+        }
+      }
+    }
+    fetchDoctors(searchQuery)
+  }, [searchQuery]);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
 
   const unblockDoctor = async (email: string) => {
     try {
@@ -91,6 +107,15 @@ const DoctorsList: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">Doctors List</h1>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search Users"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
+        />
+      </div>
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg table-fixed">

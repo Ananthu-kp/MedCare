@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { FaSave, FaTimes } from 'react-icons/fa'; 
+import { FaSave, FaTimes } from 'react-icons/fa';
 
 interface Category {
   _id: string;
@@ -23,16 +23,32 @@ const Specialization: React.FC = () => {
   const [editCategoryId, setEditCategoryId] = useState<string | null>(null);
   const [editCategoryName, setEditCategoryName] = useState<string>('');
   const [originalCategoryName, setOriginalCategoryName] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    adminAxiosInstance.get('/admin/categories')
-      .then(response => setCategories(response.data))
-      .catch((error: AxiosError) => {
-        console.error('Error fetching categories:', error);
-        setError('Failed to load categories');
-      });
-  }, []);
+    const fetchCategory = async (query: string = '') => {
+      try {
+        const response = await adminAxiosInstance.get<Category[]>('/admin/categories', {
+          params: { name: query },
+        })
+        setCategories(response.data)
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error('Error fetching category:', error.response?.data);
+          setError('Failed to load category');
+        } else {
+          console.error('Unexpected error:', error);
+          setError('Unexpected error occurred');
+        }
+      }
+    }
+    fetchCategory(searchQuery)
+  }, [searchQuery]);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value);
+  };
 
   const handleAddCategory = async (values: { name: string }, { resetForm }: any) => {
     try {
@@ -134,6 +150,15 @@ const Specialization: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">Categories Management</h1>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search Users"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
+        />
+      </div>
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
 
       <div className="flex gap-6">
@@ -195,7 +220,7 @@ const Specialization: React.FC = () => {
                             <button
                               onClick={() => {
                                 setEditCategoryId(category._id);
-                                setOriginalCategoryName(category.name); 
+                                setOriginalCategoryName(category.name);
                                 setEditCategoryName(category.name);
                               }}
                               className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-400 transition duration-300"

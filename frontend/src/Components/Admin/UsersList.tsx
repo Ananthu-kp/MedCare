@@ -16,15 +16,32 @@ interface User {
 const UsersList: React.FC = () => {
   const [usersArray, setUsersArray] = useState<User[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState<string>('');
 
   useEffect(() => {
-    adminAxiosInstance.get(`/admin/users`)
-      .then(response => setUsersArray(response.data))
-      .catch((error: AxiosError) => {
-        console.error('Error fetching users:', error);
-        setError('Failed to load users');
-      });
-  }, []);
+    const fetchUsers = async (query: string = '') => {
+      try {
+        const response = await adminAxiosInstance.get<User[]>('/admin/users', {
+          params: { name: query },
+        });
+        setUsersArray(response.data);
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          console.error('Error fetching users:', error.response?.data);
+          setError('Failed to load users');
+        } else {
+          console.error('Unexpected error:', error);
+          setError('Unexpected error occurred');
+        }
+      }
+    };
+
+    fetchUsers(searchQuery);
+  }, [searchQuery]);
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(event.target.value); 
+  };
 
   const unblockUser = async (email: string) => {
     try {
@@ -91,6 +108,15 @@ const UsersList: React.FC = () => {
   return (
     <div className="container mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6 text-center">Users List</h1>
+      <div className="mb-4">
+        <input
+          type="text"
+          placeholder="Search Users"
+          value={searchQuery}
+          onChange={handleSearch}
+          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
+        />
+      </div>
       {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
       <div className="overflow-x-auto">
         <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg table-fixed">

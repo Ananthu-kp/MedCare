@@ -33,7 +33,8 @@ class AdminController {
 
     getUser = async (req: Request, res: Response) => {
         try {
-            const users = await this._adminService.getUser();
+            const searchQuery = req.query.name as string
+            const users = await this._adminService.getUser(searchQuery);
             res.status(HttpStatus.OK).json(users);
         } catch (error) {
             if (error instanceof Error) {
@@ -66,7 +67,8 @@ class AdminController {
 
     getDoctor = async (req: Request, res: Response) => {
         try {
-            const doctors = await this._adminService.getDoctor();
+            const searchQuery = req.query.name as string
+            const doctors = await this._adminService.getDoctor(searchQuery);
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
             if (error instanceof Error) {
@@ -120,7 +122,8 @@ class AdminController {
 
     getCategories = async (req: Request, res: Response) => {
         try {
-            const categories = await this._adminService.getCategories();
+            const searchQuery = req.query.name as string
+            const categories = await this._adminService.getCategories(searchQuery);
             res.status(HttpStatus.OK).json(categories);
         } catch (error) {
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");

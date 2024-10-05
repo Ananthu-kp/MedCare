@@ -4,15 +4,15 @@ import Category from "../Model/categoryModel";
 import { IAdminRepository } from "../Interfaces/adminRepository.interface";
 
 
-class AdminRepository implements IAdminRepository{
+class AdminRepository implements IAdminRepository {
 
-    async getUsers() {
+    async getUsers(searchQuery?: string): Promise<any[]> {
         try {
-            const users = await User.find().exec();
-            return users;
+            const filter = searchQuery ? { name: { $regex: searchQuery, $options: 'i' } } : {};
+            return await User.find(filter).exec();
         } catch (error) {
             console.error('Error fetching users', error);
-            throw new Error('Error fetching users')
+            throw new Error('Error fetching users');
         }
     }
 
@@ -35,9 +35,10 @@ class AdminRepository implements IAdminRepository{
     }
 
 
-    async getDoctors() {
+    async getDoctors(searchQuery?: string): Promise<any[]> {
         try {
-            const doctors = await Doctor.find().exec();
+            const filter = searchQuery ? { name: { $regex: searchQuery, $options: 'i' } } : {};
+            const doctors = await Doctor.find(filter).exec();
             return doctors;
         } catch (error) {
             console.error('Error fetching doctors', error);
@@ -62,7 +63,7 @@ class AdminRepository implements IAdminRepository{
             throw error;
         }
     }
-    
+
 
     async blockDoctor(email: string) {
         try {
@@ -92,9 +93,10 @@ class AdminRepository implements IAdminRepository{
     }
 
 
-    async getCategories() {
+    async getCategories(searchQuery?: string) {
         try {
-            return await Category.find();
+            const filter = searchQuery ? { name: { $regex: searchQuery, $options: 'i' } } : {};
+            return await Category.find(filter);
         } catch (error) {
             console.log("Error from database:", error);
             throw error;
@@ -102,7 +104,7 @@ class AdminRepository implements IAdminRepository{
     }
     async addCategory(name: string) {
         try {
-            return await Category.create({ name }) 
+            return await Category.create({ name })
         } catch (error) {
             console.log("Error from database:", error);
             throw error;
@@ -123,7 +125,7 @@ class AdminRepository implements IAdminRepository{
             const updatedCategory = await Category.findByIdAndUpdate(
                 id,
                 { name: newName },
-                { new: true } 
+                { new: true }
             );
             if (!updatedCategory) {
                 throw new Error("Category not found");

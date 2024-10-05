@@ -40,13 +40,12 @@ class AdminService implements IAdminService {
     }
 
 
-    async getUser() {
+    async getUser(searchQuery?: string): Promise<any[]> {
         try {
-            const users = await this._adminRepository.getUsers();
-            return users;
+            return await this._adminRepository.getUsers(searchQuery);
         } catch (error) {
-            console.error('Error fetching users in service:', error)
-            throw new Error('Error fetching users')
+            console.error('Error fetching users in service:', error);
+            throw new Error('Error fetching users');
         }
     }
 
@@ -77,9 +76,9 @@ class AdminService implements IAdminService {
     }
 
 
-    async getDoctor() {
+    async getDoctor(searchQuery?: string): Promise<any[]> {
         try {
-            const doctors = await this._adminRepository.getDoctors();
+            const doctors = await this._adminRepository.getDoctors(searchQuery);
             return doctors;
         } catch (error) {
             console.error('Error fetching doctors in service:', error);
@@ -143,9 +142,9 @@ class AdminService implements IAdminService {
 
 
 
-    async getCategories() {
+    async getCategories(searchQuery?: string) {
         try {
-            const categories = await this._adminRepository.getCategories();
+            const categories = await this._adminRepository.getCategories(searchQuery);
             return categories;
         } catch (error) {
             throw new Error('Error fetching categories');
