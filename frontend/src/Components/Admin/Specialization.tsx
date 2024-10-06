@@ -262,7 +262,7 @@ const Specialization: React.FC = () => {
                 <ErrorMessage name="name" component="div" className="text-red-500 mb-2" />
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-400 transition duration-300 w-full flex items-center justify-center"
+                  className="text-white px-3 py-1 rounded-lg transition-colors mt-auto text-sm bg-gradient-to-br from-teal-400 via-teal-500 to-green-300 hover:opacity-90"
                 >
                   Add Category
                 </button>

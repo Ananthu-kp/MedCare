@@ -42,17 +42,21 @@ function UserSignup() {
     try {
       const response = await axios.post(`${BASE_URL}/signup`, values);
       console.log('Response:', response.data);
-
+  
       if (!response.data || !response.data.success) {
         console.error('Unexpected response format:', response.data);
         throw new Error('Unexpected response format');
       }
-
+  
       if (response.data.success) {
+        sessionStorage.removeItem('userToken');
+  
+        console.log("Navigating to OTP page...");  
         setTimeout(() => {
           toast.success("OTP sent to your email!");
         }, 100);
-        navigate('/otp', { state: { email: values.email } });
+  
+        navigate('/otp', { state: { email: values.email } });  
       } else {
         toast.error(response.data.message);
       }
@@ -67,6 +71,7 @@ function UserSignup() {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className='min-h-screen flex'>

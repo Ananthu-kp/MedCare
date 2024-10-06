@@ -40,7 +40,7 @@ function App() {
         <Routes>
           <Route path="/signup" element={<GuestRoute element={SignupPage} />} />
           <Route path="/login" element={<GuestRoute element={LoginPage} />} />
-          <Route path="/otp" element={<OtpProtect element={OtpPage} />} />
+          <Route path="/otp" element={<OtpPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/forgot-password" element={<UserForgotPass />} />
           <Route path="/recover-password" element={<RecoverPassword />} />
