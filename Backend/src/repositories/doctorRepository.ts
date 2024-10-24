@@ -89,7 +89,15 @@ class DoctorRepository {
     }
 
     async getSlotsForDoctor(email: string) {
-        return Doctor.findOne({ email }).select('slots')
+        const doctor = await Doctor.findOne({ email }).select('slots');
+
+        if (doctor) {
+            const currentDate = new Date().toISOString().split('T')[0];
+
+            doctor.slots = doctor.slots?.filter(slot => slot.date >= currentDate);
+            await doctor.save()
+        }
+        return doctor ? doctor.slots : [];
     }
 }
 

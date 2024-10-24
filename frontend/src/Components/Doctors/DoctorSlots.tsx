@@ -58,7 +58,7 @@ function DoctorSlots({ email }: { email: string }) {
           return {
             start: startDate,
             end: endDate,
-            title: slot.available ? 'Available Slot' : 'Booked Slot',
+            title: slot.available ? 'Allocated Slot' : 'Booked Slot',
             backgroundColor: slot.available ? 'green' : 'red',
             available: slot.available,
           };
@@ -145,6 +145,28 @@ function DoctorSlots({ email }: { email: string }) {
       const response = await doctorAxiosInstance.post(`/slots`, timeSlot);
       console.log(response);
 
+      //doing this for allocate slot without reload
+      const newSlot: Slot = {
+        email,
+        date: formattedDate,
+        startTime,
+        endTime: multiDaySlot ? '23:59' : endTime,
+        available: true,
+      }
+
+      setSlots((prevSlots) => [...prevSlots, newSlot]);
+
+
+      const newEvent: CustomEvent = {
+        start: startDateTime,
+        end: endDateTime,
+        title: 'Allocated Slot',
+        backgroundColor: 'green',
+        available: true
+      };
+
+      setEvents((prevEvents) => [...prevEvents, newEvent])
+
       // Save the slot for the next day if multi-day
       if (multiDaySlot) {
         const nextDay = moment(selectedDay).add(1, 'days').format('YYYY-MM-DD');
@@ -156,7 +178,29 @@ function DoctorSlots({ email }: { email: string }) {
           available: true,
         };
         await doctorAxiosInstance.post(`/slots`, nextDaySlot);
-      }
+
+        //add the next day slot to the state
+        const nextSlot: Slot = {
+          email,
+          date: nextDay,
+          startTime: '00:00',
+          endTime,
+          available: true,
+        };
+
+        setSlots((prevSlots) => [...prevSlots, nextSlot]);
+
+        const nextDayEvent: CustomEvent = {
+          start: new Date(`${nextDay}T00:00`),
+          end: new Date(`${nextDay}T${endTime}`),
+          title: 'Allocated Slot',
+          backgroundColor: 'green',
+          available: true,
+        };
+
+        setEvents((prevEvents) => [...prevEvents, nextDayEvent])
+      };
+      
 
       let recurrenceDates: Date[] = [];
       if (recurrence === 'daily') {
@@ -190,15 +234,20 @@ function DoctorSlots({ email }: { email: string }) {
         }
       }
 
+      toast.success('Successfully allocated slot!')
+
       setShowTimeForm(false);
       setStartTime('');
       setEndTime('');
       setSelectedDay(null);
       setRepeatDates([]);
+
     } catch (error) {
       console.error('Error saving slot:', error);
     }
   };
+
+
 
   const handleRecurrenceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setRecurrence(e.target.value);
@@ -246,6 +295,8 @@ function DoctorSlots({ email }: { email: string }) {
           onSelectSlot={handleSlotSelect}
           eventPropGetter={eventPropGetter}
           dayPropGetter={dayPropGetter}
+          views={['month']}
+          defaultView='month'
           onNavigate={(date) => setCurrentMonth(date)}
         />
       </div>

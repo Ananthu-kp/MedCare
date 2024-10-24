@@ -157,8 +157,8 @@ class DoctorService {
     }
 
     async getSlots(email: string) {
-        const doctor = await doctorRepository.getSlotsForDoctor(email);
-        return doctor ? doctor.slots : [];
+        const slots = await doctorRepository.getSlotsForDoctor(email);
+        return slots || [];
     }
     
 }
