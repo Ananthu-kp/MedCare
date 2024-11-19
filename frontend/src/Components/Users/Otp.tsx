@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { BASE_URL } from '../../Config/baseURL';
 
 interface LocationState {
-  email?: string;
+    email?: string;
 }
 
 function Otp() {
@@ -20,13 +20,24 @@ function Otp() {
     const email = (location.state as LocationState)?.email;
 
     useEffect(() => {
-        if (timer > 0) {
-            const intervalId = setInterval(() => {
-                setTimer((prevTimer) => prevTimer - 1);
-            }, 1000);
-            return () => clearInterval(intervalId);
-        }
-    }, [timer]);
+        const storedTimer = localStorage.getItem('otpTimer');
+        setTimer(storedTimer ? parseInt(storedTimer, 10) : 60);
+
+        const intervalId = setInterval(() => {
+            setTimer((prevTimer) => {
+                if (prevTimer > 0) {
+                    const updatedTimer = prevTimer - 1;
+                    localStorage.setItem('otpTimer', updatedTimer.toString());
+                    return updatedTimer
+                } else {
+                    clearInterval(intervalId);
+                    localStorage.removeItem('otpTimer');
+                    return 0;
+                }
+            })
+        }, 1000);
+        return () => clearInterval(intervalId);
+    }, []);
 
     const handleInputChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;

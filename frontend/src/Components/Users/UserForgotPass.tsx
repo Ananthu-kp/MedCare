@@ -5,6 +5,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 import { BASE_URL } from '../../Config/baseURL';
 import { useNavigate } from 'react-router-dom';
+import forgotPassImage from '../../assets/images/forgotpass.png';
 
 function UserForgotPass() {
     const [timer, setTimer] = useState<number>(0);
@@ -15,18 +16,38 @@ function UserForgotPass() {
     const [email, setEmail] = useState<string>('');
     const navigate = useNavigate()
 
+    useEffect(() => {
+        const storedOtpTime = localStorage.getItem('otpTimestamp');
+        const storedTimer = localStorage.getItem('otpTimer');
+        const storedEmail = localStorage.getItem('email');
+
+        if (storedOtpTime && storedTimer && storedEmail) {
+            const elapsedTime = Math.floor((Date.now() - parseInt(storedOtpTime, 10)) / 1000);
+            const remainingTime = parseInt(storedTimer, 10) - elapsedTime;
+
+            if (remainingTime > 0) {
+                setTimer(remainingTime);
+                setIsOtpSent(true);
+                setEmail(storedEmail);
+            } else {
+                localStorage.removeItem('otpTimer');
+                localStorage.removeItem('otpTimestamp');
+            }
+        }
+    }, []);
 
     useEffect(() => {
         if (timer > 0) {
             const intervalId = setInterval(() => {
                 setTimer((prevTimer) => prevTimer - 1);
+                localStorage.setItem('otpTimer', String(timer - 1));
             }, 1000);
             return () => clearInterval(intervalId);
         }
     }, [timer]);
 
     const handleInputChange = (index: number, event: React.ChangeEvent<HTMLInputElement>) => {
-        const value = event.target.value;
+        const value = event.target.value.replace(/[^0-9]/g, '');
         const updatedOtp = otp.split('');
         updatedOtp[index] = value;
         setOtp(updatedOtp.join(''));
@@ -51,8 +72,8 @@ function UserForgotPass() {
             return;
         }
 
-        const storedOtp = sessionStorage.getItem('otp')
-        const storedresendOtp = sessionStorage.getItem('resendotp')
+        const storedOtp = localStorage.getItem('otp')
+        const storedresendOtp = localStorage.getItem('resendotp')
 
         if (otp !== storedOtp && otp !== storedresendOtp) {
             toast.error('Invalid OTP');
@@ -84,8 +105,11 @@ function UserForgotPass() {
                 toast.success('Resent OTP sent to email');
                 setOtp('');
                 setTimer(60);
+                localStorage.setItem('otpTimer', '60');
+                localStorage.setItem('otpTimestamp', String(Date.now()));
+                localStorage.setItem('resendotp', response.data.otp);
+                inputRefs.current.forEach((input) => input?.value && (input.value = ''));
                 inputRefs.current[0]?.focus();
-                sessionStorage.setItem('resendotp', response.data.otp);
             } else {
                 toast.error(response.data.message || 'Failed to resend OTP. Please try again.');
             }
@@ -113,7 +137,7 @@ function UserForgotPass() {
                     </div>
 
                     <div className="relative flex-grow">
-                        <img src={"../../../src/assets/images/forgotpass.png"} alt="Doctor" className="w-96 h-auto" />
+                    <img src={forgotPassImage} alt="Forgot Password" className="w-96 h-auto" />
                     </div>
                 </div>
 
@@ -143,14 +167,17 @@ function UserForgotPass() {
                                         setTimer(60);
                                         setIsOtpSent(true);
 
-                                        sessionStorage.setItem('email', values.email);
+                                        localStorage.setItem('email', values.email);
 
-                                        sessionStorage.setItem('otp', response.data.otp); // store the otp
+                                        localStorage.setItem('otp', response.data.otp); // store the otp
+                                        localStorage.setItem('otpTimer', '60');
+                                        localStorage.setItem('otpTimestamp', String(Date.now()));
 
                                     } else {
                                         toast.error(response.data.message || 'Email not found.');
                                     }
                                 } catch (error: any) {
+                                    console.error(error);
                                     toast.error(error.response?.data?.message || 'Something went wrong.');
                                 } finally {
                                     setSubmitting(false);
@@ -175,6 +202,7 @@ function UserForgotPass() {
                                             <button
                                                 type="submit"
                                                 disabled={isSubmitting || loading || isOtpSent}
+                                                aria-disabled={isSubmitting || loading || isOtpSent}
                                                 className={`ml-2 mt-2 px-4 bg-teal-500 text-white rounded-lg hover:bg-teal-600 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
                                             >
                                                 Send OTP

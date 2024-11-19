@@ -26,7 +26,6 @@ function RecoverPassword() {
         setLoading(true);
         try {
             const email = sessionStorage.getItem('email');
-            alert(email)
             if (!email) {
                 toast.error('Email is not found. Please retry the process.');
                 setLoading(false);

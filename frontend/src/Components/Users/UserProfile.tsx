@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { FiCamera, FiEdit2 } from 'react-icons/fi';
+import { toast } from 'sonner';
 import axios from 'axios';
 import { BASE_URL } from '../../Config/baseURL';
-import { toast } from 'sonner';
-import userAxiosInstance from '../../Config/AxiosInstance/userInstance';
+import { useUser } from '../Users/Context/userContext'; 
 
 interface FormData {
   [key: string]: string | number | boolean;
@@ -64,14 +64,8 @@ function EditModal({
 function UserProfile() {
   const [isPersonalModalOpen, setIsPersonalModalOpen] = useState(false);
   const [profileImage, setProfileImage] = useState<File | null>(null);
-  const [userDetails, setUserDetails] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    profileImg: '',
-  });
 
+  const { user, setUser, updateUserData, fetchUserData } = useUser(); 
   const [personalDetails, setPersonalDetails] = useState<FormData>({
     name: '',
     email: '',
@@ -88,11 +82,10 @@ function UserProfile() {
   };
 
   const handleImageUpload = (file: File) => {
-    console.log(file);
     const formData = new FormData();
     formData.append('profileImage', file);
 
-    userAxiosInstance
+    axios
       .put('/upload-profile-image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
@@ -100,9 +93,9 @@ function UserProfile() {
       })
       .then((response) => {
         const { profileImageUrl } = response.data;
-        setUserDetails((prevDetails) => ({
-          ...prevDetails,
-          profileImageUrl,
+        setUser((prevUser: any) => ({
+          ...prevUser!,
+          profileImg: profileImageUrl,
         }));
         toast.success('Profile image updated successfully!');
       })
@@ -113,32 +106,17 @@ function UserProfile() {
   };
 
   useEffect(() => {
-    console.log('Fetching user details...');
-    const storedToken = sessionStorage.getItem('userToken');
-    console.log('Token:', storedToken);
-
-    if (storedToken) {
-      axios
-        .get(`${BASE_URL}/profile`, {
-          headers: { Authorization: `Bearer ${storedToken}` },
-        })
-        .then((response) => {
-          console.log('User Data:', response.data);
-          const userData = response.data;
-          setUserDetails(userData);
-          setPersonalDetails({
-            name: userData.name,
-            email: userData.email,
-            phone: userData.phone,
-            address: userData.address,
-          });
-        })
-        .catch((error) => {
-          console.error(error);
-          toast.error('Failed to fetch user details.');
-        });
+    if (user) {
+      setPersonalDetails({
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+      });
+    } else {
+      fetchUserData(); 
     }
-  }, []);
+  }, [user]);
 
   const handlePersonalEditClick = () => {
     setIsPersonalModalOpen(true);
@@ -149,25 +127,8 @@ function UserProfile() {
   };
 
   const handleSavePersonalDetails = () => {
-    const storedToken = sessionStorage.getItem('userToken');
-    if (storedToken) {
-      axios
-        .put(
-          `${BASE_URL}/personal`,
-          personalDetails,
-          {
-            headers: { Authorization: `Bearer ${storedToken}` },
-          }
-        )
-        .then(() => {
-          handleModalClose();
-          toast.success('Personal details updated successfully!');
-        })
-        .catch((error) => {
-          console.error('Error updating personal details:', error);
-          toast.error('Failed to update personal details.');
-        });
-    }
+    updateUserData(personalDetails);
+    handleModalClose();
   };
 
   const handleInputChange = (
@@ -186,8 +147,8 @@ function UserProfile() {
     <div className="relative w-full h-[200px] bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
       <div className="absolute bottom-[-60px] left-10 w-[150px] h-[150px] bg-white border-4 rounded-full flex items-center justify-center">
         <img
-          src={`${BASE_URL}/${userDetails.profileImg}`}
-          alt=""
+          src={`${BASE_URL}/${user?.profileImg}`}
+          alt="Profile"
           className="rounded-full object-cover h-[150px]"
         />
         <form encType="multipart/form-data">
@@ -201,9 +162,7 @@ function UserProfile() {
         <FiCamera className="text-gray-500 text-4xl" />
       </div>
       <div className="absolute bottom-[-100px] left-20">
-        <h2 className="text-xl font-semibold text-black">
-          {personalDetails.name}
-        </h2>
+        <h2 className="text-xl font-semibold text-black">{personalDetails.name}</h2>
       </div>
 
       {/* Personal Details Section */}
@@ -225,7 +184,7 @@ function UserProfile() {
       {/* Edit Modal */}
       <EditModal
         isOpen={isPersonalModalOpen}
-        onClose={() => setIsPersonalModalOpen(false)}
+        onClose={handleModalClose}
         onSave={handleSavePersonalDetails}
         formData={personalDetails}
         handleChange={(e) => handleInputChange(e, setPersonalDetails)}
