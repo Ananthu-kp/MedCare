@@ -9,10 +9,12 @@ import userRoutes from './src/routes/userRoute'
 import adminRoutes from './src/routes/adminRoute'
 import doctorRoutes from './src/routes/doctorRoute'
 import dbConnection from "./src/config/dbConnect";
+import cookieParser from "cookie-parser";
 dbConnection();
 
 
 app.use(morgan(':method :url :status :response-time ms'));
+app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("Public"));
