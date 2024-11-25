@@ -10,10 +10,11 @@ import { Modal, Button } from 'react-bootstrap';
 const localizer = momentLocalizer(moment);
 
 type Slot = {
-  date: string
-  start: Date;
-  end: Date;
+  date: string;
+  startTime: string;
+  endTime: string;
   available: boolean;
+  _id: string;
 };
 
 function DoctorDetails() {
@@ -21,9 +22,11 @@ function DoctorDetails() {
   const [doctor, setDoctor] = useState<any>(null);
   const [slots, setSlots] = useState<Slot[]>([]);
   const [events, setEvents] = useState<any[]>([]);
-  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null); 
-  const [showModal, setShowModal] = useState(false); 
-  const [bookingTime, setBookingTime] = useState(''); 
+  const [selectedSlot, setSelectedSlot] = useState<Slot | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [timeError, setTimeError] = useState<string>(''); // For showing error if time doesn't align
 
   useEffect(() => {
     const fetchDoctorDetails = async () => {
@@ -39,11 +42,10 @@ function DoctorDetails() {
       try {
         const response = await axios.get(`${BASE_URL}/slot/${doctorId}`);
         setSlots(response.data);
-        console.log(response.data)
         const formattedEvents = response.data.map((slot: Slot) => ({
-          start: new Date(slot.start),
-          end: new Date(slot.end),
-          title: slot.available ? 'Available Slot' : 'Booked Slot',
+          start: new Date(`${slot.date}T${slot.startTime}`),
+          end: new Date(`${slot.date}T${slot.endTime}`),
+          title: 'Available Slot',
           backgroundColor: slot.available ? 'white' : 'grey',
         }));
 
@@ -57,35 +59,62 @@ function DoctorDetails() {
     fetchDoctorSlots();
   }, [doctorId]);
 
+  useEffect(() => {
+    if (showModal) {
+      // Disable body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+    } else {
+      // Enable body scroll when modal is closed
+      document.body.style.overflow = 'auto';
+    }
+
+    return () => {
+      document.body.style.overflow = 'auto'; // Cleanup on unmount
+    };
+  }, [showModal]);
+
   const eventPropGetter = (event: any) => ({
     style: {
-      backgroundColor: selectedSlot && selectedSlot.start.getTime() === event.start.getTime() ? 'green' : event.backgroundColor,
+      backgroundColor: event.backgroundColor,
       color: event.backgroundColor === 'white' ? 'black' : 'white',
       borderRadius: '5px',
       padding: '2px 5px',
+      cursor: event.backgroundColor === 'white' ? 'pointer' : 'not-allowed',
     },
   });
 
   const dayPropGetter = (date: Date) => {
-    const hasAvailableSlot = slots.some(slot => {
-      const slotDate = moment(slot.date).startOf('day').toDate(); 
-      const calendarDate = moment(date).startOf('day').toDate(); 
-      return slotDate.getTime() === calendarDate.getTime() && slot.available;
-    });
-  
+    const formattedDate = moment(date).format('YYYY-MM-DD');
+    const isAvailableDate = slots.some((slot) => slot.date === formattedDate);
+
     return {
       style: {
-        backgroundColor: hasAvailableSlot ? 'white' : 'lightgrey',
-        opacity: hasAvailableSlot ? 1 : 0.5,
-        cursor: hasAvailableSlot ? 'pointer' : 'not-allowed',
+        backgroundColor: isAvailableDate ? 'white' : '#f4f4f4',
+        color: isAvailableDate ? 'black' : '#a0a0a0',
+        cursor: isAvailableDate ? 'pointer' : 'not-allowed',
       },
     };
   };
-  
 
   const handleSlotClick = (event: any) => {
-    if (event.backgroundColor === 'white') {
-      setSelectedSlot(event);
+    const clickedSlot = slots.find(
+      (slot) =>
+        new Date(`${slot.date}T${slot.startTime}`).getTime() ===
+        event.start.getTime()
+    );
+
+    if (clickedSlot && clickedSlot.available) {
+      setSelectedSlot(clickedSlot);
+      const start = moment(clickedSlot.startTime, 'HH:mm');
+      const end = moment(clickedSlot.endTime, 'HH:mm');
+      const times: string[] = [];
+
+      while (start.isBefore(end)) {
+        times.push(start.format('hh:mm A')); // Format as AM/PM
+        start.add(30, 'minutes');
+      }
+
+      setAvailableTimes(times);
       setShowModal(true);
     }
   };
@@ -94,13 +123,26 @@ function DoctorDetails() {
     try {
       await axios.post(`${BASE_URL}/book-slot`, {
         doctorId,
-        slot: selectedSlot,
-        bookingTime,
+        slotId: selectedSlot?._id,
+        bookingTime: selectedTime,
       });
       alert('Booking successful!');
       setShowModal(false);
     } catch (error) {
       console.error('Error booking slot:', error);
+    }
+  };
+
+  const handleTimeSelection = (time: string) => {
+    // Check if the time selected is in 30-minute intervals
+    const selectedMoment = moment(time, 'hh:mm A');
+    const isValid = selectedMoment.minute() % 30 === 0;
+
+    if (!isValid) {
+      setTimeError('Please select a time in 30-minute intervals.');
+    } else {
+      setSelectedTime(time);
+      setTimeError(''); // Clear error if valid
     }
   };
 
@@ -120,20 +162,25 @@ function DoctorDetails() {
 
           <div className="doctor-info mt-6">
             <p className="text-gray-700 text-center">
-              <span className="font-semibold">Experience:</span> {doctor.yearsOfExperience} years
+              <span className="font-semibold">Experience:</span>{' '}
+              {doctor.yearsOfExperience} years
             </p>
             <p className="text-gray-700 text-center mt-2">
-              <span className="font-semibold">Consultation Fee:</span> ₹{doctor.consultationfee}
+              <span className="font-semibold">Consultation Fee:</span> ₹
+              {doctor.consultationfee}
             </p>
             <p className="text-gray-700 text-center mt-2">
-              <span className="font-semibold">Hospital:</span> {doctor.workingHospital}
+              <span className="font-semibold">Hospital:</span>{' '}
+              {doctor.workingHospital}
             </p>
           </div>
         </div>
       )}
 
       <div className="calendar-container bg-white shadow-lg rounded-lg p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">Available Slots</h3>
+        <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
+          Available Slots
+        </h3>
         <Calendar
           localizer={localizer}
           events={events}
@@ -142,30 +189,51 @@ function DoctorDetails() {
           style={{ height: 500 }}
           eventPropGetter={eventPropGetter}
           dayPropGetter={dayPropGetter}
-          selectable={true} 
-          onSelectEvent={handleSlotClick} 
+          selectable={true}
+          onSelectEvent={handleSlotClick}
           views={['month']}
           defaultView="month"
           className="rounded-lg overflow-hidden"
         />
       </div>
 
-      {/* Modal for selecting time */}
       <Modal show={showModal} onHide={() => setShowModal(false)}>
         <Modal.Header closeButton>
           <Modal.Title>Select Consultation Time</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="flex flex-col">
-            <label className="mb-2">Select Time:</label>
-            <input
-              type="time"
-              value={bookingTime}
-              onChange={(e) => setBookingTime(e.target.value)}
-              className="border p-2 rounded"
-            />
+          <div className="flex flex-col items-center">
+            <div className="bg-white shadow-md rounded-lg p-4 w-full max-w-sm">
+              <h5 className="text-lg font-semibold mb-4">Choose an Available Time Slot</h5>
+              <div className="grid grid-cols-3 gap-4">
+                {availableTimes.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeSelection(time)}
+                    className={`py-2 px-4 rounded-lg shadow-md transition duration-300 ${
+                      selectedTime === time
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-gray-100 hover:bg-blue-500 hover:text-white text-gray-800'
+                    }`}
+                  >
+                    {time}
+                  </button>
+                ))}
+              </div>
+
+              {timeError && (
+                <p className="mt-4 text-sm text-red-600">{timeError}</p>
+              )}
+
+              {selectedTime && (
+                <p className="mt-4 text-sm text-gray-600">
+                  You have selected: <span className="font-medium">{selectedTime}</span>
+                </p>
+              )}
+            </div>
           </div>
         </Modal.Body>
+
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
