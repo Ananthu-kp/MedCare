@@ -197,43 +197,50 @@ function DoctorDetails() {
         />
       </div>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Select Consultation Time</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div className="flex flex-col items-center">
-            <div className="bg-white shadow-md rounded-lg p-4 w-full max-w-sm">
-              <h5 className="text-lg font-semibold mb-4">Choose an Available Time Slot</h5>
-              <div className="grid grid-cols-3 gap-4">
+          <div className="flex justify-center items-center">
+            <div
+              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg"
+              style={{ maxHeight: '400px', overflowY: 'auto' }} // Scrollable if content overflows
+            >
+              <h5 className="text-lg font-semibold mb-4 text-center">
+                Choose an Available Time Slot
+              </h5>
+              <div
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                  justifyContent: 'center',
+                }}
+              >
                 {availableTimes.map((time) => (
                   <button
                     key={time}
                     onClick={() => handleTimeSelection(time)}
-                    className={`py-2 px-4 rounded-lg shadow-md transition duration-300 ${
-                      selectedTime === time
+                    className={`py-2 px-4 rounded-lg shadow-md text-sm transition duration-300 ${selectedTime === time
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 hover:bg-blue-500 hover:text-white text-gray-800'
-                    }`}
+                      }`}
                   >
                     {time}
                   </button>
                 ))}
               </div>
-
               {timeError && (
-                <p className="mt-4 text-sm text-red-600">{timeError}</p>
+                <p className="mt-4 text-sm text-red-600 text-center">{timeError}</p>
               )}
-
               {selectedTime && (
-                <p className="mt-4 text-sm text-gray-600">
+                <p className="mt-4 text-sm text-gray-600 text-center">
                   You have selected: <span className="font-medium">{selectedTime}</span>
                 </p>
               )}
             </div>
           </div>
         </Modal.Body>
-
         <Modal.Footer>
           <Button variant="secondary" onClick={() => setShowModal(false)}>
             Close
@@ -243,6 +250,7 @@ function DoctorDetails() {
           </Button>
         </Modal.Footer>
       </Modal>
+
     </div>
   );
 }
