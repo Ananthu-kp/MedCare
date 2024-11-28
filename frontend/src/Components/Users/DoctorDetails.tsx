@@ -6,6 +6,7 @@ import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { BASE_URL } from '../../Config/baseURL';
 import { Modal, Button } from 'react-bootstrap';
+import { toast } from 'sonner';
 
 const localizer = momentLocalizer(moment);
 
@@ -26,7 +27,7 @@ function DoctorDetails() {
   const [showModal, setShowModal] = useState(false);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>('');
-  const [timeError, setTimeError] = useState<string>(''); // For showing error if time doesn't align
+  const [timeError, setTimeError] = useState<string>('');
 
   useEffect(() => {
     const fetchDoctorDetails = async () => {
@@ -96,7 +97,7 @@ function DoctorDetails() {
       const times: string[] = [];
 
       while (start.isBefore(end)) {
-        times.push(start.format('hh:mm A')); // Format as AM/PM
+        times.push(start.format('hh:mm A'));
         start.add(30, 'minutes');
       }
 
@@ -106,7 +107,12 @@ function DoctorDetails() {
   };
 
   const handleBookingSubmit = async () => {
+    if (!selectedTime) {
+      toast.warning('Please select a time before confirming your booking!');
+      return
+    }
     try {
+      alert("hii")
       await axios.post(`${BASE_URL}/book-slot`, {
         doctorId,
         slotId: selectedSlot?._id,
@@ -120,7 +126,6 @@ function DoctorDetails() {
   };
 
   const handleTimeSelection = (time: string) => {
-    // Check if the time selected is in 30-minute intervals
     const selectedMoment = moment(time, 'hh:mm A');
     const isValid = selectedMoment.minute() % 30 === 0;
 
@@ -128,7 +133,7 @@ function DoctorDetails() {
       setTimeError('Please select a time in 30-minute intervals.');
     } else {
       setSelectedTime(time);
-      setTimeError(''); // Clear error if valid
+      setTimeError('');
     }
   };
 
@@ -182,67 +187,75 @@ function DoctorDetails() {
           className="rounded-lg overflow-hidden"
         />
       </div>
-
-      <Modal
-        show={showModal}
-        onHide={() => setShowModal(false)}
-        centered
-        scrollable={true}
-      >
-        <Modal.Header closeButton>
-          <Modal.Title>Select Consultation Time</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <div className="flex justify-center items-center">
-            <div
-              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto"
-            >
-              <h5 className="text-lg font-semibold mb-4 text-center">
-                Choose an Available Time Slot
-              </h5>
+        <Modal className="custom-modal bg-white shadow-lg rounded-lg p-6"
+          show={showModal}
+          onHide={() => setShowModal(false)}
+          centered
+          scrollable={true}
+        >
+          <Modal.Header closeButton>
+            <Modal.Title className="text-lg font-bold text-center w-full">
+              Select Consultation Time
+            </Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <div className="flex flex-col items-center">
               <div
-                className="grid gap-4"
-                style={{
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
-                  justifyContent: 'center',
-                }}
+                className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black" // Added border and color here
               >
-                {availableTimes.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => handleTimeSelection(time)}
-                    className={`py-2 px-4 rounded-lg shadow-md text-sm transition duration-300 ${selectedTime === time
+                <h5 className="text-lg font-semibold mb-4 text-center">
+                  Choose an Available Time Slot
+                </h5>
+                <div
+                  className="grid gap-4"
+                  style={{
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                    justifyContent: 'center',
+                  }}
+                >
+                  {availableTimes.map((time) => (
+                    <button
+                      key={time}
+                      onClick={() => handleTimeSelection(time)}
+                      className={`py-2 px-4 rounded-lg shadow-md text-sm transition duration-300 ${selectedTime === time
                         ? 'bg-blue-600 text-white'
                         : 'bg-gray-100 hover:bg-blue-500 hover:text-white text-gray-800'
-                      }`}
-                  >
-                    {time}
-                  </button>
-                ))}
+                        }`}
+                    >
+                      {time}
+                    </button>
+                  ))}
+                </div>
+                {timeError && (
+                  <p className="mt-4 text-sm text-red-600 text-center">{timeError}</p>
+                )}
+                {selectedTime && (
+                  <p className="mt-4 text-sm text-gray-600 text-center">
+                    You have selected: <span className="font-medium">{selectedTime}</span>
+                  </p>
+                )}
               </div>
-              {timeError && (
-                <p className="mt-4 text-sm text-red-600 text-center">{timeError}</p>
-              )}
-              {selectedTime && (
-                <p className="mt-4 text-sm text-gray-600 text-center">
-                  You have selected: <span className="font-medium">{selectedTime}</span>
-                </p>
-              )}
             </div>
-          </div>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleBookingSubmit}>
-            Confirm Booking
-          </Button>
-        </Modal.Footer>
-      </Modal>
+          </Modal.Body>
 
-
-    </div>
+          <Modal.Footer>
+            <div className="flex w-full justify-center gap-4 mb-4">
+              <button
+                onClick={() => setShowModal(false)}
+                className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md shadow-md hover:bg-gray-400 transition duration-300"
+              >
+                Close
+              </button>
+              <button
+                onClick={handleBookingSubmit}
+                className="bg-blue-600 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300"
+              >
+                Confirm Booking
+              </button>
+            </div>
+          </Modal.Footer>
+        </Modal>
+      </div>
   );
 }
 
