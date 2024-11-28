@@ -59,20 +59,6 @@ function DoctorDetails() {
     fetchDoctorSlots();
   }, [doctorId]);
 
-  useEffect(() => {
-    if (showModal) {
-      // Disable body scroll when modal is open
-      document.body.style.overflow = 'hidden';
-    } else {
-      // Enable body scroll when modal is closed
-      document.body.style.overflow = 'auto';
-    }
-
-    return () => {
-      document.body.style.overflow = 'auto'; // Cleanup on unmount
-    };
-  }, [showModal]);
-
   const eventPropGetter = (event: any) => ({
     style: {
       backgroundColor: event.backgroundColor,
@@ -197,15 +183,19 @@ function DoctorDetails() {
         />
       </div>
 
-      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+      <Modal
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered
+        scrollable={true}
+      >
         <Modal.Header closeButton>
           <Modal.Title>Select Consultation Time</Modal.Title>
         </Modal.Header>
         <Modal.Body>
           <div className="flex justify-center items-center">
             <div
-              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg"
-              style={{ maxHeight: '400px', overflowY: 'auto' }} // Scrollable if content overflows
+              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto"
             >
               <h5 className="text-lg font-semibold mb-4 text-center">
                 Choose an Available Time Slot
@@ -250,6 +240,7 @@ function DoctorDetails() {
           </Button>
         </Modal.Footer>
       </Modal>
+
 
     </div>
   );
