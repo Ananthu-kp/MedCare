@@ -42,8 +42,19 @@ function DoctorDetails() {
     const fetchDoctorSlots = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/slot/${doctorId}`);
-        setSlots(response.data);
-        const formattedEvents = response.data.map((slot: Slot) => ({
+        const slotsData = response.data;
+
+        const now = new Date();
+
+        // Filter out past slots
+        const upcomingSlots = slotsData.filter((slot: Slot) => {
+          const slotEndTime = new Date(`${slot.date}T${slot.endTime}`);
+          return slotEndTime > now;
+        });
+
+        setSlots(upcomingSlots);
+
+        const formattedEvents = upcomingSlots.map((slot: Slot) => ({
           start: new Date(`${slot.date}T${slot.startTime}`),
           end: new Date(`${slot.date}T${slot.endTime}`),
           title: 'Available Slot',
@@ -55,6 +66,7 @@ function DoctorDetails() {
         console.error('Error fetching slots:', error);
       }
     };
+
 
     fetchDoctorDetails();
     fetchDoctorSlots();
@@ -187,75 +199,75 @@ function DoctorDetails() {
           className="rounded-lg overflow-hidden"
         />
       </div>
-        <Modal className="custom-modal bg-white shadow-lg rounded-lg p-6"
-          show={showModal}
-          onHide={() => setShowModal(false)}
-          centered
-          scrollable={true}
-        >
-          <Modal.Header closeButton>
-            <Modal.Title className="text-lg font-bold text-center w-full">
-              Select Consultation Time
-            </Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <div className="flex flex-col items-center">
+      <Modal className="custom-modal bg-white shadow-lg rounded-lg p-6"
+        show={showModal}
+        onHide={() => setShowModal(false)}
+        centered
+        scrollable={true}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="text-lg font-bold text-center w-full">
+            Select Consultation Time
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="flex flex-col items-center">
+            <div
+              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black" // Added border and color here
+            >
+              <h5 className="text-lg font-semibold mb-4 text-center">
+                Choose an Available Time Slot
+              </h5>
               <div
-                className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black" // Added border and color here
+                className="grid gap-4"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
+                  justifyContent: 'center',
+                }}
               >
-                <h5 className="text-lg font-semibold mb-4 text-center">
-                  Choose an Available Time Slot
-                </h5>
-                <div
-                  className="grid gap-4"
-                  style={{
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {availableTimes.map((time) => (
-                    <button
-                      key={time}
-                      onClick={() => handleTimeSelection(time)}
-                      className={`py-2 px-4 rounded-lg shadow-md text-sm transition duration-300 ${selectedTime === time
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-100 hover:bg-blue-500 hover:text-white text-gray-800'
-                        }`}
-                    >
-                      {time}
-                    </button>
-                  ))}
-                </div>
-                {timeError && (
-                  <p className="mt-4 text-sm text-red-600 text-center">{timeError}</p>
-                )}
-                {selectedTime && (
-                  <p className="mt-4 text-sm text-gray-600 text-center">
-                    You have selected: <span className="font-medium">{selectedTime}</span>
-                  </p>
-                )}
+                {availableTimes.map((time) => (
+                  <button
+                    key={time}
+                    onClick={() => handleTimeSelection(time)}
+                    className={`py-2 px-4 rounded-lg shadow-md text-sm transition duration-300 ${selectedTime === time
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-gray-100 hover:bg-blue-500 hover:text-white text-gray-800'
+                      }`}
+                  >
+                    {time}
+                  </button>
+                ))}
               </div>
+              {timeError && (
+                <p className="mt-4 text-sm text-red-600 text-center">{timeError}</p>
+              )}
+              {selectedTime && (
+                <p className="mt-4 text-sm text-gray-600 text-center">
+                  You have selected: <span className="font-medium">{selectedTime}</span>
+                </p>
+              )}
             </div>
-          </Modal.Body>
+          </div>
+        </Modal.Body>
 
-          <Modal.Footer>
-            <div className="flex w-full justify-center gap-4 mb-4">
-              <button
-                onClick={() => setShowModal(false)}
-                className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md shadow-md hover:bg-gray-400 transition duration-300"
-              >
-                Close
-              </button>
-              <button
-                onClick={handleBookingSubmit}
-                className="bg-blue-600 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300"
-              >
-                Confirm Booking
-              </button>
-            </div>
-          </Modal.Footer>
-        </Modal>
-      </div>
+        <Modal.Footer>
+          <div className="flex w-full justify-center gap-4 mb-4">
+            <button
+              onClick={() => setShowModal(false)}
+              className="bg-gray-300 text-gray-800 py-2 px-4 rounded-md shadow-md hover:bg-gray-400 transition duration-300"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleBookingSubmit}
+              className="bg-blue-600 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300"
+            >
+              Confirm Booking
+            </button>
+          </div>
+        </Modal.Footer>
+      </Modal>
+    </div>
   );
 }
 
