@@ -10,6 +10,7 @@ import adminRoutes from './src/routes/adminRoute'
 import doctorRoutes from './src/routes/doctorRoute'
 import dbConnection from "./src/config/dbConnect";
 import cookieParser from "cookie-parser";
+import { errorHandler } from './src/Middleware/errorHandler';
 dbConnection();
 
 
@@ -29,6 +30,8 @@ app.use(cors({
 app.use('/', userRoutes)
 app.use('/admin', adminRoutes)
 app.use('/doctor', doctorRoutes)
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT;
 app.listen(PORT, () => console.log(`Server is Running on: http://localhost:${PORT}`))  

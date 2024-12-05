@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { IAdminService } from '../Interfaces/adminService.interface'
 import { HttpStatus } from '../utils/httpStatus';
+import { AppError } from '../Middleware/errorHandler';
 
 
 class AdminController {
@@ -19,17 +20,15 @@ class AdminController {
         } catch (error) {
             if (error instanceof Error) {
                 if (error.message === "Wrong email") {
-                    res.status(HttpStatus.UNAUTHORIZED).json({ message: "Email not found" });
-                } else if (error.message === "Wrong password") {
-                    res.status(HttpStatus.UNAUTHORIZED).json({ message: "Password is incorrect" });
-                } else {
-                    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: error.message });
+                    return next(new AppError("Email not found", HttpStatus.UNAUTHORIZED));
                 }
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Unknown error occurred" });
+                if (error.message === "Wrong password") {
+                    return next(new AppError("Password is incorrect", HttpStatus.UNAUTHORIZED));
+                }
             }
+            next(new AppError("Internal server error", HttpStatus.INTERNAL_SERVER_ERROR));
         }
-    }
+    };
 
     getUser = async (req: Request, res: Response) => {
         try {
@@ -37,11 +36,7 @@ class AdminController {
             const users = await this._adminService.getUser(searchQuery);
             res.status(HttpStatus.OK).json(users);
         } catch (error) {
-            if (error instanceof Error) {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: error.message });
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: "An unknown error occurred" });
-            }
+            next(error);
         }
     }
 
@@ -51,7 +46,7 @@ class AdminController {
             const serviceResponse = await this._adminService.unBlockUser(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+            next(error);
         }
     }
 
@@ -166,3 +161,7 @@ class AdminController {
 }
 
 export default AdminController;
+function next(arg0: AppError) {
+    throw new Error('Function not implemented.');
+}
+
