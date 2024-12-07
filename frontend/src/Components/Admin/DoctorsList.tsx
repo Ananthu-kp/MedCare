@@ -3,6 +3,7 @@ import axios, { AxiosError } from 'axios';
 import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
+import { showConfirmationDialog } from '../../Utils/swalUtils';
 
 interface Doctor {
   _id: string;
@@ -44,20 +45,15 @@ const DoctorsList: React.FC = () => {
 
   const unblockDoctor = async (email: string) => {
     try {
-      const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'Do you want to unblock this doctor?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, unblock it!',
-        cancelButtonText: 'Cancel'
-      });
+      const isConfirmed = await showConfirmationDialog(
+        'Are you sure?',
+        'Do you want to unblock this doctor?',
+        'Yes, unblock it!'
+      );
 
-      if (result.isConfirmed) {
+      if (isConfirmed) {
         await adminAxiosInstance.patch(`/admin/unblock-doctor?email=${email}`);
-        const updatedDoctors = doctorsArray.map(doctor =>
+        const updatedDoctors = doctorsArray.map((doctor) =>
           doctor.email === email ? { ...doctor, isBlocked: false } : doctor
         );
         setDoctorsArray(updatedDoctors);
@@ -75,20 +71,15 @@ const DoctorsList: React.FC = () => {
 
   const blockDoctor = async (email: string) => {
     try {
-      const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'Do you want to block this doctor?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, block it!',
-        cancelButtonText: 'Cancel'
-      });
+      const isConfirmed = await showConfirmationDialog(
+        'Are you sure?',
+        'Do you want to block this doctor?',
+        'Yes, block it!'
+      );
 
-      if (result.isConfirmed) {
+      if (isConfirmed) {
         await adminAxiosInstance.patch(`/admin/block-doctor?email=${email}`);
-        const updatedDoctors = doctorsArray.map(doctor =>
+        const updatedDoctors = doctorsArray.map((doctor) =>
           doctor.email === email ? { ...doctor, isBlocked: true } : doctor
         );
         setDoctorsArray(updatedDoctors);
@@ -110,7 +101,7 @@ const DoctorsList: React.FC = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search Users"
+          placeholder="Search Doctors"
           value={searchQuery}
           onChange={handleSearch}
           className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"

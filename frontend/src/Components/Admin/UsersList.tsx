@@ -4,6 +4,7 @@ import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 import { FaArrowLeft, FaArrowRight } from 'react-icons/fa';
+import { showConfirmationAlert, showSuccessAlert, showErrorAlert } from '../../Utils/swalUtils';
 
 // Define the types for the user data
 interface User {
@@ -48,63 +49,35 @@ const UsersList: React.FC = () => {
 
   const unblockUser = async (email: string) => {
     try {
-      const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'Do you want to unblock this user?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, unblock it!',
-        cancelButtonText: 'Cancel'
-      });
+      const isConfirmed = await showConfirmationAlert('unblock');
+      if (!isConfirmed) return;
 
-      if (result.isConfirmed) {
-        await adminAxiosInstance.patch(`/admin/unblockUser?email=${email}`);
-        const updatedUsers = usersArray.map(user =>
-          user.email === email ? { ...user, isBlocked: false } : user
-        );
-        setUsersArray(updatedUsers);
-        toast.success('User unblocked successfully');
-      }
+      await adminAxiosInstance.patch(`/admin/unblockUser?email=${email}`);
+      setUsersArray((prev) =>
+        prev.map((user) => (user.email === email ? { ...user, isBlocked: false } : user))
+      );
+
+      showSuccessAlert('User unblocked successfully');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
-        toast.error('Authorization failed, please login again');
-      } else {
-        console.error(error);
-        toast.error('Something went wrong, please try again later');
-      }
+      console.error(error);
+      showErrorAlert('Something went wrong, please try again later');
     }
   };
 
   const blockUser = async (email: string) => {
     try {
-      const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'Do you want to block this user?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, block it!',
-        cancelButtonText: 'Cancel'
-      });
+      const isConfirmed = await showConfirmationAlert('block');
+      if (!isConfirmed) return;
 
-      if (result.isConfirmed) {
-        await adminAxiosInstance.patch(`/admin/blockUser?email=${email}`);
-        const updatedUsers = usersArray.map(user =>
-          user.email === email ? { ...user, isBlocked: true } : user
-        );
-        setUsersArray(updatedUsers);
-        toast.success('User blocked successfully');
-      }
+      await adminAxiosInstance.patch(`/admin/blockUser?email=${email}`);
+      setUsersArray((prev) =>
+        prev.map((user) => (user.email === email ? { ...user, isBlocked: true } : user))
+      );
+
+      showSuccessAlert('User blocked successfully');
     } catch (error) {
-      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
-        toast.error('Authorization failed, please login again');
-      } else {
-        console.error(error);
-        toast.error('Something went wrong, please try again later');
-      }
+      console.error(error);
+      showErrorAlert('Something went wrong, please try again later');
     }
   };
 

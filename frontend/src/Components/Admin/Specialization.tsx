@@ -6,6 +6,7 @@ import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import { FaSave, FaTimes } from 'react-icons/fa';
+import { confirmDeletion } from '../../Utils/swalUtils';
 
 interface Category {
   _id: string;
@@ -121,18 +122,8 @@ const Specialization: React.FC = () => {
 
   const handleDeleteCategory = async (id: string) => {
     try {
-      const result = await Swal.fire({
-        title: 'Are you sure?',
-        text: 'Do you want to delete this category?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel'
-      });
-
-      if (result.isConfirmed) {
+      const isConfirmed = await confirmDeletion('Do you want to delete this category?');
+      if (isConfirmed) {
         await adminAxiosInstance.delete(`/admin/deleteCategory/${id}`);
         setCategories(categories.filter(category => category._id !== id));
         toast.success('Category deleted successfully');
@@ -153,7 +144,7 @@ const Specialization: React.FC = () => {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search Users"
+          placeholder="Search Category"
           value={searchQuery}
           onChange={handleSearch}
           className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
