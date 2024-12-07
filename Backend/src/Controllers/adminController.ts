@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { IAdminService } from '../Interfaces/adminService.interface'
 import { HttpStatus } from '../utils/httpStatus';
 
@@ -10,92 +10,74 @@ class AdminController {
         this._adminService = _adminService;
     }
 
-    login = async (req: Request, res: Response) => {
+    login = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, password } = req.body;
 
             const serviceResponse = await this._adminService.login(email, password);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error) {
-            if (error instanceof Error) {
-                if (error.message === "Wrong email") {
-                    res.status(HttpStatus.UNAUTHORIZED).json({ message: "Email not found" });
-                } else if (error.message === "Wrong password") {
-                    res.status(HttpStatus.UNAUTHORIZED).json({ message: "Password is incorrect" });
-                } else {
-                    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: error.message });
-                }
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Unknown error occurred" });
-            }
+            next(error)
         }
     }
 
-    getUser = async (req: Request, res: Response) => {
+    getUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const searchQuery = req.query.name as string
             const users = await this._adminService.getUser(searchQuery);
             res.status(HttpStatus.OK).json(users);
         } catch (error) {
-            if (error instanceof Error) {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: error.message });
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: "An unknown error occurred" });
-            }
+            next(error)
         }
     }
 
-    unBlockUser = async (req: Request, res: Response) => {
+    unBlockUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const email = req.query.email as string;
             const serviceResponse = await this._adminService.unBlockUser(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+            next(error)
         }
     }
 
-    blockUser = async (req: Request, res: Response) => {
+    blockUser = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const email = req.query.email as string;
             const serviceResponse = await this._adminService.blockUser(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+            next(error)
         }
     }
 
-    getDoctor = async (req: Request, res: Response) => {
+    getDoctor = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const searchQuery = req.query.name as string
             const doctors = await this._adminService.getDoctor(searchQuery);
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
-            if (error instanceof Error) {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: error.message });
-            } else {
-                res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Internal server error", error: "An unknown error occurred" });
-            }
+            next(error)
         }
     }
 
-    blockDoctor = async (req: Request, res: Response) => {
+    blockDoctor = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const email = req.query.email as string;
             const serviceResponse = await this._adminService.blockDoctor(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+            next(error)
         }
     }
 
-    unBlockDoctor = async (req: Request, res: Response) => {
+    unBlockDoctor = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const email = req.query.email as string;
             const serviceResponse = await this._adminService.unBlockDoctor(email);
             res.status(HttpStatus.OK).json(serviceResponse);
         } catch (error: any) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json("Something went wrong, please try again later");
+            next(error)
         }
     }
 

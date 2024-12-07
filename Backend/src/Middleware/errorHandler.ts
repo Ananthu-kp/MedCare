@@ -1,23 +1,30 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from "express";
+import { HttpStatus } from "../utils/httpStatus";
 
-class AppError extends Error {
-    statusCode: number;
+export const errorHandler = (
+    error: any,
+    req: Request,
+    res: Response,
+    next: NextFunction
+) => {
+    console.error("Error:", error);
 
-    constructor(message: string, statusCode: number) {
-        super(message);
-        this.statusCode = statusCode;
-        Error.captureStackTrace(this, this.constructor);
+    // Handle specific error types
+    if (error.message === "Wrong email") {
+        return res
+            .status(HttpStatus.UNAUTHORIZED)
+            .json({ message: "Email not found" });
     }
-}
 
-const errorHandler = (err: Error | AppError, req: Request, res: Response, next: NextFunction) => {
-    const statusCode = (err instanceof AppError) ? err.statusCode : 500;
-    const message = err.message || "Internal Server Error";
+    if (error.message === "Wrong password") {
+        return res
+            .status(HttpStatus.UNAUTHORIZED)
+            .json({ message: "Password is incorrect" });
+    }
 
-    res.status(statusCode).json({
-        status: "error",
-        message,
+    // Generic error response
+    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        message: "Something went wrong, please try again later",
+        error: error.message || "Unknown error",
     });
 };
-
-export { AppError, errorHandler };
