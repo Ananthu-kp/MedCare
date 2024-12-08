@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { IAdminService } from '../Interfaces/adminService.interface'
-import { HttpStatus } from '../utils/httpStatus';
+import { HttpStatus } from '../Utils/httpStatus';
 
 
 class AdminController {

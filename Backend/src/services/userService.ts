@@ -1,8 +1,8 @@
-import userRepository from "../repositories/userRepository";
-import bcryptUtil from "../utils/bcryptUtil";
+import userRepository from "../Repositories/userRepository";
+import bcryptUtil from "../Utils/bcryptUtil";
 import { UserType } from "../Model/userModel";
-import { sendOtpEmail } from '../config/nodeMailer';
-import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
+import { sendOtpEmail } from '../Config/nodeMailer';
+import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { DoctorType, SlotType } from "../Model/doctorModel";
 
 class UserService {

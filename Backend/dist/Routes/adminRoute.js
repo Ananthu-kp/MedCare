@@ -1,0 +1,27 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const adminController_1 = __importDefault(require("../Controllers/adminController"));
+const adminRepository_1 = __importDefault(require("../Repositories/adminRepository"));
+const adminService_1 = __importDefault(require("../Services/adminService"));
+const router = (0, express_1.Router)();
+const adminRepository = new adminRepository_1.default();
+const adminService = new adminService_1.default(adminRepository);
+const adminController = new adminController_1.default(adminService);
+router.post('/login', adminController.login);
+router.get('/users', adminController.getUser);
+router.patch('/unblockUser', adminController.unBlockUser);
+router.patch('/blockUser', adminController.blockUser);
+router.get('/doctors', adminController.getDoctor);
+router.patch('/block-doctor', adminController.blockDoctor);
+router.patch('/unblock-doctor', adminController.unBlockDoctor);
+router.patch('/verify-doctor', adminController.verifyDoctor);
+router.delete('/reject-doctor', adminController.rejectDoctor);
+router.get('/categories', adminController.getCategories);
+router.post('/addCategory', adminController.addCategory);
+router.delete('/deleteCategory/:id', adminController.deleteCategory);
+router.patch('/editCategory/:id', adminController.editCategory);
+exports.default = router;

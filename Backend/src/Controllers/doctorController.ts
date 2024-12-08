@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import doctorService from "../services/doctorService";
-import doctorRepository from "../repositories/doctorRepository";
-import bcryptUtil from "../utils/bcryptUtil";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
-import { certificateUpload, profileUpload } from '../config/multer';
-import { HttpStatus } from '../utils/httpStatus';
+import doctorService from "../Services/doctorService";
+import doctorRepository from "../Repositories/doctorRepository";
+import bcryptUtil from "../Utils/bcryptUtil";
+import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
+import { certificateUpload, profileUpload } from '../Config/multer';
+import { HttpStatus } from '../Utils/httpStatus';
 
 class DoctorController {
     async register(req: Request, res: Response): Promise<void> {

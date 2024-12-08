@@ -1,0 +1,26 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const doctorController_1 = __importDefault(require("../Controllers/doctorController"));
+const jwtConfig_1 = require("../Utils/jwtConfig");
+const router = (0, express_1.Router)();
+router.post('/register', doctorController_1.default.register);
+router.post('/verify-otp', doctorController_1.default.verifyOtp);
+router.post('/resend-otp', doctorController_1.default.resendOtp);
+router.post('/login', doctorController_1.default.login);
+router.post('/forgot-password', doctorController_1.default.otpForPassReset);
+router.post('/verifyDoctor-otp', doctorController_1.default.verifyForgotOtp);
+router.post('/resendDoctor-otp', doctorController_1.default.resendForgotOtp);
+router.post('/recover-password', doctorController_1.default.resetPassword);
+router.get('/categories', doctorController_1.default.getCategories);
+router.get('/doctor', jwtConfig_1.verifyToken, doctorController_1.default.getDoctorProfile);
+router.put('/doctor/official', jwtConfig_1.verifyToken, doctorController_1.default.updateOfficialDetails);
+router.put('/doctor/personal', jwtConfig_1.verifyToken, doctorController_1.default.updatePersonalDetails);
+router.put('/upload-profile-image', jwtConfig_1.verifyToken, doctorController_1.default.uploadProfileImage);
+router.put('/availability', doctorController_1.default.updateAvailability);
+router.get('/slots/:email', jwtConfig_1.verifyToken, doctorController_1.default.getSlots);
+router.post('/slots', jwtConfig_1.verifyToken, doctorController_1.default.addSlot);
+exports.default = router;

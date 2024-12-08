@@ -5,12 +5,12 @@ dotenv.config()
 const app = express();
 import cors from "cors"
 import morgan from 'morgan';
-import userRoutes from './src/routes/userRoute'
-import adminRoutes from './src/routes/adminRoute'
-import doctorRoutes from './src/routes/doctorRoute'
-import dbConnection from "./src/config/dbConnect";
+import userRoutes from './Routes/userRoute'
+import adminRoutes from './Routes/adminRoute'
+import doctorRoutes from './Routes/doctorRoute'
+import dbConnection from "./Config/dbConnect";
 import cookieParser from "cookie-parser";
-import { errorHandler } from "./src/Middleware/errorHandler";
+import { errorHandler } from "./Middleware/errorHandler";
 dbConnection();
 
 
@@ -18,8 +18,8 @@ app.use(morgan(':method :url :status :response-time ms'));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("Public"));
-app.use('/Public', express.static(path.join(__dirname, 'Public')));
+app.use(express.static(path.join(__dirname, '..', 'Public')));
+app.use('/Public', express.static(path.join(__dirname, '..', 'Public')));
 
 app.use(cors({
     origin: 'http://localhost:5173',

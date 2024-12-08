@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import userService from "../services/userService";
-import userRepository from "../repositories/userRepository";
+import userService from "../Services/userService";
+import userRepository from "../Repositories/userRepository";
 import bcrypt from "bcrypt";
-import { generateAccessToken, generateRefreshToken } from "../utils/jwtConfig";
-import { HttpStatus } from "../utils/httpStatus";
-import { profileUpload } from "../config/multer";
+import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
+import { HttpStatus } from "../Utils/httpStatus";
+import { profileUpload } from "../Config/multer";
 
 class UserController {
     async register(req: Request, res: Response): Promise<void> {

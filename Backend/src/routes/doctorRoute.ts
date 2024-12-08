@@ -1,6 +1,6 @@
 import { Router } from "express";
 import DoctorController from "../Controllers/doctorController";
-import { verifyToken } from "../utils/jwtConfig";
+import { verifyToken } from "../Utils/jwtConfig";
 
 const router = Router();
 

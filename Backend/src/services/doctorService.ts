@@ -1,7 +1,7 @@
-import doctorRepository from "../repositories/doctorRepository";
-import bcryptUtil from "../utils/bcryptUtil";
+import doctorRepository from "../Repositories/doctorRepository";
+import bcryptUtil from "../Utils/bcryptUtil";
 import { DoctorType } from "../Model/doctorModel";
-import { sendOtpEmail } from "../config/nodeMailer";
+import { sendOtpEmail } from "../Config/nodeMailer";
 
 class DoctorService {
     async registerDoctor(doctor: DoctorType): Promise<{ success: boolean; message: string; otp: string }> {
