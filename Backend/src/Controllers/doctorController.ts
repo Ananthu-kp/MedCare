@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
-import { IDoctorService } from "../Interfaces/doctorService.interface";
+import doctorService from "../Services/doctorService";
+import doctorRepository from "../Repositories/doctorRepository";
 import bcryptUtil from "../Utils/bcryptUtil";
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { certificateUpload, profileUpload } from '../Config/multer';

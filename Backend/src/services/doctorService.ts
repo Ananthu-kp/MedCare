@@ -1,22 +1,16 @@
-import { IDoctorRepository } from "../Interfaces/doctorRepository.interface";
+import doctorRepository from "../Repositories/doctorRepository";
 import bcryptUtil from "../Utils/bcryptUtil";
 import { DoctorType } from "../Model/doctorModel";
 import { sendOtpEmail } from "../Config/nodeMailer";
 
 class DoctorService {
-    private _doctorRepository: IDoctorRepository;
-
-    constructor(doctorRepository: IDoctorRepository) {
-        this._doctorRepository = doctorRepository
-    }
-    
     async registerDoctor(doctor: DoctorType): Promise<{ success: boolean; message: string; otp: string }> {
-        const existingDoctor = await this._doctorRepository.findDoctorByEmail(doctor.email);
+        const existingDoctor = await doctorRepository.findDoctorByEmail(doctor.email);
         if (existingDoctor) {
             return { success: false, message: 'Doctor already exists', otp: '' };
         }
 
-        const savedDoctor = await this._doctorRepository.createDoctor(doctor);
+        const savedDoctor = await doctorRepository.createDoctor(doctor);
         console.log(savedDoctor);
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -27,7 +21,7 @@ class DoctorService {
     }
 
     async verifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
-        const isOtpValid = await this._doctorRepository.verifyOtp(email, otp);
+        const isOtpValid = await doctorRepository.verifyOtp(email, otp);
         if (!isOtpValid) {
             return { success: false, message: "Invalid OTP" };
         }
@@ -36,7 +30,7 @@ class DoctorService {
     }
 
     async resendOtp(email: string): Promise<{ success: boolean; message: string }> {
-        const doctor = await this._doctorRepository.findDoctorByEmail(email);
+        const doctor = await doctorRepository.findDoctorByEmail(email);
         if (!doctor) {
             return { success: false, message: "Doctor not found" };
         }
@@ -45,38 +39,38 @@ class DoctorService {
         console.log("resend otp -> ", otp);
 
         await sendOtpEmail(doctor.email, otp, true);
-        await this._doctorRepository.saveOtp(email, otp);
+        await doctorRepository.saveOtp(email, otp);
 
         return { success: true, message: "OTP sent successfully" };
     }
 
     async clearTempDoctorData(email: string): Promise<void> {
-        await this._doctorRepository.clearTempDoctorData(email);
+        await doctorRepository.clearTempDoctorData(email);
     }
 
     async getCategories(): Promise<string[]> {
         try {
-            return await this._doctorRepository.getAllCategories();
+            return await doctorRepository.getAllCategories();
         } catch (error) {
             throw new Error('Service error while fetching categories');
         }
     }
 
     async getDoctorProfile(doctorId: string): Promise<DoctorType | null> {
-        return await this._doctorRepository.findDoctorById(doctorId);
+        return await doctorRepository.findDoctorById(doctorId);
     }
 
     async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return await this._doctorRepository.updateOfficialDetails(doctorId, officialDetails);
+        return await doctorRepository.updateOfficialDetails(doctorId, officialDetails);
     }
 
     async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return await this._doctorRepository.updatePersonalDetails(doctorId, personalDetails);
+        return await doctorRepository.updatePersonalDetails(doctorId, personalDetails);
     }
 
     async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
         try {
-            const updatedDoctor = await this._doctorRepository.updateDoctorProfileImage(doctorId, profileImageUrl);
+            const updatedDoctor = await doctorRepository.updateDoctorProfileImage(doctorId, profileImageUrl);
             return { success: true, doctor: updatedDoctor };
         } catch (error) {
             console.error('Error updating doctor profile image:', error);
@@ -85,7 +79,7 @@ class DoctorService {
     }
 
     async requestOtpForPasswordReset(email: string): Promise<{ success: boolean; message: string; otp?: string }> {
-        const doctor = await this._doctorRepository.findDoctorByEmail(email)
+        const doctor = await doctorRepository.findDoctorByEmail(email)
         if (!doctor) {
             return { success: false, message: 'Doctor not found' };
         }
@@ -104,7 +98,7 @@ class DoctorService {
     }
 
     async verifyForgotOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
-        const doctor = await this._doctorRepository.findDoctorByEmail(email);
+        const doctor = await doctorRepository.findDoctorByEmail(email);
         if (!doctor) {
             return { success: false, message: 'Doctor not found' }
         }
@@ -112,7 +106,7 @@ class DoctorService {
     }
 
     async resendForgotOtp(email: string): Promise<{ success: boolean; message: string, otp?: string }> {
-        const doctor = await this._doctorRepository.findDoctorByEmail(email);
+        const doctor = await doctorRepository.findDoctorByEmail(email);
 
         if (!doctor) {
             return { success: false, message: 'Doctor not found' }
@@ -137,7 +131,7 @@ class DoctorService {
         
         try {
             const hashedPassword = await bcryptUtil.hashPassword(newPassword);
-            await this._doctorRepository.updatePassword(email, hashedPassword);
+            await doctorRepository.updatePassword(email, hashedPassword);
             return { success: true, message: 'Password updated successfully' };
         } catch (error) {
             console.error('Error updating password:', error);
@@ -147,7 +141,7 @@ class DoctorService {
 
     async updateAvailability(email: string, availability: boolean) {
         try {
-            const updatedDoctor = await this._doctorRepository.updateDoctorAvailability(email, availability);
+            const updatedDoctor = await doctorRepository.updateDoctorAvailability(email, availability);
             if (!updatedDoctor) {
                 throw new Error('Failed to update availability');
             }
@@ -159,14 +153,14 @@ class DoctorService {
     }
 
     async addSlots(email: string, slot: any) {
-        return this._doctorRepository.addSlotToDoctor(email, slot);
+        return doctorRepository.addSlotToDoctor(email, slot);
     }
 
     async getSlots(email: string) {
-        const slots = await this._doctorRepository.getSlotsForDoctor(email);
+        const slots = await doctorRepository.getSlotsForDoctor(email);
         return slots || [];
     }
     
 }
  
-export default  DoctorService;
+export default new DoctorService();

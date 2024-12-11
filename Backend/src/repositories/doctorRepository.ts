@@ -1,9 +1,7 @@
-import { Doctor, DoctorType } from "../Model/doctorModel";
 import Category from "../Model/categoryModel";
-import { IDoctorRepository } from "../Interfaces/doctorRepository.interface";
+import { Doctor, DoctorType } from "../Model/doctorModel";
 
-class DoctorRepository implements IDoctorRepository {
-    
+class DoctorRepository {
     async createDoctor(doctor: DoctorType): Promise<DoctorType> {
         return new Doctor(doctor).save();
     }
@@ -15,7 +13,7 @@ class DoctorRepository implements IDoctorRepository {
     async saveOtp(email: string, otp: string): Promise<void> {
         const doctor = await this.findDoctorByEmail(email);
         if (!doctor) {
-            throw new Error("Doctor not found when trying to save OTP");
+            throw new Error('Doctor not found when trying to save OTP');
         }
 
         await Doctor.updateOne({ email }, { otp, tempData: true, otpCreatedAt: new Date() });
@@ -31,51 +29,77 @@ class DoctorRepository implements IDoctorRepository {
     }
 
     async getAllCategories(): Promise<string[]> {
-        const categories = await Category.find().select("name");
-        return categories.map((category) => category.name);
+        try {
+            const categories = await Category.find().select('name');
+            return categories.map(category => category.name);
+
+        } catch (error) {
+            throw new Error('Error fetching categories from the database.');
+        }
     }
 
     async findDoctorById(doctorId: string): Promise<DoctorType | null> {
-        return Doctor.findOne({ _id: doctorId });
+        return await Doctor.findOne({ email: doctorId });
     }
 
     async updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return Doctor.findOneAndUpdate({ _id: doctorId }, officialDetails, { new: true });
+        return await Doctor.findOneAndUpdate({ email: doctorId }, officialDetails, { new: true });
     }
 
     async updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null> {
-        return Doctor.findOneAndUpdate({ _id: doctorId }, personalDetails, { new: true });
+        return await Doctor.findOneAndUpdate({ email: doctorId }, personalDetails, { new: true });
     }
 
-    async updateDoctorProfileImage(doctorId: string, profileImageUrl: string): Promise<DoctorType | null> {
-        return Doctor.findOneAndUpdate({ _id: doctorId }, { profileImg: profileImageUrl }, { new: true });
+    async updateDoctorProfileImage(doctorId: string, profileImageUrl: string) {
+        return await Doctor.findOneAndUpdate(
+            { email: doctorId },
+            { profileImg: profileImageUrl }
+        );
     }
 
     async updatePassword(email: string, hashedPassword: string): Promise<void> {
         await Doctor.updateOne({ email }, { password: hashedPassword });
     }
 
-    async updateDoctorAvailability(email: string, availability: boolean): Promise<DoctorType | null> {
-        return Doctor.findOneAndUpdate({ email }, { availability }, { new: true });
-    }
+    async updateDoctorAvailability(email: string, availability: boolean) {
+        try {
+            const updatedDoctor = await Doctor.findOneAndUpdate(
+                { email },
+                { availability },
+                { new: true }
+            );
 
-    async addSlotToDoctor(email: string, slot: any): Promise<DoctorType | null> {
-        return Doctor.findOneAndUpdate({ email }, { $push: { slots: slot } }, { new: true });
-    }
+            if (!updatedDoctor) {
+                console.error('No doctor found with the given ID');
+            }
 
-    async getSlotsForDoctor(email: string): Promise<any[]> {
-        const doctor = await Doctor.findOne({ email }).select("slots");
-    
-        if (doctor) {
-            const currentDate = new Date().toISOString().split("T")[0];
-            doctor.slots = doctor.slots?.filter((slot) => slot.date >= currentDate) || [];
-            await doctor.save();
-            return doctor.slots;
+            return updatedDoctor;
+        } catch (error) {
+            console.error('Error in updateDoctorAvailability repository:', error);
+            throw error;
         }
-    
-        return [];
     }
-    
+
+    async addSlotToDoctor(email: string, slot: any) {
+        return Doctor.findOneAndUpdate(
+            { email },
+            { $push: { slots: slot } },
+            { new: true }
+        )
+    }
+
+    async getSlotsForDoctor(email: string) {
+        const doctor = await Doctor.findOne({ email }).select('slots');
+
+        if (doctor) {
+            const currentDate = new Date().toISOString().split('T')[0];
+
+            doctor.slots = doctor.slots?.filter(slot => slot.date >= currentDate);
+            await doctor.save()
+        }
+        return doctor ? doctor.slots : [];
+    }
 }
+
 
 export default new DoctorRepository();

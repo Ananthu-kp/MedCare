@@ -1,11 +1,8 @@
 import { Router } from "express";
 import DoctorController from "../Controllers/doctorController";
-import DoctorService from "../Services/doctorService";
-import DoctorRepository from "../Repositories/doctorRepository";
 import { verifyToken } from "../Utils/jwtConfig";
 
 const router = Router();
-const doctorService = new DoctorService(DoctorRepository)
 
 router.post('/register', DoctorController.register);
 router.post('/verify-otp', DoctorController.verifyOtp);
