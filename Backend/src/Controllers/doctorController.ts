@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import doctorService from "../Services/doctorService";
-import doctorRepository from "../Repositories/doctorRepository";
 import bcryptUtil from "../Utils/bcryptUtil";
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { certificateUpload, profileUpload } from '../Config/multer';
@@ -40,7 +39,7 @@ class DoctorController {
 
                 if (result.success) {
                     try {
-                        await doctorRepository.saveOtp(email, result.otp);
+                        await doctorService.saveOtp(email, result.otp);
                         return res.status(HttpStatus.OK).json({ success: true, message: 'Registration successful!' });
                     } catch (error) {
                         console.error('Error saving OTP:', error);
@@ -76,7 +75,7 @@ class DoctorController {
         try {
             const { email } = req.body;
 
-            const doctor = await doctorRepository.findDoctorByEmail(email);
+            const doctor = await doctorService.findDoctorByEmail(email);
             if (!doctor) {
                 res.status(HttpStatus.NOT_FOUND).json({ success: false, message: "Doctor not found" });
                 return;
@@ -95,7 +94,7 @@ class DoctorController {
         try {
             const { email, password } = req.body;
 
-            const doctor = await doctorRepository.findDoctorByEmail(email);
+            const doctor = await doctorService.findDoctorByEmail(email);
             if (!doctor) {
                 res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
                 return;

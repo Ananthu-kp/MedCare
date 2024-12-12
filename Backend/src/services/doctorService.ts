@@ -56,6 +56,14 @@ class DoctorService {
         }
     }
 
+    async findDoctorByEmail(email: string) {
+        return await doctorRepository.findDoctorByEmail(email);
+    }
+
+    async saveOtp(email: string, otp: string) {
+        return await doctorRepository.saveOtp(email, otp);
+    }
+
     async getDoctorProfile(doctorId: string): Promise<DoctorType | null> {
         return await doctorRepository.findDoctorById(doctorId);
     }
