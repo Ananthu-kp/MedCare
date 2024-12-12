@@ -22,6 +22,12 @@ export const errorHandler = (
             .json({ message: "Password is incorrect" });
     }
 
+    if (error.message === "Certificate file is required") {
+        return res
+            .status(HttpStatus.BAD_REQUEST)
+            .json({ message: "Please upload a certificate file." });
+    }
+
     // Generic error response
     res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: "Something went wrong, please try again later",

@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import bcryptUtil from "../Utils/bcryptUtil";
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { certificateUpload, profileUpload } from '../Config/multer';
@@ -12,11 +12,11 @@ class DoctorController {
         this.doctorService = doctorService;
     }
 
-    register = async (req: Request, res: Response): Promise<void> => {
+    register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         certificateUpload.single('certificate')(req, res, async (err) => {
             if (err) {
                 console.error('Multer Error:', err);
-                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Error uploading file", error: err.message });
+                return next(err)
             }
 
             try {
@@ -56,12 +56,12 @@ class DoctorController {
                 }
             } catch (error) {
                 console.error('Error registering doctor:', error);
-                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error registering doctor" });
+                next(error)
             }
         });
     }
 
-    verifyOtp = async (req: Request, res: Response): Promise<void> => {
+    verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, otp } = req.body;
 
@@ -73,11 +73,11 @@ class DoctorController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
-    resendOtp = async (req: Request, res: Response): Promise<void> => {
+    resendOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email } = req.body;
 
@@ -92,11 +92,11 @@ class DoctorController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error resending OTP:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
-    login = async (req: Request, res: Response): Promise<void> => {
+    login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, password } = req.body;
 
@@ -142,20 +142,20 @@ class DoctorController {
             })
         } catch (error) {
             console.error('Error logging in doctor:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
-    getCategories = async (req: Request, res: Response): Promise<void> => {
+    getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const categories = await this.doctorService.getCategories();
             res.status(HttpStatus.OK).json({ success: true, categories });
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error fetching categories.' });
+            next(error)
         }
     }
 
-    getDoctorProfile = async (req: Request, res: Response): Promise<void> => {
+    getDoctorProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const doctorId = (req as any).user.id;
             const doctorProfile = await this.doctorService.getDoctorProfile(doctorId);
@@ -165,33 +165,33 @@ class DoctorController {
             }
             res.status(HttpStatus.OK).json(doctorProfile);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+            next(error)
         }
     }
 
-    updateOfficialDetails = async (req: Request, res: Response): Promise<void> => {
+    updateOfficialDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const doctorId = (req as any).user.id;
             const officialDetails = req.body;
             const updatedDoctor = await this.doctorService.updateOfficialDetails(doctorId, officialDetails);
             res.status(HttpStatus.OK).json(updatedDoctor);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+            next(error)
         }
     }
 
-    updatePersonalDetails = async (req: Request, res: Response): Promise<void> => {
+    updatePersonalDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const doctorId = (req as any).user.id;
             const personalDetails = req.body;
             const updatedDoctor = await this.doctorService.updatePersonalDetails(doctorId, personalDetails);
             res.status(HttpStatus.OK).json(updatedDoctor);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+            next(error)
         }
     };
 
-    uploadProfileImage = async (req: Request, res: Response): Promise<void> => {
+    uploadProfileImage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         profileUpload.single('profileImage')(req, res, async (err: any) => {
             if (err) {
                 console.error('Multer Error:', err);
@@ -216,12 +216,12 @@ class DoctorController {
                 }
             } catch (error) {
                 console.error('Error saving profile image:', error);
-                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving profile image" });
+                next(error)
             }
         });
     }
 
-    otpForPassReset = async (req: Request, res: Response) => {
+    otpForPassReset = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email } = req.body;
             if (!email) {
@@ -231,22 +231,22 @@ class DoctorController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
         } catch (error) {
             console.error('Error in reset password', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Something went wrong' })
+            next(error)
         }
     }
 
-    verifyForgotOtp = async (req: Request, res: Response): Promise<void> => {
+    verifyForgotOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, otp } = req.body;
             const result = await this.doctorService.verifyForgotOtp(email, otp);
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyForgotOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
-    resendForgotOtp = async (req: Request, res: Response): Promise<void> => {
+    resendForgotOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email } = req.body;
             const result = await this.doctorService.resendForgotOtp(email)
@@ -254,11 +254,11 @@ class DoctorController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
         } catch (error) {
             console.error('Error in resendForgotOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
-    resetPassword = async (req: Request, res: Response): Promise<void> => {
+    resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, otp, newPassword } = req.body;
 
@@ -273,11 +273,11 @@ class DoctorController {
 
         } catch (error) {
             console.error('Error resetting password:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
-    updateAvailability = async (req: Request, res: Response) => {
+    updateAvailability = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const { email, availability } = req.body;
 
@@ -285,12 +285,12 @@ class DoctorController {
             res.json(updatedDoctor);
         } catch (error) {
             console.error('Error updating availability:', error);
-            res.status(500).json({ message: "Something went wrong, please try again later" });
+            next(error)
         }
     }
 
 
-    addSlot = async (req: Request, res: Response): Promise<void> => {
+    addSlot = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const { email, date, startTime, endTime, available } = req.body;
 
@@ -304,18 +304,18 @@ class DoctorController {
             res.status(HttpStatus.OK).json({ success: true, message: 'Slot added successfully' })
         } catch (error) {
             console.error('Error adding slot:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error adding slot' })
+            next(error)
         }
     }
 
-    getSlots = async (req: Request, res: Response): Promise<void> => {
+    getSlots = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
             const email = req.params.email;
             const slots = await this.doctorService.getSlots(email);
             res.status(HttpStatus.OK).json(slots)
         } catch (error) {
             console.error('Error fetching slots:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: 'Error fetching slots' })
+            next(error)
         }
     }
 
