@@ -1,25 +1,30 @@
 import { Router } from "express";
 import DoctorController from "../Controllers/doctorController";
 import { verifyToken } from "../Utils/jwtConfig";
+import DoctorRepository from "../Repositories/doctorRepository";
+import DoctorService from "../Services/doctorService";
 
 const router = Router();
 
-router.post('/register', DoctorController.register);
-router.post('/verify-otp', DoctorController.verifyOtp);
-router.post('/resend-otp', DoctorController.resendOtp);
-router.post('/login', DoctorController.login);
-router.post('/forgot-password', DoctorController.otpForPassReset);
-router.post('/verifyDoctor-otp', DoctorController.verifyForgotOtp);
-router.post('/resendDoctor-otp', DoctorController.resendForgotOtp);
-router.post('/recover-password', DoctorController.resetPassword);
-router.get('/categories', DoctorController.getCategories);
-router.get('/doctor', verifyToken,DoctorController.getDoctorProfile);
-router.put('/doctor/official', verifyToken, DoctorController.updateOfficialDetails);
-router.put('/doctor/personal', verifyToken, DoctorController.updatePersonalDetails);
-router.put('/upload-profile-image', verifyToken, DoctorController.uploadProfileImage);
-router.put('/availability', DoctorController.updateAvailability);
-router.get('/slots/:email', verifyToken, DoctorController.getSlots);
-router.post('/slots', verifyToken, DoctorController.addSlot)
+const doctorService = new DoctorService(DoctorRepository)
+const doctorController = new DoctorController(doctorService);
+
+router.post('/register', doctorController.register);
+router.post('/verify-otp', doctorController.verifyOtp);
+router.post('/resend-otp', doctorController.resendOtp);
+router.post('/login', doctorController.login);
+router.post('/forgot-password', doctorController.otpForPassReset);
+router.post('/verifyDoctor-otp', doctorController.verifyForgotOtp);
+router.post('/resendDoctor-otp', doctorController.resendForgotOtp);
+router.post('/recover-password', doctorController.resetPassword);
+router.get('/categories', doctorController.getCategories);
+router.get('/doctor', verifyToken,doctorController.getDoctorProfile);
+router.put('/doctor/official', verifyToken, doctorController.updateOfficialDetails);
+router.put('/doctor/personal', verifyToken, doctorController.updatePersonalDetails);
+router.put('/upload-profile-image', verifyToken, doctorController.uploadProfileImage);
+router.put('/availability', doctorController.updateAvailability);
+router.get('/slots/:email', verifyToken, doctorController.getSlots);
+router.post('/slots', verifyToken, doctorController.addSlot)
 
 
 export default router;

@@ -1,7 +1,9 @@
 import Category from "../Model/categoryModel";
-import { Doctor, DoctorType } from "../Model/doctorModel";
+import { Doctor, DoctorType, SlotType } from "../Model/doctorModel";
+import { IDoctorRepository } from "../Interfaces/doctorRepository.interface";
 
-class DoctorRepository {
+class DoctorRepository implements IDoctorRepository {
+
     async createDoctor(doctor: DoctorType): Promise<DoctorType> {
         return new Doctor(doctor).save();
     }
@@ -88,16 +90,18 @@ class DoctorRepository {
         )
     }
 
-    async getSlotsForDoctor(email: string) {
+    async getSlotsForDoctor(email: string): Promise<SlotType[]> {
         const doctor = await Doctor.findOne({ email }).select('slots');
 
         if (doctor) {
             const currentDate = new Date().toISOString().split('T')[0];
+            const filteredSlots = doctor.slots?.filter(slot => slot.date >= currentDate) || [];
+            doctor.slots = filteredSlots;
+            await doctor.save();
 
-            doctor.slots = doctor.slots?.filter(slot => slot.date >= currentDate);
-            await doctor.save()
+            return filteredSlots; 
         }
-        return doctor ? doctor.slots : [];
+        return [];
     }
 }
 
