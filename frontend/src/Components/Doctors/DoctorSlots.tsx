@@ -86,9 +86,20 @@ function DoctorSlots({ email }: { email: string }) {
     setShowTimeForm(true);
   };
 
+
+  const isValidTimeInterval = (time: string) => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return minutes === 0 || minutes === 30;
+  };  
+
   const handleTimeSubmit = async () => {
     if (!selectedDay || !startTime || !endTime) {
       toast.warning('Please set the Timing');
+      return;
+    }
+
+    if (!isValidTimeInterval(startTime) || !isValidTimeInterval(endTime)) {
+      toast.warning('Timing must be in 30-minute intervals.');
       return;
     }
 
