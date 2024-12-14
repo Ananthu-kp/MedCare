@@ -213,7 +213,7 @@ function DoctorDetails() {
         <Modal.Body>
           <div className="flex flex-col items-center">
             <div
-              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black" // Added border and color here
+              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black" 
             >
               <h5 className="text-lg font-semibold mb-4 text-center">
                 Choose an Available Time Slot
