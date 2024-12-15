@@ -27,10 +27,12 @@ app.use(cors({
     credentials: true
 }))
 
+
 app.use('/', userRoutes)
 app.use('/admin', adminRoutes)
 app.use('/doctor', doctorRoutes)
 
+//global error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT;
