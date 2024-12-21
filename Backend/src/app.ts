@@ -27,9 +27,10 @@ app.use(cors({
     credentials: true
 }));
 
-app.use('/', userRoutes)
-app.use('/admin', adminRoutes)
-app.use('/doctor', doctorRoutes)
+
+app.use('/', userRoutes);
+app.use('/admin', adminRoutes);
+app.use('/doctor', doctorRoutes);
 
 //global error handler
 app.use(errorHandler);
