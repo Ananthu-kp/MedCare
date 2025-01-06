@@ -19,5 +19,6 @@ router.put('/upload-profile-image', verifyToken, userController.uploadProfileIma
 router.get('/selectDoctor', userController.getDoctors)
 router.get('/doctors/:id', userController.getDoctorDetails);
 router.get('/slot/:id', userController.getDoctorSlots);
+router.post('/create-payment-intent', verifyToken, userController.createPayment);
 
 export default router;

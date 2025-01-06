@@ -4,6 +4,7 @@ import { UserType } from "../Model/userModel";
 import { sendOtpEmail } from '../Config/nodeMailer';
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { DoctorType, SlotType } from "../Model/doctorModel";
+import stripe from "../Config/stripeConfig";
 
 class UserService {
     async registerUser(user: UserType): Promise<{ success: boolean; message: string; otp: string }> {
@@ -201,6 +202,37 @@ class UserService {
         return userRepository.getDoctorSlots(id);
       }
 
+
+      async createPaymentIntent(amount: number, currency: string, userId: string, postalCode: string, bookingTime: string): Promise<{ clientSecret: string; paymentId: string }> {
+        // Validate postal code
+        if (!postalCode || postalCode.trim().length < 5) {
+            throw new Error('Postal code is incomplete or invalid');
+        }
+    
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount,
+            currency,
+            metadata: { userId },
+        });
+    
+        if (!paymentIntent.client_secret) {
+            throw new Error('Failed to create payment intent: client_secret is null');
+        }
+    
+        const paymentData = {
+            amount,
+            currency,
+            status: paymentIntent.status,
+            paymentIntentId: paymentIntent.id,
+            bookingTime,
+        };
+        console.log("checkkkk", paymentData.bookingTime)
+    
+        await userRepository.addPaymentToUser(userId, paymentData);
+    
+        return { clientSecret: paymentIntent.client_secret, paymentId: paymentIntent.id };
+    }
+    
 }
 
 

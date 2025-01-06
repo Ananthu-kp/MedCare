@@ -7,6 +7,7 @@ import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { BASE_URL } from '../../Config/baseURL';
 import { Modal, Button } from 'react-bootstrap';
 import { toast } from 'sonner';
+import StripePayment from './StripePayment';
 
 const localizer = momentLocalizer(moment);
 
@@ -28,6 +29,8 @@ function DoctorDetails() {
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [selectedTime, setSelectedTime] = useState<string>('');
   const [timeError, setTimeError] = useState<string>('');
+  const [showPayment, setShowPayment] = useState(false);
+  const [bookingAmount, setBookingAmount] = useState<number>(0);
 
   useEffect(() => {
     const fetchDoctorDetails = async () => {
@@ -118,23 +121,26 @@ function DoctorDetails() {
     }
   };
 
-  const handleBookingSubmit = async () => {
+  const handleBookingSubmit = () => {
     if (!selectedTime) {
       toast.warning('Please select a time before confirming your booking!');
-      return
+      return;
     }
-    try {
-      alert("hii")
-      await axios.post(`${BASE_URL}/book-slot`, {
-        doctorId,
-        slotId: selectedSlot?._id,
-        bookingTime: selectedTime,
-      });
-      alert('Booking successful!');
-      setShowModal(false);
-    } catch (error) {
-      console.error('Error booking slot:', error);
-    }
+    setBookingAmount(doctor.consultationfee); 
+    setShowModal(false);
+    setShowPayment(true); 
+  };
+
+  const handlePaymentSuccess = () => {
+    toast.success('Booking confirmed!');
+    setShowPayment(false);
+    // Optionally, you can reset the selected slot and time here
+    setSelectedSlot(null);
+    setSelectedTime('');
+  };
+
+  const handlePaymentCancel = () => {
+    setShowPayment(false);
   };
 
   const handleTimeSelection = (time: string) => {
@@ -266,6 +272,26 @@ function DoctorDetails() {
             </button>
           </div>
         </Modal.Footer>
+      </Modal>
+
+      <Modal className="custom-modal bg-white shadow-lg rounded-lg p-6"
+        show={showPayment}
+        onHide={handlePaymentCancel}
+        centered
+      >
+        <Modal.Header closeButton>
+          <Modal.Title className="text-lg font-bold text-center w-full">
+            Payment
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <StripePayment 
+            amount={bookingAmount} 
+            bookingTime={selectedTime} 
+            onSuccess={handlePaymentSuccess} 
+            onCancel={handlePaymentCancel} 
+          />
+        </Modal.Body>
       </Modal>
     </div>
   );

@@ -265,6 +265,22 @@ class UserController {
         }
       }
 
+
+      async createPayment(req: Request, res: Response): Promise<void> {
+        try {
+            const { amount, currency, postalCode, bookingTime } = req.body;
+            const userId = (req as any).user.id; 
+    
+            const { clientSecret, paymentId } = await userService.createPaymentIntent(amount, currency, userId, postalCode, bookingTime);
+    
+            res.status(HttpStatus.OK).json({ clientSecret, paymentId });
+        } catch (error) {
+            console.error('Error creating payment:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error creating payment" });
+        }
+    }
+    
+
 }
 
 

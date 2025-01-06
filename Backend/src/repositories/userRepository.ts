@@ -64,39 +64,54 @@ class UserRepository {
                 availability: true
             };
             if (name) {
-                query.name = { $regex: name, $options: 'i' }; 
+                query.name = { $regex: name, $options: 'i' };
             }
-    
+
             return await Doctor.find(query).exec();
         } catch (error) {
             console.error('Error fetching doctors from the database:', error);
             throw new Error('Error fetching doctors from the database');
         }
     }
-    
+
 
     async getDoctorById(id: string): Promise<DoctorType | null> {
         try {
-          const doctor = await Doctor.findById(id);
-          return doctor;
+            const doctor = await Doctor.findById(id);
+            return doctor;
         } catch (error) {
-          console.error('Error fetching doctor:', error);
-          return null;
+            console.error('Error fetching doctor:', error);
+            return null;
         }
-      }
+    }
 
-      async getDoctorSlots(id: string): Promise<SlotType[]> {
+    async getDoctorSlots(id: string): Promise<SlotType[]> {
         try {
-          const doctor = await Doctor.findById(id);
-          if (!doctor) {
-            return [];
-          }
-          return doctor.slots ?? [];
+            const doctor = await Doctor.findById(id);
+            if (!doctor) {
+                return [];
+            }
+            return doctor.slots ?? [];
         } catch (error) {
-          console.error('Error fetching doctor slots:', error);
-          return [];
+            console.error('Error fetching doctor slots:', error);
+            return [];
         }
-      }
+    }
+
+
+    async addPaymentToUser (email: string, paymentData: any): Promise<void> {
+        const result = await User.updateOne(
+            { email: email }, 
+            { $push: { payments: paymentData } }
+        );
+        if (result.matchedCount === 0) {
+            throw new Error('User  not found');
+        }
+    
+        if (result.modifiedCount === 0) {
+            throw new Error('Payment not added, user may not have changed');
+        }
+    }
 
 }
 
