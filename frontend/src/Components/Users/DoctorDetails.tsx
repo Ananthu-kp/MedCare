@@ -134,7 +134,6 @@ function DoctorDetails() {
   const handlePaymentSuccess = () => {
     toast.success('Booking confirmed!');
     setShowPayment(false);
-    // Optionally, you can reset the selected slot and time here
     setSelectedSlot(null);
     setSelectedTime('');
   };
