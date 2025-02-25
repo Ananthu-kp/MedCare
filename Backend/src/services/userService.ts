@@ -203,34 +203,36 @@ class UserService {
       }
 
 
-      async createPaymentIntent(amount: number, currency: string, userId: string, postalCode: string, bookingTime: string): Promise<{ clientSecret: string; paymentId: string }> {
-        // Validate postal code
-        if (!postalCode || postalCode.trim().length < 5) {
-            throw new Error('Postal code is incomplete or invalid');
-        }
-    
-        const paymentIntent = await stripe.paymentIntents.create({
-            amount,
-            currency,
-            metadata: { userId },
+      async createCheckoutSession(amount: number, currency: string, userId: string, bookingTime: string): Promise<{ sessionId: string; url: string }> {
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            line_items: [
+                {
+                    price_data: {
+                        currency: currency,
+                        product_data: {
+                            name: 'Doctor Consultation',
+                        },
+                        unit_amount: amount, // Amount in cents
+                    },
+                    quantity: 1,
+                },
+            ],
+            mode: 'payment',
+            success_url: `${process.env.FRONTEND_URL}success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `${process.env.FRONTEND_URL}cancel`,
+            metadata: {
+                userId,
+                bookingTime,
+            },
         });
     
-        if (!paymentIntent.client_secret) {
-            throw new Error('Failed to create payment intent: client_secret is null');
+        // Ensure session.url is not null
+        if (!session.url) {
+            throw new Error('Failed to create checkout session: URL is null');
         }
     
-        const paymentData = {
-            amount,
-            currency,
-            status: paymentIntent.status,
-            paymentIntentId: paymentIntent.id,
-            bookingTime,
-        };
-        console.log("checkkkk", paymentData.bookingTime)
-    
-        await userRepository.addPaymentToUser(userId, paymentData);
-    
-        return { clientSecret: paymentIntent.client_secret, paymentId: paymentIntent.id };
+        return { sessionId: session.id, url: session.url };
     }
     
 }

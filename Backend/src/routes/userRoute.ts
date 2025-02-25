@@ -1,4 +1,5 @@
-import { Router } from 'express';
+import { Router, } from 'express';
+import express from "express";
 import userController from '../Controllers/userController';
 import { verifyToken } from '../Utils/jwtConfig';
 
@@ -20,5 +21,6 @@ router.get('/selectDoctor', userController.getDoctors)
 router.get('/doctors/:id', userController.getDoctorDetails);
 router.get('/slot/:id', userController.getDoctorSlots);
 router.post('/create-payment-intent', verifyToken, userController.createPayment);
+router.post('/stripe-webhook', express.raw({ type: 'application/json' }), userController.handleStripeWebhook);
 
 export default router;

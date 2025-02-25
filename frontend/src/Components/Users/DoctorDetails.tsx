@@ -126,9 +126,9 @@ function DoctorDetails() {
       toast.warning('Please select a time before confirming your booking!');
       return;
     }
-    setBookingAmount(doctor.consultationfee); 
+    setBookingAmount(doctor.consultationfee);
     setShowModal(false);
-    setShowPayment(true); 
+    setShowPayment(true);
   };
 
   const handlePaymentSuccess = () => {
@@ -218,7 +218,7 @@ function DoctorDetails() {
         <Modal.Body>
           <div className="flex flex-col items-center">
             <div
-              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black" 
+              className="bg-white shadow-md rounded-lg p-6 w-full max-w-lg h-[300px] overflow-y-auto border border-black"
             >
               <h5 className="text-lg font-semibold mb-4 text-center">
                 Choose an Available Time Slot
@@ -284,11 +284,11 @@ function DoctorDetails() {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <StripePayment 
-            amount={bookingAmount} 
-            bookingTime={selectedTime} 
-            onSuccess={handlePaymentSuccess} 
-            onCancel={handlePaymentCancel} 
+          <StripePayment
+            amount={bookingAmount}
+            bookingTime={selectedTime}
+            onSuccess={handlePaymentSuccess}
+            onCancel={handlePaymentCancel}
           />
         </Modal.Body>
       </Modal>

@@ -5,6 +5,9 @@ import bcrypt from "bcrypt";
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { HttpStatus } from "../Utils/httpStatus";
 import { profileUpload } from "../Config/multer";
+import Stripe from "stripe";
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+
 
 class UserController {
     async register(req: Request, res: Response): Promise<void> {
@@ -233,53 +236,97 @@ class UserController {
 
     async getDoctors(req: Request, res: Response): Promise<void> {
         try {
-            const { name } = req.query; 
-            const doctors = await userService.getAllDoctors(name as string); 
+            const { name } = req.query;
+            const doctors = await userService.getAllDoctors(name as string);
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
             console.error('Error fetching doctors:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
         }
     }
-    
+
 
     async getDoctorDetails(req: Request, res: Response): Promise<void> {
         const id = req.params.id;
         try {
-          const doctor = await userService.getDoctorDetails(id);
-          res.json(doctor);
+            const doctor = await userService.getDoctorDetails(id);
+            res.json(doctor);
         } catch (error) {
             console.error('Error fetching doctors11111111:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
         }
-      }
-    
-      async getDoctorSlots(req: Request, res: Response): Promise<void> {
+    }
+
+    async getDoctorSlots(req: Request, res: Response): Promise<void> {
         const id = req.params.id;
         try {
-          const slots = await userService.getDoctorSlots(id);
-          res.json(slots);
+            const slots = await userService.getDoctorSlots(id);
+            res.json(slots);
         } catch (error) {
             console.error('Error fetching doctors22222222222:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
         }
-      }
+    }
 
-
-      async createPayment(req: Request, res: Response): Promise<void> {
+    async createPayment(req: Request, res: Response): Promise<void> {
         try {
-            const { amount, currency, postalCode, bookingTime } = req.body;
-            const userId = (req as any).user.id; 
-    
-            const { clientSecret, paymentId } = await userService.createPaymentIntent(amount, currency, userId, postalCode, bookingTime);
-    
-            res.status(HttpStatus.OK).json({ clientSecret, paymentId });
+            const { amount, currency, bookingTime } = req.body;
+            const userId = (req as any).user.id;
+
+            // Create a Stripe Checkout Session
+            const { sessionId, url } = await userService.createCheckoutSession(amount, currency, userId, bookingTime);
+
+            // Return the session ID and URL to the frontend
+            res.status(HttpStatus.OK).json({ sessionId, url });
         } catch (error) {
             console.error('Error creating payment:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error creating payment" });
         }
     }
-    
+
+    async handleStripeWebhook(req: Request, res: Response): Promise<void> {
+        const sig = req.headers['stripe-signature'] as string;
+        const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET as string;
+
+        let event: Stripe.Event;
+
+        try {
+            event = Stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        } catch (err) {
+            console.error('Webhook signature verification failed:', err);
+            res.status(HttpStatus.BAD_REQUEST).send(`Webhook Error`);
+            return;
+        }
+
+        switch (event.type) {
+            case 'checkout.session.completed':
+                const session = event.data.object as Stripe.Checkout.Session;
+
+                if (!session.metadata) {
+                    console.error('Session metadata is null');
+                    res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid session metadata' });
+                    return
+                }
+
+                const userId = session.metadata.userId;
+                const bookingTime = session.metadata.bookingTime;
+
+                await userRepository.addPaymentToUser(userId, {
+                    amount: session.amount_total,
+                    currency: session.currency,
+                    status: 'succeeded',
+                    paymentIntentId: session.payment_intent as string,
+                    bookingTime,
+                });
+
+                break;
+            default:
+                console.log(`Unhandled event type: ${event.type}`);
+        }
+
+        res.status(HttpStatus.OK).json({ received: true });
+    }
+
 
 }
 

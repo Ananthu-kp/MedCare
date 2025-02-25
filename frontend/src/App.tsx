@@ -32,6 +32,8 @@ import UserProfilePage from './Pages/User/UserProfilePage';
 import SelectDoctorPage from './Pages/User/SelectDoctorPage';
 import DoctorSlotPage from './Pages/Doctor/DoctorSlotPage';
 import DoctorDetails from './Components/Users/DoctorDetails';
+import SuccessPage from './Components/Users/SuccessPage';
+import CancelPage from './Components/Users/CancelPage';
 
 function App() {
   return (
@@ -47,6 +49,8 @@ function App() {
           <Route path='/profile' element={<UserProfilePage />} />
           <Route path='/selectDoctor' element={<SelectDoctorPage />} />
           <Route path='/doctorDetails/:doctorId' element={<DoctorDetails />} />
+          <Route path='/success' element={<SuccessPage />} />
+          <Route path='/cancel' element={<CancelPage />} />
 
           <Route path="/admin/login" element={<LoginPageAdmin />} />
           <Route path="/admin" element={<ProtectAdmin element={AdminDashboardPage} />} />
