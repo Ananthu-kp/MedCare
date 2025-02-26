@@ -121,15 +121,34 @@ function DoctorDetails() {
     }
   };
 
-  const handleBookingSubmit = () => {
+  const handleBookingSubmit = async () => {
     if (!selectedTime) {
       toast.warning('Please select a time before confirming your booking!');
       return;
     }
-    setBookingAmount(doctor.consultationfee);
-    setShowModal(false);
-    setShowPayment(true);
+
+    try {
+      const token = sessionStorage.getItem('userToken');
+      const response = await axios.post(`${BASE_URL}/create-payment-intent`, {
+        amount: doctor.consultationfee,
+        currency: 'inr',
+        bookingTime: selectedTime,
+      }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const { url } = response.data;
+
+      // Redirect to Stripe Checkout page
+      window.location.href = url;
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      toast.error('Failed to initiate payment. Please try again.');
+    }
   };
+
 
   const handlePaymentSuccess = () => {
     toast.success('Booking confirmed!');
@@ -267,8 +286,9 @@ function DoctorDetails() {
               onClick={handleBookingSubmit}
               className="bg-blue-600 text-white py-2 px-4 rounded-md shadow-md hover:bg-blue-700 transition duration-300"
             >
-              Confirm Booking
+              Confirm & Pay
             </button>
+
           </div>
         </Modal.Footer>
       </Modal>
@@ -286,6 +306,7 @@ function DoctorDetails() {
         <Modal.Body>
           <StripePayment
             amount={bookingAmount}
+            currency="inr"
             bookingTime={selectedTime}
             onSuccess={handlePaymentSuccess}
             onCancel={handlePaymentCancel}

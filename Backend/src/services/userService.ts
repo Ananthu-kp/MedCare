@@ -156,7 +156,7 @@ class UserService {
         if (!newPassword) {
             return { success: false, message: 'Password cannot be empty' };
         }
-        
+
         try {
             const hashedPassword = await bcryptUtil.hashPassword(newPassword);
             await userRepository.updatePassword(email, hashedPassword);
@@ -193,17 +193,16 @@ class UserService {
             throw new Error('Error getting all doctors');
         }
     }
-    
+
     async getDoctorDetails(id: string): Promise<DoctorType | null> {
         return userRepository.getDoctorById(id);
-      }
-    
-      async getDoctorSlots(id: string): Promise<SlotType[]> {
+    }
+
+    async getDoctorSlots(id: string): Promise<SlotType[]> {
         return userRepository.getDoctorSlots(id);
-      }
+    }
 
-
-      async createCheckoutSession(amount: number, currency: string, userId: string, bookingTime: string): Promise<{ sessionId: string; url: string }> {
+    async createCheckoutSession(amount: number, currency: string, userId: string, bookingTime: string): Promise<{ sessionId: string; url: string }> {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -213,7 +212,7 @@ class UserService {
                         product_data: {
                             name: 'Doctor Consultation',
                         },
-                        unit_amount: amount, // Amount in cents
+                        unit_amount: amount * 100, 
                     },
                     quantity: 1,
                 },
@@ -226,15 +225,16 @@ class UserService {
                 bookingTime,
             },
         });
-    
+
         // Ensure session.url is not null
         if (!session.url) {
             throw new Error('Failed to create checkout session: URL is null');
         }
-    
+
         return { sessionId: session.id, url: session.url };
     }
-    
+
+
 }
 
 

@@ -276,7 +276,6 @@ class UserController {
             // Create a Stripe Checkout Session
             const { sessionId, url } = await userService.createCheckoutSession(amount, currency, userId, bookingTime);
 
-            // Return the session ID and URL to the frontend
             res.status(HttpStatus.OK).json({ sessionId, url });
         } catch (error) {
             console.error('Error creating payment:', error);

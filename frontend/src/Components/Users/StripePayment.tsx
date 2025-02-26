@@ -8,9 +8,10 @@ interface StripePaymentProps {
     bookingTime: string;
     onSuccess: () => void;
     onCancel: () => void;
+    currency: string
 }
 
-const StripePayment: React.FC<StripePaymentProps> = ({ amount, bookingTime, onSuccess, onCancel }) => {
+const StripePayment: React.FC<StripePaymentProps> = ({ amount, bookingTime, onSuccess, onCancel, currency }) => {
     const handleBookingSubmit = async () => {
         try {
             const token = sessionStorage.getItem('userToken');
