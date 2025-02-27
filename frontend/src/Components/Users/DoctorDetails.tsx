@@ -16,7 +16,7 @@ type Slot = {
   startTime: string;
   endTime: string;
   available: boolean;
-  _id: string;
+  _id: string; 
 };
 
 function DoctorDetails() {
