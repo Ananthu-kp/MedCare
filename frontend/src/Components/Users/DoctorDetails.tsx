@@ -208,7 +208,12 @@ function DoctorDetails() {
         <h3 className="text-xl font-bold text-gray-800 mb-4 text-center">
           Available Slots
         </h3>
-        <Calendar
+        {slots.length === 0 ? (
+          <p className='text-center text-red-600 font-semibold'>
+            No allocated slots available for booking...
+          </p>
+        ) : (
+          <Calendar
           localizer={localizer}
           events={events}
           startAccessor="start"
@@ -222,6 +227,7 @@ function DoctorDetails() {
           defaultView="month"
           className="rounded-lg overflow-hidden"
         />
+        )}
       </div>
       <Modal className="custom-modal bg-white shadow-lg rounded-lg p-6"
         show={showModal}
