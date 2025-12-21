@@ -14,7 +14,7 @@ function UserForgotPass() {
     const [loading, setLoading] = useState<boolean>(false);
     const [isOtpSent, setIsOtpSent] = useState<boolean>(false);
     const [email, setEmail] = useState<string>('');
-    const navigate = useNavigate()
+    const navigate = useNavigate();
 
     useEffect(() => {
         const storedOtpTime = localStorage.getItem('otpTimestamp');
@@ -39,7 +39,7 @@ function UserForgotPass() {
     useEffect(() => {
         if (timer > 0) {
             const intervalId = setInterval(() => {
-                setTimer((prevTimer) => prevTimer - 1);
+                setTimer((prev) => prev - 1);
                 localStorage.setItem('otpTimer', String(timer - 1));
             }, 1000);
             return () => clearInterval(intervalId);
@@ -52,7 +52,7 @@ function UserForgotPass() {
         updatedOtp[index] = value;
         setOtp(updatedOtp.join(''));
 
-        if (value.length === 1 && index < inputRefs.current.length - 1) {
+        if (value && index < inputRefs.current.length - 1) {
             inputRefs.current[index + 1]?.focus();
         }
     };
@@ -64,34 +64,23 @@ function UserForgotPass() {
     };
 
     const handleSubmitOtpVerification = async () => {
-        setLoading(true);
-
         if (otp.length < 4) {
             toast.warn('Please enter the OTP');
-            setLoading(false);
             return;
         }
 
-        const storedOtp = localStorage.getItem('otp')
-        const storedresendOtp = localStorage.getItem('resendotp')
+        setLoading(true);
 
-        if (otp !== storedOtp && otp !== storedresendOtp) {
-            toast.error('Invalid OTP');
-            setLoading(false);
-            return
-        }
         try {
             const response = await axios.post(`${BASE_URL}/verifyForget-otp`, { email, otp });
             if (response.data.success) {
                 toast.success('OTP Verified!');
-                setTimeout(() => {
-                    navigate('/recover-password')
-                }, 1000)
+                setTimeout(() => navigate('/recover-password'), 1000);
             } else {
                 toast.error(response.data.message || 'Invalid OTP');
             }
         } catch (error: any) {
-            toast.error(error.response?.data?.message || 'Something went wrong. Please try again.');
+            toast.error(error.response?.data?.message || 'Something went wrong.');
         } finally {
             setLoading(false);
         }
@@ -102,162 +91,154 @@ function UserForgotPass() {
         try {
             const response = await axios.post(`${BASE_URL}/verifyResend-otp`, { email });
             if (response.data.success) {
-                toast.success('Resent OTP sent to email');
+                toast.success('OTP resent');
                 setOtp('');
                 setTimer(60);
                 localStorage.setItem('otpTimer', '60');
                 localStorage.setItem('otpTimestamp', String(Date.now()));
-                localStorage.setItem('resendotp', response.data.otp);
-                inputRefs.current.forEach((input) => input?.value && (input.value = ''));
+                inputRefs.current.forEach(input => input && (input.value = ''));
                 inputRefs.current[0]?.focus();
             } else {
-                toast.error(response.data.message || 'Failed to resend OTP. Please try again.');
+                toast.error(response.data.message || 'Failed to resend OTP');
             }
-        } catch (error) {
-            toast.error('Failed to resend OTP.');
+        } catch {
+            toast.error('Failed to resend OTP');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className='min-h-screen flex'>
-            <div className='relative w-full flex'>
-                <div className='absolute inset-0 bg-gradient-to-br from-teal-400 via-teal-500 to-green-300'
-                    style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 100%)' }}
-                />
+        <div className="min-h-screen relative flex flex-col lg:flex-row">
+            {/* Background */}
+            <div
+                className="absolute inset-0 bg-gradient-to-br from-teal-400 via-teal-500 to-green-300"
+                style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 100%)' }}
+            />
 
-                <div className='w-1/2 p-12 flex flex-col justify-between items-start text-white relative z-10'>
-                    <div className="space-y-6">
-                        <h1 className='text-5xl font-bold'>Recover Your <br /> <strong className='text-teal-700'>Account</strong></h1>
-                        <p className="text-lg">
-                            We will send an OTP to your registered email <br />
-                            to recover your account.
-                        </p>
-                    </div>
-
-                    <div className="relative flex-grow">
-                    <img src={forgotPassImage} alt="Forgot Password" className="w-96 h-auto" />
-                    </div>
+            {/* Left Section */}
+            <div className="w-full lg:w-1/2 px-6 py-10 lg:p-12 text-white relative z-10 flex flex-col justify-between">
+                <div className="space-y-4">
+                    <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
+                        Recover Your <br />
+                        <span className="text-teal-700">Account</span>
+                    </h1>
+                    <p className="text-base sm:text-lg">
+                        We will send an OTP to your registered email to recover your account.
+                    </p>
                 </div>
 
-                <div className="w-1/2 flex justify-center items-center z-10">
-                    <div className="bg-white p-12 rounded-lg shadow-lg w-3/4">
-                        <Formik
-                            initialValues={{ email: '' }}
-                            validate={values => {
-                                const errors: { email?: string } = {};
-                                if (!values.email) {
-                                    errors.email = 'Email is Required';
-                                } else if (
-                                    !/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email)
-                                ) {
-                                    errors.email = 'Invalid email address';
+                <img
+                    src={forgotPassImage}
+                    alt="Forgot Password"
+                    className="hidden lg:block w-80 xl:w-96 mt-10"
+                />
+            </div>
+
+            {/* Right Section */}
+            <div className="w-full lg:w-1/2 flex justify-center items-center px-4 py-10 relative z-10">
+                <div className="bg-white w-full sm:w-4/5 lg:w-3/4 p-6 sm:p-8 lg:p-12 rounded-lg shadow-lg">
+                    <Formik
+                        initialValues={{ email: '' }}
+                        validate={values => {
+                            const errors: { email?: string } = {};
+                            if (!values.email) errors.email = 'Email is required';
+                            else if (!/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(values.email))
+                                errors.email = 'Invalid email address';
+                            return errors;
+                        }}
+                        onSubmit={async (values, { setSubmitting }) => {
+                            setLoading(true);
+                            try {
+                                const response = await axios.post(`${BASE_URL}/forgot-password`, { email: values.email });
+                                if (response.data.success) {
+                                    toast.success('OTP sent to email');
+                                    setEmail(values.email);
+                                    setIsOtpSent(true);
+                                    setTimer(60);
+                                    localStorage.setItem('email', values.email);
+                                    localStorage.setItem('otpTimer', '60');
+                                    localStorage.setItem('otpTimestamp', String(Date.now()));
+                                } else {
+                                    toast.error(response.data.message || 'Email not found');
                                 }
-                                return errors;
-                            }}
-                            onSubmit={async (values, { setSubmitting }) => {
-                                try {
-                                    setLoading(true);
-                                    const response = await axios.post(`${BASE_URL}/forgot-password`, { email: values.email });
-                                    if (response.data.success) {
-                                        toast.success('OTP sent to your email');
-                                        setEmail(values.email);
-                                        setOtp('');
-                                        setTimer(60);
-                                        setIsOtpSent(true);
+                            } catch (error: any) {
+                                toast.error(error.response?.data?.message || 'Something went wrong');
+                            } finally {
+                                setSubmitting(false);
+                                setLoading(false);
+                            }
+                        }}
+                    >
+                        {({ isSubmitting }) => (
+                            <Form>
+                                {/* Email */}
+                                <div className="mb-4">
+                                    <label className="block text-sm font-medium text-gray-700">Email</label>
+                                    <div className="flex gap-2 mt-2">
+                                        <Field
+                                            type="email"
+                                            name="email"
+                                            placeholder="Enter your email"
+                                            className="flex-1 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting || loading || isOtpSent}
+                                            className="px-4 py-2 bg-teal-500 text-white rounded-lg disabled:opacity-50"
+                                        >
+                                            Send OTP
+                                        </button>
+                                    </div>
+                                    <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
+                                </div>
 
-                                        localStorage.setItem('email', values.email);
+                                {/* OTP */}
+                                <p className="text-center text-sm mb-3">Enter 4 digit OTP</p>
 
-                                        localStorage.setItem('otp', response.data.otp); // store the otp
-                                        localStorage.setItem('otpTimer', '60');
-                                        localStorage.setItem('otpTimestamp', String(Date.now()));
+                                <div className="flex justify-center gap-3 mb-4">
+                                    {[...Array(4)].map((_, i) => (
+                                        <input
+                                            key={i}
+                                            maxLength={1}
+                                            ref={el => (inputRefs.current[i] = el)}
+                                            onChange={e => handleInputChange(i, e)}
+                                            onKeyDown={e => handleKeyDown(i, e)}
+                                            className="w-10 h-10 sm:w-12 sm:h-12 text-center border rounded-lg focus:ring-2 focus:ring-teal-500"
+                                        />
+                                    ))}
+                                </div>
 
-                                    } else {
-                                        toast.error(response.data.message || 'Email not found.');
-                                    }
-                                } catch (error: any) {
-                                    console.error(error);
-                                    toast.error(error.response?.data?.message || 'Something went wrong.');
-                                } finally {
-                                    setSubmitting(false);
-                                    setLoading(false);
-                                }
-                            }}
-                        >
-                            {({ isSubmitting }) => (
-                                <Form>
-                                    <div className='mb-4 relative'>
-                                        <label htmlFor="email" className='block text-sm font-medium text-gray-700'>
-                                            Email
-                                        </label>
-                                        <div className="flex items-center">
-                                            <Field
-                                                type="email"
-                                                id="email"
-                                                name="email"
-                                                placeholder="Enter your email"
-                                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                                            />
-                                            <button
-                                                type="submit"
-                                                disabled={isSubmitting || loading || isOtpSent}
-                                                aria-disabled={isSubmitting || loading || isOtpSent}
-                                                className={`ml-2 mt-2 px-4 bg-teal-500 text-white rounded-lg hover:bg-teal-600 ${isOtpSent ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                {/* Timer */}
+                                <div className="text-center text-sm mb-4">
+                                    {isOtpSent && timer > 0 ? (
+                                        <span>00:{timer < 10 ? `0${timer}` : timer}</span>
+                                    ) : (
+                                        isOtpSent && (
+                                            <span
+                                                className="text-teal-500 cursor-pointer"
+                                                onClick={handleResendOtp}
                                             >
-                                                Send OTP
-                                            </button>
-                                        </div>
-                                        <ErrorMessage name='email' component="div" className='text-red-600 text-sm mt-1' />
-                                    </div>
-
-                                    {/* OTP input fields */}
-                                    <div className="mb-4 text-center">
-                                        <p className="text-sm">Enter 4 digit OTP to verify your email</p>
-                                    </div>
-                                    <div className="flex justify-center space-x-4 mb-6">
-                                        {[...Array(4)].map((_, index) => (
-                                            <input
-                                                key={index}
-                                                type="text"
-                                                maxLength={1}
-                                                className="w-12 h-12 text-center border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                                                onChange={(e) => handleInputChange(index, e)}
-                                                onKeyDown={(e) => handleKeyDown(index, e)}
-                                                ref={(el) => inputRefs.current[index] = el}
-                                            />
-                                        ))}
-                                    </div>
-
-                                    {/* OTP Timer */}
-                                    <div className="text-center text-gray-600 mb-6">
-                                        {isOtpSent && timer > 0 ? (
-                                            <p>00:{timer < 10 ? `0${timer}` : timer}</p>
-                                        ) : (isOtpSent && (
-                                            <p className="text-teal-500 hover:underline cursor-pointer" onClick={handleResendOtp}>
-                                                <u>Resend OTP?</u>
-                                            </p>
+                                                Resend OTP?
+                                            </span>
                                         )
-                                        )}
-                                    </div>
+                                    )}
+                                </div>
 
-                                    {/* Verify Button */}
-                                    <button
-                                        type="button"
-                                        onClick={handleSubmitOtpVerification}
-                                        className={`w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 ${loading ? 'bg-teal-400 cursor-not-allowed' : ''}`}
-                                        disabled={loading}
-                                    >
-                                        {loading ? 'Processing...' : 'Verify'}
-                                    </button>
-                                </Form>
-                            )}
-                        </Formik>
+                                {/* Verify */}
+                                <button
+                                    type="button"
+                                    onClick={handleSubmitOtpVerification}
+                                    disabled={loading}
+                                    className="w-full bg-teal-500 text-white py-2 rounded-lg hover:bg-teal-600 disabled:opacity-50"
+                                >
+                                    {loading ? 'Processing...' : 'Verify'}
+                                </button>
+                            </Form>
+                        )}
+                    </Formik>
 
-                        {/* Ensure the ToastContainer is in the correct place */}
-                        <ToastContainer position="top-right" autoClose={5000} hideProgressBar={false} />
-
-                    </div>
+                    <ToastContainer position="top-right" />
                 </div>
             </div>
         </div>
