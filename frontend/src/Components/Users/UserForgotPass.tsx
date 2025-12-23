@@ -68,9 +68,7 @@ function UserForgotPass() {
             toast.warn('Please enter the OTP');
             return;
         }
-
         setLoading(true);
-
         try {
             const response = await axios.post(`${BASE_URL}/verifyForget-otp`, { email, otp });
             if (response.data.success) {
@@ -85,7 +83,6 @@ function UserForgotPass() {
             setLoading(false);
         }
     };
-
     const handleResendOtp = async () => {
         setLoading(true);
         try {
@@ -107,7 +104,6 @@ function UserForgotPass() {
             setLoading(false);
         }
     };
-
     return (
         <div className="min-h-screen relative flex flex-col lg:flex-row">
             {/* Background */}
@@ -115,7 +111,6 @@ function UserForgotPass() {
                 className="absolute inset-0 bg-gradient-to-br from-teal-400 via-teal-500 to-green-300"
                 style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 100%)' }}
             />
-
             {/* Left Section */}
             <div className="w-full lg:w-1/2 px-6 py-10 lg:p-12 text-white relative z-10 flex flex-col justify-between">
                 <div className="space-y-4">
@@ -134,7 +129,6 @@ function UserForgotPass() {
                     className="hidden lg:block w-80 xl:w-96 mt-10"
                 />
             </div>
-
             {/* Right Section */}
             <div className="w-full lg:w-1/2 flex justify-center items-center px-4 py-10 relative z-10">
                 <div className="bg-white w-full sm:w-4/5 lg:w-3/4 p-6 sm:p-8 lg:p-12 rounded-lg shadow-lg">
@@ -192,7 +186,6 @@ function UserForgotPass() {
                                     </div>
                                     <ErrorMessage name="email" component="div" className="text-red-500 text-sm mt-1" />
                                 </div>
-
                                 {/* OTP */}
                                 <p className="text-center text-sm mb-3">Enter 4 digit OTP</p>
 
@@ -208,7 +201,6 @@ function UserForgotPass() {
                                         />
                                     ))}
                                 </div>
-
                                 {/* Timer */}
                                 <div className="text-center text-sm mb-4">
                                     {isOtpSent && timer > 0 ? (
@@ -224,7 +216,6 @@ function UserForgotPass() {
                                         )
                                     )}
                                 </div>
-
                                 {/* Verify */}
                                 <button
                                     type="button"
@@ -244,5 +235,4 @@ function UserForgotPass() {
         </div>
     );
 }
-
 export default UserForgotPass;
