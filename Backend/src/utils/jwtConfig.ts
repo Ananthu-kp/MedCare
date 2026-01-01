@@ -6,56 +6,69 @@ dotenv.config();
 
 const accessTokenSecret = process.env.JWT_SECRET_ACCESS!;
 const refreshTokenSecret = process.env.JWT_SECRET_REFRESH!;
-const accessTokenExpire = process.env.JWT_ACCESS_EXPIRATION!;
-const refreshTokenExpire = process.env.JWT_REFRESH_EXPIRATION!;
+const accessTokenExpire = process.env.JWT_ACCESS_EXPIRATION || '15m';
+const refreshTokenExpire = process.env.JWT_REFRESH_EXPIRATION || '7d';
 
 interface JwtPayload {
     userId: string;
-    email?: string;
+    email: string;
 }
 
 interface CustomRequest extends Request {
-    user?: { id: string; email?: string };
+    user?: JwtPayload;
 }
 
-export const generateAccessToken = (userId: string): string => {
-    return jwt.sign({ userId }, accessTokenSecret, { expiresIn: accessTokenExpire });
+export const generateAccessToken = (userId: string, email: string): string => {
+    return jwt.sign({ userId, email }, accessTokenSecret, { expiresIn: accessTokenExpire });
 }
 
-export const generateRefreshToken = (userId: string): string => {
-    return jwt.sign({ userId }, refreshTokenSecret, { expiresIn: refreshTokenExpire });
+export const generateRefreshToken = (userId: string, email: string): string => {
+    return jwt.sign({ userId, email }, refreshTokenSecret, { expiresIn: refreshTokenExpire });
 }
 
+// Verify Access Token Middleware
 export const verifyToken = (req: CustomRequest, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader) {
-        return res.status(401).json({ message: 'Access denied. No token provided.' });
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ 
+            success: false,
+            message: 'Access denied. No token provided.' 
+        });
     }
 
     const token = authHeader.split(' ')[1];
-    if (!token) {
-        return res.status(401).json({ message: 'Access denied. Invalid token.' });
-    }
 
     jwt.verify(token, accessTokenSecret, (err, decoded) => {
         if (err) {
             if (err.name === 'TokenExpiredError') {
-                return res.status(401).json({ message: 'Access denied. Token expired.' });
-            } else {
-                return res.status(401).json({ message: 'Access denied. Invalid token.' });
+                return res.status(401).json({ 
+                    success: false,
+                    message: 'Access token expired.',
+                    expired: true 
+                });
             }
-        } else {
-            req.user = { id: (decoded as JwtPayload).userId, email: (decoded as JwtPayload).email };
-            next();
+            return res.status(403).json({ 
+                success: false,
+                message: 'Invalid token.' 
+            });
         }
+
+        const payload = decoded as JwtPayload;
+        req.user = {
+            userId: payload.userId,
+            email: payload.email
+        };
+        next();
     });
 };
 
-export const verifyRefreshToken = (refreshToken: string): string | jwt.JwtPayload => {
+// Verify Refresh Token
+export const verifyRefreshToken = (refreshToken: string): JwtPayload => {
     try {
-        return jwt.verify(refreshToken, refreshTokenSecret);
+        const decoded = jwt.verify(refreshToken, refreshTokenSecret) as JwtPayload;
+        return decoded;
     } catch (error) {
-        throw new Error('Invalid refresh token');
+        throw new Error('Invalid or expired refresh token');
     }
 };

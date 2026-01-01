@@ -1,8 +1,8 @@
 import { Doctor, DoctorType, SlotType } from "../Model/doctorModel";
-import { User, UserType } from "../Model/userModel";
+import { User, UserType, IUser } from "../Model/userModel";
 
 class UserRepository {
-    async createUser(user: UserType): Promise<UserType> {
+    async createUser(user: IUser): Promise<UserType> {
         return new User(user).save();
     }
 
@@ -25,7 +25,7 @@ class UserRepository {
     }
 
     async findTempUserByEmail(email: string): Promise<UserType | null> {
-        return User.findOne({ email, tempData: true })
+        return User.findOne({ email, tempData: true });
     }
 
     async clearTempUserData(email: string): Promise<void> {
@@ -36,16 +36,15 @@ class UserRepository {
         return User.findOne({ googleId });
     }
 
-    async createGoogleUser(user: UserType): Promise<UserType> {
-        const { tempData, otpCreatedAt, ...userData } = user;
-        return new User(userData).save();
+    async createGoogleUser(user: IUser): Promise<UserType> {
+        return new User(user).save();
     }
 
     async updatePassword(email: string, hashedPassword: string): Promise<void> {
         await User.updateOne({ email }, { password: hashedPassword });
     }
 
-    async updatePersonalDetails(email: string, personalDetails: Partial<UserType>): Promise<UserType | null> {
+    async updatePersonalDetails(email: string, personalDetails: Partial<IUser>): Promise<UserType | null> {
         return await User.findOneAndUpdate({ email }, personalDetails, { new: true });
     }
 
@@ -75,7 +74,6 @@ class UserRepository {
         }
     }
 
-
     async getDoctorById(id: string): Promise<DoctorType | null> {
         try {
             const doctor = await Doctor.findById(id);
@@ -99,21 +97,19 @@ class UserRepository {
         }
     }
 
-
     async addPaymentToUser(email: string, paymentData: any): Promise<void> {
         const result = await User.updateOne(
             { email: email },
             { $push: { payments: paymentData } }
         );
         if (result.matchedCount === 0) {
-            throw new Error('User  not found');
+            throw new Error('User not found');
         }
 
         if (result.modifiedCount === 0) {
             throw new Error('Payment not added, user may not have changed');
         }
     }
-
 }
 
 export default new UserRepository();

@@ -2,12 +2,11 @@ import { Request, Response } from "express";
 import userService from "../Services/userService";
 import userRepository from "../Repositories/userRepository";
 import bcrypt from "bcrypt";
-import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
+import { generateAccessToken, generateRefreshToken, verifyRefreshToken } from "../Utils/jwtConfig";
 import { HttpStatus } from "../Utils/httpStatus";
 import { profileUpload } from "../Config/multer";
 import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 
 class UserController {
     async register(req: Request, res: Response): Promise<void> {
@@ -15,13 +14,15 @@ class UserController {
             const { name, email, phone, password, confirmPassword } = req.body;
 
             if (password !== confirmPassword) {
-                res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Passwords do not match" });
+                res.status(HttpStatus.BAD_REQUEST).json({ 
+                    success: false, 
+                    message: "Passwords do not match" 
+                });
                 return;
             }
 
             const result = await userService.registerUser({
-                name, email, phone, password,
-                otp: ""
+                name, email, phone, password, otp: ""
             });
 
             if (result.success) {
@@ -29,7 +30,9 @@ class UserController {
                     await userRepository.saveOtp(email, result.otp);
                 } catch (error) {
                     console.error('Error saving OTP:', error);
-                    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error saving OTP" });
+                    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                        message: "Error saving OTP" 
+                    });
                     return;
                 }
             }
@@ -37,14 +40,15 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.CONFLICT).json(result);
         } catch (error) {
             console.error('Error registering user:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error registering user" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Error registering user" 
+            });
         }
     }
 
     async verifyOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email, otp } = req.body;
-            console.log("Received Data:", { email, otp });
 
             const result = await userService.verifyOtp(email, otp);
             if (result.success) {
@@ -54,20 +58,22 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
     async resendOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email } = req.body;
-
             const result = await userService.resendOtp(email);
-
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error resending OTP:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
@@ -76,48 +82,114 @@ class UserController {
             const { email, password } = req.body;
 
             const user = await userRepository.findUserByEmail(email);
-            console.log('User =>', user);
             if (!user) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
+                res.status(HttpStatus.UNAUTHORIZED).json({ 
+                    success: false, 
+                    message: "Invalid credentials" 
+                });
                 return;
             }
 
             if (user.isBlocked) {
-                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account has been blocked" });
+                res.status(HttpStatus.FORBIDDEN).json({ 
+                    success: false, 
+                    message: "Your account has been blocked" 
+                });
                 return;
             }
 
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
+                res.status(HttpStatus.UNAUTHORIZED).json({ 
+                    success: false, 
+                    message: "Invalid credentials" 
+                });
                 return;
             }
 
-            const accessToken = generateAccessToken(user.email.toString());
-            const refreshToken = generateRefreshToken(user.email.toString());
+            const accessToken = generateAccessToken(user._id.toString(), user.email);
+            const refreshToken = generateRefreshToken(user._id.toString(), user.email);
 
             res.status(HttpStatus.OK).json({
                 success: true,
                 message: "Login successful",
                 accessToken,
                 refreshToken,
+                userData: {
+                    id: user._id,
+                    email: user.email,
+                    name: user.name,
+                    phone: user.phone,
+                    profileImg: user.profileImg
+                }
             });
         } catch (error) {
             console.error('Error logging in user:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
     async googleLogin(req: Request, res: Response): Promise<void> {
         try {
             const { profile } = req.body;
-
             const result = await userService.loginWithGoogle(profile);
-
             res.status(result.success ? HttpStatus.OK : HttpStatus.FORBIDDEN).json(result);
         } catch (error) {
             console.error('Error in Google login:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
+        }
+    }
+
+    async refreshToken(req: Request, res: Response): Promise<void> {
+        try {
+            const { refreshToken } = req.body;
+
+            if (!refreshToken) {
+                res.status(HttpStatus.UNAUTHORIZED).json({ 
+                    success: false, 
+                    message: 'Refresh token required' 
+                });
+                return;
+            }
+
+            const decoded = verifyRefreshToken(refreshToken);
+
+            const user = await userRepository.findUserByEmail(decoded.email);
+            if (!user) {
+                res.status(HttpStatus.UNAUTHORIZED).json({ 
+                    success: false, 
+                    message: 'User not found' 
+                });
+                return;
+            }
+
+            if (user.isBlocked) {
+                res.status(HttpStatus.FORBIDDEN).json({ 
+                    success: false, 
+                    message: 'Account has been blocked' 
+                });
+                return;
+            }
+
+            // Generate new tokens
+            const newAccessToken = generateAccessToken(user._id.toString(), user.email);
+            const newRefreshToken = generateRefreshToken(user._id.toString(), user.email);
+
+            res.status(HttpStatus.OK).json({
+                success: true,
+                accessToken: newAccessToken,
+                refreshToken: newRefreshToken
+            });
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            res.status(HttpStatus.UNAUTHORIZED).json({ 
+                success: false, 
+                message: 'Invalid or expired refresh token' 
+            });
         }
     }
 
@@ -125,37 +197,43 @@ class UserController {
         try {
             const { email } = req.body;
             if (!email) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ message: "Email is required" });
+                return res.status(HttpStatus.BAD_REQUEST).json({ 
+                    message: "Email is required" 
+                });
             }
-            const result = await userService.requestOtpForPasswordReset(email)
-            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+            const result = await userService.requestOtpForPasswordReset(email);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in reset password:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
     async verifyForgotOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email, otp } = req.body;
-
             const result = await userService.verifyForgotOtp(email, otp);
-            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyForgotOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
     async resendForgotOtp(req: Request, res: Response): Promise<void> {
         try {
             const { email } = req.body;
-            const result = await userService.resendForgotOtp(email)
-
-            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result)
+            const result = await userService.resendForgotOtp(email);
+            res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in resendForgotOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
@@ -171,37 +249,46 @@ class UserController {
 
             const result = await userService.updatePassword(email, newPassword);
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
-
         } catch (error) {
             console.error('Error resetting password:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Something went wrong, please try again later" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Something went wrong, please try again later" 
+            });
         }
     }
 
     async getUserProfile(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).user.id;
-            const userProfile = await userService.getUserProfile(userId);
+            const userEmail = (req as any).user.email;
+            const userProfile = await userService.getUserProfile(userEmail);
             if (!userProfile) {
-                res.status(HttpStatus.NOT_FOUND).json({ message: 'Doctor not found' });
+                res.status(HttpStatus.NOT_FOUND).json({ 
+                    message: 'User not found' 
+                });
                 return;
             }
             res.status(HttpStatus.OK).json(userProfile);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+            console.error('Error fetching user profile:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: 'Server error' 
+            });
         }
     }
 
     async updatePersonalDetails(req: Request, res: Response): Promise<void> {
         try {
-            const userId = (req as any).user.id;
+            const userEmail = (req as any).user.email;
             const personalDetails = req.body;
-            const updatedUser = await userService.updatePersonalDetails(userId, personalDetails);
+            const updatedUser = await userService.updatePersonalDetails(userEmail, personalDetails);
             res.status(HttpStatus.OK).json(updatedUser);
         } catch (error) {
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Server error' });
+            console.error('Error updating personal details:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: 'Server error' 
+            });
         }
-    };
+    }
 
     async uploadProfileImage(req: Request, res: Response): Promise<void> {
         profileUpload.single('profileImage')(req, res, async (err: any) => {
@@ -223,7 +310,7 @@ class UserController {
             }
 
             try {
-                const userEmail = (req as any).user.id || (req as any).user.email;
+                const userEmail = (req as any).user.email;
                 const profileImageUrl = profileImage.filename;
 
                 const result = await userService.updateUserProfileImage(userEmail, profileImageUrl);
@@ -249,7 +336,6 @@ class UserController {
         });
     }
 
-
     async getDoctors(req: Request, res: Response): Promise<void> {
         try {
             const { name } = req.query;
@@ -257,45 +343,56 @@ class UserController {
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
             console.error('Error fetching doctors:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: 'Error fetching doctors' 
+            });
         }
     }
 
-
     async getDoctorDetails(req: Request, res: Response): Promise<void> {
-        const id = req.params.id;
         try {
+            const id = req.params.id;
             const doctor = await userService.getDoctorDetails(id);
             res.json(doctor);
         } catch (error) {
-            console.error('Error fetching doctors11111111:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
+            console.error('Error fetching doctor details:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: 'Error fetching doctor details' 
+            });
         }
     }
 
     async getDoctorSlots(req: Request, res: Response): Promise<void> {
-        const id = req.params.id;
         try {
+            const id = req.params.id;
             const slots = await userService.getDoctorSlots(id);
             res.json(slots);
         } catch (error) {
-            console.error('Error fetching doctors22222222222:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: 'Error fetching doctors' });
+            console.error('Error fetching doctor slots:', error);
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: 'Error fetching doctor slots' 
+            });
         }
     }
 
     async createPayment(req: Request, res: Response): Promise<void> {
         try {
             const { amount, currency, bookingTime } = req.body;
-            const userId = (req as any).user.id;
+            const userEmail = (req as any).user.email;
 
-            // Create a Stripe Checkout Session
-            const { sessionId, url } = await userService.createCheckoutSession(amount, currency, userId, bookingTime);
+            const { sessionId, url } = await userService.createCheckoutSession(
+                amount, 
+                currency, 
+                userEmail, 
+                bookingTime
+            );
 
             res.status(HttpStatus.OK).json({ sessionId, url });
         } catch (error) {
             console.error('Error creating payment:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ message: "Error creating payment" });
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
+                message: "Error creating payment" 
+            });
         }
     }
 
@@ -319,8 +416,10 @@ class UserController {
 
                 if (!session.metadata) {
                     console.error('Session metadata is null');
-                    res.status(HttpStatus.BAD_REQUEST).json({ message: 'Invalid session metadata' });
-                    return
+                    res.status(HttpStatus.BAD_REQUEST).json({ 
+                        message: 'Invalid session metadata' 
+                    });
+                    return;
                 }
 
                 const userId = session.metadata.userId;
@@ -341,9 +440,6 @@ class UserController {
 
         res.status(HttpStatus.OK).json({ received: true });
     }
-
-
 }
-
 
 export default new UserController();

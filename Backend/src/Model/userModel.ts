@@ -1,5 +1,4 @@
-import { Schema, model } from "mongoose";
-
+import { Schema, model, Document, Types } from "mongoose";
 
 type PaymentType = {
     amount: number;
@@ -10,7 +9,8 @@ type PaymentType = {
     createdAt?: Date;
 }
 
-type UserType = {
+// Input type for creating users (without Document properties)
+export interface IUser {
     otp?: string;
     name: string;
     email: string;
@@ -26,6 +26,9 @@ type UserType = {
     payments?: PaymentType[];
 }
 
+export interface UserType extends IUser, Document {
+    _id: Types.ObjectId;
+}
 
 const userSchema = new Schema<UserType>({
     name: { type: String, required: true },
@@ -39,7 +42,7 @@ const userSchema = new Schema<UserType>({
     otp: { type: String }, 
     tempData: { type: Boolean, default: false }, 
     createdAt: { type: Date, default: Date.now },
-    otpCreatedAt: { type: Date, default: Date.now, expires: '5m' },
+    otpCreatedAt: { type: Date, default: Date.now },
     payments: [{ 
         amount: { type: Number, required: true },
         currency: { type: String, required: true },
@@ -48,6 +51,8 @@ const userSchema = new Schema<UserType>({
         bookingTime: { type: String, required: true },
         createdAt: { type: Date, default: Date.now },
     }],
+}, {
+    timestamps: true
 });
 
 userSchema.pre('save', function (next) {
@@ -58,10 +63,8 @@ userSchema.pre('save', function (next) {
     next();
 });
 
-
 userSchema.index({ otpCreatedAt: 1 }, { expireAfterSeconds: 300 });
 
+const User = model<UserType>('User', userSchema);
 
-const User = model<UserType>('User', userSchema)
-
-export { User, UserType}
+export { User };

@@ -1,7 +1,7 @@
-import { DoctorType } from "../Model/doctorModel";
+import { DoctorType, IDoctor } from "../Model/doctorModel";
 
 export interface IDoctorService {
-    registerDoctor(doctor: DoctorType): Promise<{ success: boolean; message: string; otp: string }>;
+    registerDoctor(doctor: IDoctor): Promise<{ success: boolean; message: string; otp: string }>;
     verifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string }>;
     resendOtp(email: string): Promise<{ success: boolean; message: string }>;
     clearTempDoctorData(email: string): Promise<void>;
@@ -9,8 +9,8 @@ export interface IDoctorService {
     findDoctorByEmail(email: string): Promise<DoctorType | null>;
     saveOtp(email: string, otp: string): Promise<void>;
     getDoctorProfile(doctorId: string): Promise<DoctorType | null>;
-    updateOfficialDetails(doctorId: string, officialDetails: Partial<DoctorType>): Promise<DoctorType | null>;
-    updatePersonalDetails(doctorId: string, personalDetails: Partial<DoctorType>): Promise<DoctorType | null>;
+    updateOfficialDetails(doctorId: string, officialDetails: Partial<IDoctor>): Promise<DoctorType | null>;
+    updatePersonalDetails(doctorId: string, personalDetails: Partial<IDoctor>): Promise<DoctorType | null>;
     updateDoctorProfileImage(doctorId: string, profileImageUrl: string): Promise<{ success: boolean; doctor?: DoctorType }>;
     requestOtpForPasswordReset(email: string): Promise<{ success: boolean; message: string; otp?: string }>;
     verifyForgotOtp(email: string, otp: string): Promise<{ success: boolean; message: string }>;

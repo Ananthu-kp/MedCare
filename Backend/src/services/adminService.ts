@@ -1,5 +1,6 @@
+// src/Services/adminService.ts
 import dotenv from 'dotenv';
-import { generateAccessToken } from "../Utils/jwtConfig";
+import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { IAdminService } from '../Interfaces/adminService.interface';
 import { IAdminRepository } from '../Interfaces/adminRepository.interface';
 import { sendRejectionEmail, sendVerificationEmail } from '../Config/nodeMailer';
@@ -13,32 +14,36 @@ class AdminService implements IAdminService {
         this._adminRepository = adminRepository
     }
 
-
-    async login(email: string, password: string) {
+    async login(email: string, password: string): Promise<{ token: string; refreshToken: string }> {
         try {
             const adminEmail = process.env.ADMIN_EMAIL;
             const adminPassword = process.env.ADMIN_PASS;
 
-            if (adminEmail === email) {
-                if (adminPassword === password) {
-                    const adminToken = generateAccessToken(email);
-                    return { token: adminToken };
-                } else {
-                    throw new Error("Wrong password");
-                }
-            } else {
+            if (adminEmail !== email) {
                 throw new Error("Wrong email");
             }
+            
+            if (adminPassword !== password) {
+                throw new Error("Wrong password");
+            }
+
+            // Generate both tokens
+            const adminToken = generateAccessToken(email, email);
+            const refreshToken = generateRefreshToken(email, email);
+            
+            return { 
+                token: adminToken,
+                refreshToken: refreshToken 
+            };
         } catch (error) {
             if (error instanceof Error) {
                 console.log("Login Service error:", error.message);
             } else {
                 console.log("Unknown error occurred during login service");
             }
-            throw error;
+            throw error; 
         }
     }
-
 
     async getUser(searchQuery?: string): Promise<any[]> {
         try {
@@ -49,7 +54,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async unBlockUser(email: string) {
+    async unBlockUser(email: string): Promise<string> {
         try {
             const response = await this._adminRepository.unBlockUser(email);
             if (response.modifiedCount === 1) {
@@ -62,7 +67,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async blockUser(email: string) {
+    async blockUser(email: string): Promise<string> {
         try {
             const response = await this._adminRepository.blockUser(email);
             if (response.modifiedCount === 1) {
@@ -75,7 +80,6 @@ class AdminService implements IAdminService {
         }
     }
 
-
     async getDoctor(searchQuery?: string): Promise<any[]> {
         try {
             const doctors = await this._adminRepository.getDoctors(searchQuery);
@@ -86,7 +90,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async blockDoctor(email: string) {
+    async blockDoctor(email: string): Promise<string> {
         try {
             const response = await this._adminRepository.blockDoctor(email);
             if (response.modifiedCount === 1) {
@@ -99,7 +103,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async unBlockDoctor(email: string) {
+    async unBlockDoctor(email: string): Promise<string> {
         try {
             const response = await this._adminRepository.unBlockDoctor(email);
             if (response.modifiedCount === 1) {
@@ -112,7 +116,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async verifyDoctor(email: string) {
+    async verifyDoctor(email: string): Promise<string> {
         try {
             const response = await this._adminRepository.verifyDoctor(email);
             if (response.modifiedCount === 1) {
@@ -126,7 +130,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async rejectDoctor(email: string) {
+    async rejectDoctor(email: string): Promise<string> {
         try {
             const response = await this._adminRepository.rejectDoctor(email);
             if (response.deletedCount === 1) {
@@ -140,9 +144,7 @@ class AdminService implements IAdminService {
         }
     }
 
-
-
-    async getCategories(searchQuery?: string) {
+    async getCategories(searchQuery?: string): Promise<any[]> {
         try {
             const categories = await this._adminRepository.getCategories(searchQuery);
             return categories;
@@ -151,7 +153,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async addCategory(name: string) {
+    async addCategory(name: string): Promise<any> {
         try {
             const newCategory = await this._adminRepository.addCategory(name);
             return newCategory;
@@ -160,7 +162,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async deleteCategory(id: string) {
+    async deleteCategory(id: string): Promise<void> {
         try {
             await this._adminRepository.deleteCategory(id);
         } catch (error) {
@@ -168,7 +170,7 @@ class AdminService implements IAdminService {
         }
     }
 
-    async editCategory(id: string, newName: string) {
+    async editCategory(id: string, newName: string): Promise<any> {
         try {
             const editedCategory = await this._adminRepository.editCategory(id, newName);
             return editedCategory;
@@ -176,7 +178,6 @@ class AdminService implements IAdminService {
             throw new Error('Error editing category');
         }
     }
-
 }
 
 export default AdminService;

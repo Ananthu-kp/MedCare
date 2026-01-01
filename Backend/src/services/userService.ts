@@ -1,23 +1,20 @@
 import userRepository from "../Repositories/userRepository";
 import bcryptUtil from "../Utils/bcryptUtil";
-import { UserType } from "../Model/userModel";
+import { UserType, IUser } from "../Model/userModel";
 import { sendOtpEmail } from '../Config/nodeMailer';
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { DoctorType, SlotType } from "../Model/doctorModel";
 import stripe from "../Config/stripeConfig";
 
 class UserService {
-    async registerUser(user: UserType): Promise<{ success: boolean; message: string; otp: string }> {
+    async registerUser(user: IUser): Promise<{ success: boolean; message: string; otp: string }> {
         const existingUser = await userRepository.findUserByEmail(user.email);
         if (existingUser) {
             return { success: false, message: 'User already exists', otp: '' };
         }
 
         user.password = await bcryptUtil.hashPassword(user.password);
-
-
         const savedUser = await userRepository.createUser(user);
-        console.log('user created', savedUser);
 
         if (!savedUser) {
             return { success: false, message: 'Failed to register user', otp: '' };
@@ -25,7 +22,6 @@ class UserService {
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log('your otp', otp);
-
 
         try {
             await sendOtpEmail(user.email, otp);
@@ -35,34 +31,32 @@ class UserService {
         }
     }
 
-
     async verifyOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
         const user = await userRepository.findTempUserByEmail(email);
         if (!user) {
-            return { success: false, message: 'User not found' }
+            return { success: false, message: 'User not found' };
         }
 
         if (user.otp !== otp) {
-            return { success: false, message: 'Invalid OTP' }
+            return { success: false, message: 'Invalid OTP' };
         }
 
         await userRepository.clearTempUserData(email);
-        return { success: true, message: 'User verified and registered successfully' }
+        return { success: true, message: 'User verified and registered successfully' };
     }
-
 
     async resendOtp(email: string): Promise<{ success: boolean; message: string }> {
         const user = await userRepository.findTempUserByEmail(email);
         if (!user) {
-            return { success: false, message: 'User not found' }
+            return { success: false, message: 'User not found' };
         }
 
-        const otp = Math.floor(1000 + Math.random() * 9000).toString()
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log('Resent otp', otp);
 
         try {
             await sendOtpEmail(email, otp, true);
-            await userRepository.saveOtp(email, otp)
+            await userRepository.saveOtp(email, otp);
             return { success: true, message: 'OTP resent to your email' };
         } catch (error) {
             console.error('Failed to resend OTP:', error);
@@ -70,11 +64,17 @@ class UserService {
         }
     }
 
-    async loginWithGoogle(profile: any): Promise<{ success: boolean; message: string; accessToken?: string; refreshToken?: string }> {
-        const user = await userRepository.findUserByEmail(profile.email);
+    async loginWithGoogle(profile: any): Promise<{ 
+        success: boolean; 
+        message: string; 
+        accessToken?: string; 
+        refreshToken?: string;
+        userData?: any;
+    }> {
+        let user = await userRepository.findUserByEmail(profile.email);
 
         if (!user) {
-            const newUser: UserType = {
+            const newUser: IUser = {
                 email: profile.email,
                 name: profile.name,
                 googleId: profile.id,
@@ -83,11 +83,7 @@ class UserService {
                 phone: '',
             };
 
-            delete newUser.tempData;
-            delete newUser.otpCreatedAt;
-
-            await userRepository.createGoogleUser(newUser);
-            return this.generateTokens(newUser);
+            user = await userRepository.createGoogleUser(newUser);
         }
 
         if (user.isBlocked) {
@@ -97,28 +93,38 @@ class UserService {
         return this.generateTokens(user);
     }
 
-
     private generateTokens(user: UserType) {
-        const accessToken = generateAccessToken(user.email.toString());
-        const refreshToken = generateRefreshToken(user.email.toString());
+        const accessToken = generateAccessToken(user._id.toString(), user.email);
+        const refreshToken = generateRefreshToken(user._id.toString(), user.email);
 
-        return { success: true, message: "Login successful", accessToken, refreshToken };
+        return { 
+            success: true, 
+            message: "Login successful", 
+            accessToken, 
+            refreshToken,
+            userData: {
+                id: user._id,
+                email: user.email,
+                name: user.name,
+                phone: user.phone,
+                profileImg: user.profileImg
+            }
+        };
     }
 
-
     async requestOtpForPasswordReset(email: string): Promise<{ success: boolean; message: string; otp?: string }> {
-        const user = await userRepository.findUserByEmail(email)
+        const user = await userRepository.findUserByEmail(email);
         if (!user) {
             return { success: false, message: 'User not found' };
         }
 
-        const otp = Math.floor(1000 + Math.random() * 9000).toString()
-        console.log('Password reset otp ->', otp)
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        console.log('Password reset otp ->', otp);
 
         try {
             user.otp = otp;
             await sendOtpEmail(email, otp);
-            return { success: true, message: 'OTP sent to your email', otp }
+            return { success: true, message: 'OTP sent to your email', otp };
         } catch (error) {
             console.error('Failed to send OTP:', error);
             return { success: false, message: 'Failed to send OTP' };
@@ -128,24 +134,23 @@ class UserService {
     async verifyForgotOtp(email: string, otp: string): Promise<{ success: boolean; message: string }> {
         const user = await userRepository.findUserByEmail(email);
         if (!user) {
-            return { success: false, message: 'User not found' }
+            return { success: false, message: 'User not found' };
         }
-        return { success: true, message: 'OTP verified successfully' }
+        return { success: true, message: 'OTP verified successfully' };
     }
 
     async resendForgotOtp(email: string): Promise<{ success: boolean; message: string, otp?: string }> {
         const user = await userRepository.findUserByEmail(email);
-
         if (!user) {
-            return { success: false, message: 'User not found' }
+            return { success: false, message: 'User not found' };
         }
 
-        const otp = Math.floor(1000 + Math.random() * 9000).toString()
-        console.log("Resend otp =>", otp)
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        console.log("Resend otp =>", otp);
 
         try {
             await sendOtpEmail(email, otp, true);
-            return { success: true, message: 'OTP resent to your email', otp }
+            return { success: true, message: 'OTP resent to your email', otp };
         } catch (error) {
             console.error('Failed to send OTP:', error);
             return { success: false, message: 'Failed to send OTP' };
@@ -171,7 +176,7 @@ class UserService {
         return await userRepository.findUserByEmail(email);
     }
 
-    async updatePersonalDetails(email: string, personalDetails: Partial<UserType>): Promise<UserType | null> {
+    async updatePersonalDetails(email: string, personalDetails: Partial<IUser>): Promise<UserType | null> {
         return await userRepository.updatePersonalDetails(email, personalDetails);
     }
 
@@ -202,7 +207,12 @@ class UserService {
         return userRepository.getDoctorSlots(id);
     }
 
-    async createCheckoutSession(amount: number, currency: string, userId: string, bookingTime: string): Promise<{ sessionId: string; url: string }> {
+    async createCheckoutSession(
+        amount: number, 
+        currency: string, 
+        userEmail: string, 
+        bookingTime: string
+    ): Promise<{ sessionId: string; url: string }> {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
@@ -221,21 +231,17 @@ class UserService {
             success_url: `${process.env.FRONTEND_URL}success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `${process.env.FRONTEND_URL}cancel`,
             metadata: {
-                userId,
+                userId: userEmail,
                 bookingTime,
             },
         });
 
-        // Ensure session.url is not null
         if (!session.url) {
             throw new Error('Failed to create checkout session: URL is null');
         }
 
         return { sessionId: session.id, url: session.url };
     }
-
-
 }
-
 
 export default new UserService();

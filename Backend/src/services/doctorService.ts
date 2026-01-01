@@ -1,6 +1,6 @@
 import { IDoctorRepository } from "../Interfaces/doctorRepository.interface";
 import bcryptUtil from "../Utils/bcryptUtil";
-import { DoctorType } from "../Model/doctorModel";
+import { DoctorType, IDoctor } from "../Model/doctorModel";
 import { sendOtpEmail } from "../Config/nodeMailer";
 import { IDoctorService } from "../Interfaces/doctorService.interface";
 
@@ -10,13 +10,13 @@ class DoctorService implements IDoctorService{
     constructor(doctorRepository: IDoctorRepository) {
         this.doctorRepository = doctorRepository;
     }
-    async registerDoctor(doctor: DoctorType): Promise<{ success: boolean; message: string; otp: string }> {
+    async registerDoctor(doctor: IDoctor): Promise<{ success: boolean; message: string; otp: string }> {
         const existingDoctor = await this.doctorRepository.findDoctorByEmail(doctor.email);
         if (existingDoctor) {
             return { success: false, message: 'Doctor already exists', otp: '' };
         }
 
-        const savedDoctor = await this.doctorRepository.createDoctor(doctor);
+        const savedDoctor = await this.doctorRepository.createDoctor(doctor as DoctorType);
         console.log(savedDoctor);
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();

@@ -4,6 +4,7 @@ import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
 import { certificateUpload, profileUpload } from '../Config/multer';
 import { HttpStatus } from '../Utils/httpStatus';
 import { IDoctorService } from "../Interfaces/doctorService.interface";
+import { IDoctor } from "../Model/doctorModel";
 
 class DoctorController {
     private doctorService: IDoctorService;
@@ -13,53 +14,63 @@ class DoctorController {
     }
 
     register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        certificateUpload.single('certificate')(req, res, async (err) => {
-            if (err) {
-                console.error('Multer Error:', err);
-                return next(err)
+    certificateUpload.single('certificate')(req, res, async (err) => {
+        if (err) {
+            console.error('Multer Error:', err);
+            return next(err)
+        }
+
+        try {
+            const { name, email, phone, category, experience, hospital, password, confirmPassword } = req.body;
+            const certificate = req.file;
+
+            if (!certificate) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Certificate file is required" });
             }
 
-            try {
-                const { name, email, phone, category, experience, hospital, password, confirmPassword } = req.body;
-                const certificate = req.file;
-
-                if (!certificate) {
-                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Certificate file is required" });
-                }
-
-                if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword) {
-                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'All fields are required.' });
-                }
-
-                if (password !== confirmPassword) {
-                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Passwords do not match" });
-                }
-
-                const hashedPassword = await bcryptUtil.hashPassword(password);
-
-                const result = await this.doctorService.registerDoctor({
-                    name, email, phone, category, yearsOfExperience: experience, workingHospital: hospital,
-                    password: hashedPassword, otp: "", createdAt: new Date(),
-                    certificateUrl: certificate.path
-                });
-
-                if (result.success) {
-                    try {
-                        await this.doctorService.saveOtp(email, result.otp);
-                        return res.status(HttpStatus.OK).json({ success: true, message: 'Registration successful!' });
-                    } catch (error) {
-                        console.error('Error saving OTP:', error);
-                        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving OTP" });
-                    }
-                } else {
-                    return res.status(HttpStatus.CONFLICT).json(result);
-                }
-            } catch (error) {
-                console.error('Error registering doctor:', error);
-                next(error)
+            if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'All fields are required.' });
             }
-        });
-    }
+
+            if (password !== confirmPassword) {
+                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Passwords do not match" });
+            }
+
+            const hashedPassword = await bcryptUtil.hashPassword(password);
+
+            // Use IDoctor type for input
+            const doctorData: IDoctor = {
+                name, 
+                email, 
+                phone, 
+                category, 
+                yearsOfExperience: experience, 
+                workingHospital: hospital,
+                password: hashedPassword, 
+                otp: "", 
+                createdAt: new Date(),
+                certificateUrl: certificate.path
+            };
+
+            const result = await this.doctorService.registerDoctor(doctorData);
+
+            if (result.success) {
+                try {
+                    await this.doctorService.saveOtp(email, result.otp);
+                    return res.status(HttpStatus.OK).json({ success: true, message: 'Registration successful!' });
+                } catch (error) {
+                    console.error('Error saving OTP:', error);
+                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving OTP" });
+                }
+            } else {
+                return res.status(HttpStatus.CONFLICT).json(result);
+            }
+        } catch (error) {
+            console.error('Error registering doctor:', error);
+            next(error)
+        }
+    });
+}
 
     verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -97,54 +108,56 @@ class DoctorController {
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-        try {
-            const { email, password } = req.body;
+    try {
+        const { email, password } = req.body;
 
-            const doctor = await this.doctorService.findDoctorByEmail(email);
-            if (!doctor) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
-                return;
-            }
-
-            if (doctor.isBlocked) {
-                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account has been blocked" });
-                return;
-            }
-
-            if (!doctor.isVerified) {
-                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account is not verified" });
-                return;
-            }
-
-            const isMatch = await bcryptUtil.comparePassword(password, doctor.password);
-            if (!isMatch) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
-                return;
-            }
-
-            const accessToken = generateAccessToken(doctor.email);
-            const refreshToken = generateRefreshToken(doctor.email);
-
-            res.status(HttpStatus.OK).json({
-                success: true,
-                message: "Login successful",
-                accessToken: accessToken,
-                refreshToken: refreshToken,
-                doctor: {
-                    name: doctor.name,
-                    email: doctor.email,
-                    category: doctor.category,
-                    experience: doctor.yearsOfExperience,
-                    hospital: doctor.workingHospital,
-                    consultationfee: doctor.consultationfee,
-                    profileImg: doctor.profileImg,
-                }
-            })
-        } catch (error) {
-            console.error('Error logging in doctor:', error);
-            next(error)
+        const doctor = await this.doctorService.findDoctorByEmail(email);
+        if (!doctor) {
+            res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
+            return;
         }
+
+        if (doctor.isBlocked) {
+            res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account has been blocked" });
+            return;
+        }
+
+        if (!doctor.isVerified) {
+            res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account is not verified" });
+            return;
+        }
+
+        const isMatch = await bcryptUtil.comparePassword(password, doctor.password);
+        if (!isMatch) {
+            res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
+            return;
+        }
+
+        const doctorId = (doctor as any)._id?.toString() || doctor.email;
+        const accessToken = generateAccessToken(doctorId, doctor.email);
+        const refreshToken = generateRefreshToken(doctorId, doctor.email);
+
+        res.status(HttpStatus.OK).json({
+            success: true,
+            message: "Login successful",
+            accessToken: accessToken,
+            refreshToken: refreshToken,
+            doctor: {
+                id: (doctor as any)._id,
+                name: doctor.name,
+                email: doctor.email,
+                category: doctor.category,
+                experience: doctor.yearsOfExperience,
+                hospital: doctor.workingHospital,
+                consultationfee: doctor.consultationfee,
+                profileImg: doctor.profileImg,
+            }
+        })
+    } catch (error) {
+        console.error('Error logging in doctor:', error);
+        next(error)
     }
+}
 
     getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {

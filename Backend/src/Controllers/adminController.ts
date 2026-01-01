@@ -2,7 +2,6 @@ import { NextFunction, Request, Response } from 'express';
 import { IAdminService } from '../Interfaces/adminService.interface'
 import { HttpStatus } from '../Utils/httpStatus';
 
-
 class AdminController {
     private _adminService: IAdminService;
 
@@ -15,7 +14,14 @@ class AdminController {
             const { email, password } = req.body;
 
             const serviceResponse = await this._adminService.login(email, password);
-            res.status(HttpStatus.OK).json(serviceResponse);
+            
+            // Now TypeScript knows serviceResponse has token and refreshToken
+            res.status(HttpStatus.OK).json({
+                success: true,
+                message: "Login successful",
+                accessToken: serviceResponse.token,
+                refreshToken: serviceResponse.refreshToken
+            });
         } catch (error) {
             next(error)
         }
@@ -143,8 +149,6 @@ class AdminController {
             next(error)
         }
     }
-
-
 }
 
 export default AdminController;
