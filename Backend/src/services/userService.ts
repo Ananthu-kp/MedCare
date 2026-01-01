@@ -178,9 +178,9 @@ class UserService {
     async updateUserProfileImage(email: string, profileImageUrl: string) {
         try {
             const updatedUser = await userRepository.updateUserProfileImage(email, profileImageUrl);
-            return { success: true, doctor: updatedUser };
+            return { success: true, user: updatedUser };
         } catch (error) {
-            console.error('Error updating doctor profile image:', error);
+            console.error('Error updating user profile image:', error);
             return { success: false };
         }
     }
@@ -212,7 +212,7 @@ class UserService {
                         product_data: {
                             name: 'Doctor Consultation',
                         },
-                        unit_amount: amount * 100, 
+                        unit_amount: amount * 100,
                     },
                     quantity: 1,
                 },

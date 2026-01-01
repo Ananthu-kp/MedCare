@@ -207,28 +207,44 @@ class UserController {
         profileUpload.single('profileImage')(req, res, async (err: any) => {
             if (err) {
                 console.error('Multer Error:', err);
-                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Error uploading file", error: err.message });
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    success: false,
+                    message: "Error uploading file",
+                    error: err.message
+                });
             }
 
             const profileImage = req.file;
             if (!profileImage) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Profile image file is required" });
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    success: false,
+                    message: "Profile image file is required"
+                });
             }
 
             try {
-                const userId = (req as any).user.id;
+                const userEmail = (req as any).user.id || (req as any).user.email;
                 const profileImageUrl = profileImage.filename;
 
-                const result = await userService.updateUserProfileImage(userId, profileImageUrl);
+                const result = await userService.updateUserProfileImage(userEmail, profileImageUrl);
 
                 if (result.success) {
-                    return res.status(HttpStatus.OK).json({ success: true, profileImageUrl });
+                    return res.status(HttpStatus.OK).json({
+                        success: true,
+                        profileImageUrl
+                    });
                 } else {
-                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Failed to update profile image" });
+                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                        success: false,
+                        message: "Failed to update profile image"
+                    });
                 }
             } catch (error) {
                 console.error('Error saving profile image:', error);
-                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving profile image" });
+                return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                    success: false,
+                    message: "Error saving profile image"
+                });
             }
         });
     }

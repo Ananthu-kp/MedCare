@@ -51,8 +51,9 @@ class UserRepository {
 
     async updateUserProfileImage(email: string, profileImageUrl: string) {
         return await User.findOneAndUpdate(
-            { email },
-            { profileImg: profileImageUrl }
+            { email: email },
+            { profileImg: profileImageUrl },
+            { new: true }
         );
     }
 
@@ -99,15 +100,15 @@ class UserRepository {
     }
 
 
-    async addPaymentToUser (email: string, paymentData: any): Promise<void> {
+    async addPaymentToUser(email: string, paymentData: any): Promise<void> {
         const result = await User.updateOne(
-            { email: email }, 
+            { email: email },
             { $push: { payments: paymentData } }
         );
         if (result.matchedCount === 0) {
             throw new Error('User  not found');
         }
-    
+
         if (result.modifiedCount === 0) {
             throw new Error('Payment not added, user may not have changed');
         }
