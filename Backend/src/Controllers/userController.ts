@@ -14,9 +14,9 @@ class UserController {
             const { name, email, phone, password, confirmPassword } = req.body;
 
             if (password !== confirmPassword) {
-                res.status(HttpStatus.BAD_REQUEST).json({ 
-                    success: false, 
-                    message: "Passwords do not match" 
+                res.status(HttpStatus.BAD_REQUEST).json({
+                    success: false,
+                    message: "Passwords do not match"
                 });
                 return;
             }
@@ -25,23 +25,31 @@ class UserController {
                 name, email, phone, password, otp: ""
             });
 
+            // Save OTP only if registration succeeded
             if (result.success) {
                 try {
                     await userRepository.saveOtp(email, result.otp);
+                    res.status(HttpStatus.OK).json({
+                        success: true,
+                        message: 'Registration successful! Please check your email for OTP.'
+                    });
                 } catch (error) {
                     console.error('Error saving OTP:', error);
-                    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                        message: "Error saving OTP" 
+                    await userRepository.deleteUserByEmail(email);
+                    res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                        success: false,
+                        message: "Error saving OTP. Please try again."
                     });
-                    return;
                 }
+            } else {
+                // Registration failed
+                res.status(HttpStatus.CONFLICT).json(result);
             }
-
-            res.status(result.success ? HttpStatus.OK : HttpStatus.CONFLICT).json(result);
         } catch (error) {
             console.error('Error registering user:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Error registering user" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                success: false,
+                message: "Error registering user"
             });
         }
     }
@@ -58,8 +66,8 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -71,8 +79,8 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error resending OTP:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -83,26 +91,26 @@ class UserController {
 
             const user = await userRepository.findUserByEmail(email);
             if (!user) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ 
-                    success: false, 
-                    message: "Invalid credentials" 
+                res.status(HttpStatus.UNAUTHORIZED).json({
+                    success: false,
+                    message: "Invalid credentials"
                 });
                 return;
             }
 
             if (user.isBlocked) {
-                res.status(HttpStatus.FORBIDDEN).json({ 
-                    success: false, 
-                    message: "Your account has been blocked" 
+                res.status(HttpStatus.FORBIDDEN).json({
+                    success: false,
+                    message: "Your account has been blocked"
                 });
                 return;
             }
 
             const isMatch = await bcrypt.compare(password, user.password);
             if (!isMatch) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ 
-                    success: false, 
-                    message: "Invalid credentials" 
+                res.status(HttpStatus.UNAUTHORIZED).json({
+                    success: false,
+                    message: "Invalid credentials"
                 });
                 return;
             }
@@ -125,8 +133,8 @@ class UserController {
             });
         } catch (error) {
             console.error('Error logging in user:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -138,8 +146,8 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.FORBIDDEN).json(result);
         } catch (error) {
             console.error('Error in Google login:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -149,9 +157,9 @@ class UserController {
             const { refreshToken } = req.body;
 
             if (!refreshToken) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ 
-                    success: false, 
-                    message: 'Refresh token required' 
+                res.status(HttpStatus.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'Refresh token required'
                 });
                 return;
             }
@@ -160,17 +168,17 @@ class UserController {
 
             const user = await userRepository.findUserByEmail(decoded.email);
             if (!user) {
-                res.status(HttpStatus.UNAUTHORIZED).json({ 
-                    success: false, 
-                    message: 'User not found' 
+                res.status(HttpStatus.UNAUTHORIZED).json({
+                    success: false,
+                    message: 'User not found'
                 });
                 return;
             }
 
             if (user.isBlocked) {
-                res.status(HttpStatus.FORBIDDEN).json({ 
-                    success: false, 
-                    message: 'Account has been blocked' 
+                res.status(HttpStatus.FORBIDDEN).json({
+                    success: false,
+                    message: 'Account has been blocked'
                 });
                 return;
             }
@@ -186,9 +194,9 @@ class UserController {
             });
         } catch (error) {
             console.error('Error refreshing token:', error);
-            res.status(HttpStatus.UNAUTHORIZED).json({ 
-                success: false, 
-                message: 'Invalid or expired refresh token' 
+            res.status(HttpStatus.UNAUTHORIZED).json({
+                success: false,
+                message: 'Invalid or expired refresh token'
             });
         }
     }
@@ -197,16 +205,16 @@ class UserController {
         try {
             const { email } = req.body;
             if (!email) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ 
-                    message: "Email is required" 
+                return res.status(HttpStatus.BAD_REQUEST).json({
+                    message: "Email is required"
                 });
             }
             const result = await userService.requestOtpForPasswordReset(email);
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in reset password:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -218,8 +226,8 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in verifyForgotOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -231,8 +239,8 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error in resendForgotOtp:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -251,8 +259,8 @@ class UserController {
             res.status(result.success ? HttpStatus.OK : HttpStatus.BAD_REQUEST).json(result);
         } catch (error) {
             console.error('Error resetting password:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Something went wrong, please try again later" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Something went wrong, please try again later"
             });
         }
     }
@@ -262,16 +270,16 @@ class UserController {
             const userEmail = (req as any).user.email;
             const userProfile = await userService.getUserProfile(userEmail);
             if (!userProfile) {
-                res.status(HttpStatus.NOT_FOUND).json({ 
-                    message: 'User not found' 
+                res.status(HttpStatus.NOT_FOUND).json({
+                    message: 'User not found'
                 });
                 return;
             }
             res.status(HttpStatus.OK).json(userProfile);
         } catch (error) {
             console.error('Error fetching user profile:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: 'Server error' 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: 'Server error'
             });
         }
     }
@@ -284,8 +292,8 @@ class UserController {
             res.status(HttpStatus.OK).json(updatedUser);
         } catch (error) {
             console.error('Error updating personal details:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: 'Server error' 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: 'Server error'
             });
         }
     }
@@ -343,8 +351,8 @@ class UserController {
             res.status(HttpStatus.OK).json(doctors);
         } catch (error) {
             console.error('Error fetching doctors:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: 'Error fetching doctors' 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: 'Error fetching doctors'
             });
         }
     }
@@ -356,8 +364,8 @@ class UserController {
             res.json(doctor);
         } catch (error) {
             console.error('Error fetching doctor details:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: 'Error fetching doctor details' 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: 'Error fetching doctor details'
             });
         }
     }
@@ -369,8 +377,8 @@ class UserController {
             res.json(slots);
         } catch (error) {
             console.error('Error fetching doctor slots:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: 'Error fetching doctor slots' 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: 'Error fetching doctor slots'
             });
         }
     }
@@ -381,17 +389,17 @@ class UserController {
             const userEmail = (req as any).user.email;
 
             const { sessionId, url } = await userService.createCheckoutSession(
-                amount, 
-                currency, 
-                userEmail, 
+                amount,
+                currency,
+                userEmail,
                 bookingTime
             );
 
             res.status(HttpStatus.OK).json({ sessionId, url });
         } catch (error) {
             console.error('Error creating payment:', error);
-            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ 
-                message: "Error creating payment" 
+            res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                message: "Error creating payment"
             });
         }
     }
@@ -416,8 +424,8 @@ class UserController {
 
                 if (!session.metadata) {
                     console.error('Session metadata is null');
-                    res.status(HttpStatus.BAD_REQUEST).json({ 
-                        message: 'Invalid session metadata' 
+                    res.status(HttpStatus.BAD_REQUEST).json({
+                        message: 'Invalid session metadata'
                     });
                     return;
                 }

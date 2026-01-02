@@ -13,21 +13,30 @@ class UserService {
             return { success: false, message: 'User already exists', otp: '' };
         }
 
+        // Hash password
         user.password = await bcryptUtil.hashPassword(user.password);
-        const savedUser = await userRepository.createUser(user);
 
-        if (!savedUser) {
-            return { success: false, message: 'Failed to register user', otp: '' };
-        }
-
+        // Generate OTP
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
         console.log('your otp', otp);
 
         try {
             await sendOtpEmail(user.email, otp);
+        } catch (emailError) {
+            console.error('Failed to send OTP email:', emailError);
+            return { success: false, message: 'Failed to send OTP email. Please try again.', otp: '' };
+        }
+
+        try {
+            const savedUser = await userRepository.createUser(user);
+            if (!savedUser) {
+                return { success: false, message: 'Failed to register user', otp: '' };
+            }
+
             return { success: true, message: 'OTP sent to your email', otp };
-        } catch (error) {
-            return { success: false, message: 'Failed to send OTP', otp: '' };
+        } catch (dbError) {
+            console.error('Failed to save user:', dbError);
+            return { success: false, message: 'Failed to register user', otp: '' };
         }
     }
 
@@ -64,10 +73,10 @@ class UserService {
         }
     }
 
-    async loginWithGoogle(profile: any): Promise<{ 
-        success: boolean; 
-        message: string; 
-        accessToken?: string; 
+    async loginWithGoogle(profile: any): Promise<{
+        success: boolean;
+        message: string;
+        accessToken?: string;
         refreshToken?: string;
         userData?: any;
     }> {
@@ -97,10 +106,10 @@ class UserService {
         const accessToken = generateAccessToken(user._id.toString(), user.email);
         const refreshToken = generateRefreshToken(user._id.toString(), user.email);
 
-        return { 
-            success: true, 
-            message: "Login successful", 
-            accessToken, 
+        return {
+            success: true,
+            message: "Login successful",
+            accessToken,
             refreshToken,
             userData: {
                 id: user._id,
@@ -208,9 +217,9 @@ class UserService {
     }
 
     async createCheckoutSession(
-        amount: number, 
-        currency: string, 
-        userEmail: string, 
+        amount: number,
+        currency: string,
+        userEmail: string,
         bookingTime: string
     ): Promise<{ sessionId: string; url: string }> {
         const session = await stripe.checkout.sessions.create({

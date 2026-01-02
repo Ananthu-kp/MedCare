@@ -10,6 +10,10 @@ class UserRepository {
         return User.findOne({ email });
     }
 
+    async deleteUserByEmail(email: string): Promise<void> {
+        await User.deleteOne({ email });
+    }
+
     async saveOtp(email: string, otp: string): Promise<void> {
         const user = await this.findUserByEmail(email);
         if (!user) {
