@@ -167,10 +167,9 @@ function UserLogin() {
                             {({ isSubmitting }) => (
                                 <Form>
                                     <div className="mb-4">
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                        <label  className="block text-sm font-medium text-gray-700">Email</label>
                                         <Field
                                             type="email"
-                                            id="email"
                                             name="email"
                                             placeholder="Enter your email"
                                             className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
@@ -179,10 +178,9 @@ function UserLogin() {
                                     </div>
 
                                     <div className="mb-4">
-                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                                        <label  className="block text-sm font-medium text-gray-700">Password</label>
                                         <Field
                                             type="password"
-                                            id="password"
                                             name="password"
                                             placeholder="Enter your password"
                                             className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
@@ -249,10 +247,10 @@ function UserLogin() {
                             {({ isSubmitting }) => (
                                 <Form>
                                     <div className="mb-4">
-                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                        <label  className="block text-sm font-medium text-gray-700">Email</label>
                                         <Field
                                             type="email"
-                                            id="email"
+                                            
                                             name="email"
                                             placeholder="Enter your email"
                                             className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base"
@@ -261,10 +259,10 @@ function UserLogin() {
                                     </div>
 
                                     <div className="mb-4">
-                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                                        <label  className="block text-sm font-medium text-gray-700">Password</label>
                                         <Field
                                             type="password"
-                                            id="password"
+                                            
                                             name="password"
                                             placeholder="Enter your password"
                                             className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base"

@@ -120,36 +120,36 @@ function UserSignup() {
               {({ isSubmitting }) => (
                 <Form>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                    <Field type="text" id="name" name="name" placeholder="Enter your name"
+                    <label  className="block text-sm font-medium text-gray-700">Name</label>
+                    <Field type="text"  name="name" placeholder="Enter your name"
                       className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
                     <ErrorMessage name="name" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-4">
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                    <Field type="email" id="email" name="email" placeholder="Enter your email"
+                    <label  className="block text-sm font-medium text-gray-700">Email</label>
+                    <Field type="email"  name="email" placeholder="Enter your email"
                       className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
                     <ErrorMessage name="email" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-4">
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-                    <Field type="text" id="phone" name="phone" placeholder="Enter your phone number"
+                    <label  className="block text-sm font-medium text-gray-700">Phone</label>
+                    <Field type="text"  name="phone" placeholder="Enter your phone number"
                       className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
                     <ErrorMessage name="phone" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-4">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                    <Field type="password" id="password" name="password" placeholder="Enter your password"
+                    <label  className="block text-sm font-medium text-gray-700">Password</label>
+                    <Field type="password"  name="password" placeholder="Enter your password"
                       className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
                     <ErrorMessage name="password" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-6">
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                    <Field type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password"
+                    <label  className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <Field type="password"  name="confirmPassword" placeholder="Re-enter your password"
                       className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none" />
                     <ErrorMessage name="confirmPassword" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
@@ -198,36 +198,36 @@ function UserSignup() {
               {({ isSubmitting }) => (
                 <Form>
                   <div className="mb-4">
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
-                    <Field type="text" id="name" name="name" placeholder="Enter your name"
+                    <label  className="block text-sm font-medium text-gray-700">Name</label>
+                    <Field type="text"  name="name" placeholder="Enter your name"
                       className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base" />
                     <ErrorMessage name="name" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-4">
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
-                    <Field type="email" id="email" name="email" placeholder="Enter your email"
+                    <label  className="block text-sm font-medium text-gray-700">Email</label>
+                    <Field type="email"  name="email" placeholder="Enter your email"
                       className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base" />
                     <ErrorMessage name="email" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-4">
-                    <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-                    <Field type="text" id="phone" name="phone" placeholder="Enter your phone number"
+                    <label  className="block text-sm font-medium text-gray-700">Phone</label>
+                    <Field type="text"  name="phone" placeholder="Enter your phone number"
                       className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base" />
                     <ErrorMessage name="phone" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-4">
-                    <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
-                    <Field type="password" id="password" name="password" placeholder="Enter your password"
+                    <label  className="block text-sm font-medium text-gray-700">Password</label>
+                    <Field type="password"  name="password" placeholder="Enter your password"
                       className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base" />
                     <ErrorMessage name="password" component="div" className="text-red-600 text-sm mt-1" />
                   </div>
 
                   <div className="mb-6">
-                    <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
-                    <Field type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password"
+                    <label  className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                    <Field type="password"  name="confirmPassword" placeholder="Re-enter your password"
                       className="mt-2 block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-base" />
                     <ErrorMessage name="confirmPassword" component="div" className="text-red-600 text-sm mt-1" />
                   </div>

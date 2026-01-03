@@ -20,16 +20,16 @@ interface DoctorRegisterFormValues {
 
 function DoctorRegister() {
     const [certificatePreview, setCertificatePreview] = useState<string | null>(null);
-    const [generalError, setGeneralError] = useState<string | null>(null); 
-    const [categories, setCategories] = useState<string[]>([]); 
+    const [generalError, setGeneralError] = useState<string | null>(null);
+    const [categories, setCategories] = useState<string[]>([]);
     const navigate = useNavigate();
 
     useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await axios.get(`${BASE_URL}/doctor/categories`); 
+                const response = await axios.get(`${BASE_URL}/doctor/categories`);
                 if (response.data.success) {
-                    setCategories(response.data.categories); 
+                    setCategories(response.data.categories);
                 } else {
                     setGeneralError('Error fetching categories.');
                 }
@@ -72,7 +72,6 @@ function DoctorRegister() {
                 setGeneralError(response.data.message || 'Error registering doctor.');
             }
         } catch (error: any) {
-            console.error("Error response:", error.response);
             if (error.response && error.response.data && error.response.data.message) {
                 setGeneralError(error.response.data.message);
             } else {
@@ -98,7 +97,7 @@ function DoctorRegister() {
         validationSchema: Yup.object({
             name: Yup.string().required('Name is required'),
             email: Yup.string().email('Invalid email address').required('Email is required'),
-            phone: Yup.string().required('Phone number is required'),
+            phone: Yup.string().matches(/^[0-9]{10}$/, 'Phone must be 10 digits').required('Phone number is required'),
             category: Yup.string().required('Category is required'),
             experience: Yup.number().required('Experience is required').min(0, 'Experience cannot be negative'),
             hospital: Yup.string().required('Hospital is required'),
@@ -114,6 +113,12 @@ function DoctorRegister() {
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.currentTarget.files?.[0];
         if (file) {
+            // Validate file size (5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                toast.error('File size should be less than 5MB');
+                return;
+            }
+            
             formik.setFieldValue('certificate', file);
             const reader = new FileReader();
             reader.onloadend = () => {
@@ -124,51 +129,66 @@ function DoctorRegister() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 via-teal-500 to-green-300">
-            <div className="bg-white p-8 rounded-lg shadow-lg w-3/4 lg:w-1/2">
-                <h2 className="text-3xl font-bold text-center mb-8">Register</h2>
-                {generalError && <p className="text-red-500 text-center mb-4">{generalError}</p>}
-                <form encType="multipart/form-data" onSubmit={formik.handleSubmit} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 via-teal-500 to-green-300 p-4 sm:p-6 md:p-8">
+            <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 rounded-lg shadow-lg w-full max-w-4xl">
+                <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-center mb-6 sm:mb-8">Doctor Registration</h2>
+                
+                {generalError && (
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+                        {generalError}
+                    </div>
+                )}
+
+                <form encType="multipart/form-data" onSubmit={formik.handleSubmit}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                        {/* Name */}
                         <div>
-                            <label htmlFor="name" className="block text-sm font-medium text-gray-700">Name</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
                             <input
                                 type="text"
-                                id="name"
                                 placeholder='Enter your Name'
                                 {...formik.getFieldProps('name')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {formik.touched.name && formik.errors.name ? <p className="text-red-500">{formik.errors.name}</p> : null}
+                            {formik.touched.name && formik.errors.name ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.name}</p>
+                            ) : null}
                         </div>
+
+                        {/* Email */}
                         <div>
-                            <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
-                            <input
-                                type="text"
-                                id="phone"
-                                placeholder='Enter phone number'
-                                {...formik.getFieldProps('phone')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                            />
-                            {formik.touched.phone && formik.errors.phone ? <p className="text-red-500">{formik.errors.phone}</p> : null}
-                        </div>
-                        <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
                             <input
                                 type="email"
-                                id="email"
                                 placeholder='Enter Email'
                                 {...formik.getFieldProps('email')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {formik.touched.email && formik.errors.email ? <p className="text-red-500">{formik.errors.email}</p> : null}
+                            {formik.touched.email && formik.errors.email ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.email}</p>
+                            ) : null}
                         </div>
+
+                        {/* Phone */}
                         <div>
-                            <label htmlFor="category" className="block text-sm font-medium text-gray-700">Select Category</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                            <input
+                                type="text"
+                                placeholder='Enter phone number'
+                                {...formik.getFieldProps('phone')}
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                            />
+                            {formik.touched.phone && formik.errors.phone ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.phone}</p>
+                            ) : null}
+                        </div>
+
+                        {/* Category */}
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Select Category</label>
                             <select
-                                id="category"
                                 {...formik.getFieldProps('category')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none bg-white"
                             >
                                 <option value="">Select Category</option>
                                 {categories.map((category, index) => (
@@ -177,70 +197,100 @@ function DoctorRegister() {
                                     </option>
                                 ))}
                             </select>
-                            {formik.touched.category && formik.errors.category ? <p className="text-red-500">{formik.errors.category}</p> : null}
+                            {formik.touched.category && formik.errors.category ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.category}</p>
+                            ) : null}
                         </div>
+
+                        {/* Experience */}
                         <div>
-                            <label htmlFor="experience" className="block text-sm font-medium text-gray-700">Years of Experience</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Years of Experience</label>
                             <input
                                 type="number"
-                                id="experience"
-                                placeholder='1'
+                                placeholder='Enter years of experience'
                                 {...formik.getFieldProps('experience')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {formik.touched.experience && formik.errors.experience ? <p className="text-red-500">{formik.errors.experience}</p> : null}
+                            {formik.touched.experience && formik.errors.experience ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.experience}</p>
+                            ) : null}
                         </div>
+
+                        {/* Hospital */}
                         <div>
-                            <label htmlFor="hospital" className="block text-sm font-medium text-gray-700">Working Hospital</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Working Hospital</label>
                             <input
                                 type="text"
-                                id="hospital"
                                 placeholder='Hospital Name'
                                 {...formik.getFieldProps('hospital')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {formik.touched.hospital && formik.errors.hospital ? <p className="text-red-500">{formik.errors.hospital}</p> : null}
+                            {formik.touched.hospital && formik.errors.hospital ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.hospital}</p>
+                            ) : null}
                         </div>
+
+                        {/* Password */}
                         <div>
-                            <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
                             <input
                                 type="password"
-                                id="password"
                                 placeholder='Enter Password'
                                 {...formik.getFieldProps('password')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {formik.touched.password && formik.errors.password ? <p className="text-red-500">{formik.errors.password}</p> : null}
+                            {formik.touched.password && formik.errors.password ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.password}</p>
+                            ) : null}
                         </div>
+
+                        {/* Confirm Password */}
                         <div>
-                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Confirm Password</label>
                             <input
                                 type="password"
-                                id="confirmPassword"
                                 placeholder='Confirm Password'
                                 {...formik.getFieldProps('confirmPassword')}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             />
-                            {formik.touched.confirmPassword && formik.errors.confirmPassword ? <p className="text-red-500">{formik.errors.confirmPassword}</p> : null}
+                            {formik.touched.confirmPassword && formik.errors.confirmPassword ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.confirmPassword}</p>
+                            ) : null}
                         </div>
-                        <div>
-                            <label htmlFor="certificate" className="block text-sm font-medium text-gray-700">Certificate</label>
+
+                        {/* Certificate */}
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Medical Certificate</label>
                             <input
                                 type="file"
-                                id="certificate"
                                 onChange={handleFileChange}
-                                className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                accept="image/*,.pdf"
+                                className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
                             />
-                            {certificatePreview && <img src={certificatePreview} alt="Certificate Preview" className="mt-2 w-32 h-32 object-cover" />}
-                            {formik.touched.certificate && formik.errors.certificate ? <p className="text-red-500">{formik.errors.certificate}</p> : null}
+                            {certificatePreview && (
+                                <div className="mt-4">
+                                    <img 
+                                        src={certificatePreview} 
+                                        alt="Certificate Preview" 
+                                        className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-lg border-2 border-teal-200" 
+                                    />
+                                </div>
+                            )}
+                            {formik.touched.certificate && formik.errors.certificate ? (
+                                <p className="text-red-500 text-sm mt-1">{formik.errors.certificate}</p>
+                            ) : null}
                         </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                        <Link to="/doctor/login" className="text-teal-600 hover:underline">Already have an account? Login</Link>
+
+                    {/* Submit Button and Login Link */}
+                    <div className="mt-6 sm:mt-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <Link to="/doctor/login" className="text-teal-600 hover:underline text-sm sm:text-base order-2 sm:order-1">
+                            Already have an account? Login
+                        </Link>
                         <button
                             type="submit"
                             disabled={formik.isSubmitting}
-                            className="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            className="w-full sm:w-auto bg-teal-500 text-white px-6 sm:px-8 py-2 sm:py-3 rounded-lg hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed order-1 sm:order-2"
                         >
                             {formik.isSubmitting ? 'Submitting...' : 'Register'}
                         </button>
