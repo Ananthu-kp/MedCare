@@ -247,11 +247,21 @@ class UserController {
 
     async resetPassword(req: Request, res: Response): Promise<void> {
         try {
-            const { email, otp, newPassword } = req.body;
+            const { email, newPassword } = req.body;
 
-            const otpResult = await userService.verifyForgotOtp(email, otp);
-            if (!otpResult.success) {
-                res.status(HttpStatus.BAD_REQUEST).json(otpResult);
+            if (!email) {
+                res.status(HttpStatus.BAD_REQUEST).json({
+                    success: false,
+                    message: 'Email is required'
+                });
+                return;
+            }
+
+            if (!newPassword) {
+                res.status(HttpStatus.BAD_REQUEST).json({
+                    success: false,
+                    message: 'New password is required'
+                });
                 return;
             }
 
@@ -260,6 +270,7 @@ class UserController {
         } catch (error) {
             console.error('Error resetting password:', error);
             res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+                success: false,
                 message: "Something went wrong, please try again later"
             });
         }

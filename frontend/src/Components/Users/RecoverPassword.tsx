@@ -8,7 +8,6 @@ import { useNavigate } from 'react-router-dom';
 import * as Yup from 'yup';
 
 function RecoverPassword() {
-
     const [loading, setLoading] = useState<boolean>(false);
     const navigate = useNavigate();
 
@@ -21,16 +20,18 @@ function RecoverPassword() {
             .required('Please confirm your password'),
     });
 
-
     const handleSubmit = async (values: { newPassword: string; confirmPassword: string }) => {
         setLoading(true);
         try {
-            const email = sessionStorage.getItem('email');
+            const email = localStorage.getItem('email');
+
             if (!email) {
                 toast.error('Email is not found. Please retry the process.');
+                navigate('/forgot-password');
                 setLoading(false);
                 return;
             }
+
             const response = await axios.post(`${BASE_URL}/recover-password`, {
                 email,
                 newPassword: values.newPassword,
@@ -38,6 +39,11 @@ function RecoverPassword() {
 
             if (response.data.success) {
                 toast.success('Password changed successfully!');
+
+                localStorage.removeItem('email');
+                localStorage.removeItem('otpTimer');
+                localStorage.removeItem('otpTimestamp');
+
                 setTimeout(() => {
                     navigate('/login');
                 }, 1000);
@@ -51,36 +57,45 @@ function RecoverPassword() {
         }
     };
 
-
     return (
         <div className="min-h-screen flex">
-            <div className="relative w-full flex">
+            <div className="relative w-full flex flex-col lg:flex-row">
                 <div
                     className="absolute inset-0 bg-gradient-to-br from-teal-400 via-teal-500 to-green-300"
                     style={{ clipPath: 'polygon(0 0, 100% 0, 100% 50%, 0 100%)' }}
                 />
 
-                <div className="w-1/2 p-12 flex flex-col justify-between items-start text-white relative z-10">
-                    <div className="space-y-6">
-                        <h1 className="text-5xl font-bold">
+                {/* Left Section */}
+                <div className="w-full lg:w-1/2 p-6 sm:p-8 lg:p-12 flex flex-col justify-between items-start text-white relative z-10">
+                    <div className="space-y-4 sm:space-y-6">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold">
                             Set New <br /> <strong className="text-teal-700">Password</strong>
                         </h1>
-                        <p className="text-lg">
+                        <p className="text-base sm:text-lg">
                             Create a new password for your account.
                         </p>
                     </div>
 
-                    <div className="relative flex-grow">
+                    <div className="hidden lg:block relative flex-grow">
                         <img
                             src={"../../../src/assets/images/forgotpass.png"}
                             alt="Reset Password"
-                            className="w-96 h-auto"
+                            className="w-72 xl:w-96 h-auto"
+                            style={{
+                                maskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)',
+                                WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+                            }}
                         />
                     </div>
                 </div>
 
-                <div className="w-1/2 flex justify-center items-center z-10">
-                    <div className="bg-white p-12 rounded-lg shadow-lg w-3/4">
+                {/* Right Section */}
+                <div className="w-full lg:w-1/2 flex justify-center items-center z-10 p-4 sm:p-6 lg:p-8">
+                    <div className="bg-white p-6 sm:p-8 lg:p-12 rounded-lg shadow-lg w-full max-w-md">
+                        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 lg:mb-8">
+                            Reset Password
+                        </h2>
+
                         <Formik
                             initialValues={{ newPassword: '', confirmPassword: '' }}
                             validationSchema={validationSchema}
@@ -92,8 +107,8 @@ function RecoverPassword() {
                             {({ isSubmitting }) => (
                                 <Form>
                                     {/* New Password */}
-                                    <div className="mb-4 relative">
-                                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+                                    <div className="mb-4">
+                                        <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 mb-2">
                                             New Password
                                         </label>
                                         <Field
@@ -101,14 +116,14 @@ function RecoverPassword() {
                                             id="newPassword"
                                             name="newPassword"
                                             placeholder="Enter new password"
-                                            className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                            className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                                         />
                                         <ErrorMessage name="newPassword" component="div" className="text-red-600 text-sm mt-1" />
                                     </div>
 
                                     {/* Confirm Password */}
-                                    <div className="mb-6 relative">
-                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+                                    <div className="mb-6">
+                                        <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
                                             Confirm Password
                                         </label>
                                         <Field
@@ -116,7 +131,7 @@ function RecoverPassword() {
                                             id="confirmPassword"
                                             name="confirmPassword"
                                             placeholder="Confirm your new password"
-                                            className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                            className="block w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                                         />
                                         <ErrorMessage name="confirmPassword" component="div" className="text-red-600 text-sm mt-1" />
                                     </div>
@@ -124,11 +139,11 @@ function RecoverPassword() {
                                     {/* Proceed Button */}
                                     <button
                                         type="submit"
-                                        className={`w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 ${loading ? 'bg-teal-400 cursor-not-allowed' : ''
+                                        className={`w-full bg-teal-500 text-white py-3 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors font-medium ${loading ? 'bg-teal-400 cursor-not-allowed' : ''
                                             }`}
                                         disabled={isSubmitting || loading}
                                     >
-                                        {loading ? 'Processing...' : 'Proceed'}
+                                        {loading ? 'Processing...' : 'Reset Password'}
                                     </button>
                                 </Form>
                             )}

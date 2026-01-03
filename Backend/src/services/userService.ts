@@ -132,6 +132,8 @@ class UserService {
 
         try {
             user.otp = otp;
+            await user.save();
+
             await sendOtpEmail(email, otp);
             return { success: true, message: 'OTP sent to your email', otp };
         } catch (error) {
@@ -145,6 +147,11 @@ class UserService {
         if (!user) {
             return { success: false, message: 'User not found' };
         }
+
+        if (user.otp !== otp) {
+            return { success: false, message: 'Invalid OTP' };
+        }
+
         return { success: true, message: 'OTP verified successfully' };
     }
 
@@ -158,6 +165,9 @@ class UserService {
         console.log("Resend otp =>", otp);
 
         try {
+            user.otp = otp;
+            await user.save();
+
             await sendOtpEmail(email, otp, true);
             return { success: true, message: 'OTP resent to your email', otp };
         } catch (error) {
