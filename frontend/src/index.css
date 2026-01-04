@@ -11,31 +11,44 @@
 }
 
 
-/* Hide scrollbar for WebKit browsers (Chrome, Safari) */
-/* html,
-body {
-  overflow: hidden;
-  height: 100%;
-} */
-
-/* Hide scrollbar for Firefox */
-/* @-moz-document url-prefix() {
-
-  html,
-  body {
-    overflow: hidden;
-    height: 100%;
+/* Add to your global CSS file or create a new one */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
   }
-} */
+  to {
+    transform: translateX(0);
+  }
+}
 
-/* img {
-    max-width: 100%;
-    height: auto;
-  } */
+.animate-slide-in {
+  animation: slide-in 0.3s ease-out;
+}
 
-/* @media (max-width: 600px) {
-    .home-bannerImage-container,
-    .about-background-image-container {
-      display: none;
-    }
-  } */
+/* Calendar responsive adjustments */
+.rbc-calendar {
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .rbc-calendar {
+    font-size: 12px;
+  }
+  
+  .rbc-toolbar button {
+    padding: 4px 8px;
+    font-size: 12px;
+  }
+  
+  .rbc-header {
+    padding: 4px;
+  }
+}
+
+/* Line clamp utilities */
+.line-clamp-1 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+}

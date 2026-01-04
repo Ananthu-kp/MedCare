@@ -14,63 +14,62 @@ class DoctorController {
     }
 
     register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    certificateUpload.single('certificate')(req, res, async (err) => {
-        if (err) {
-            console.error('Multer Error:', err);
-            return next(err)
-        }
-
-        try {
-            const { name, email, phone, category, experience, hospital, password, confirmPassword } = req.body;
-            const certificate = req.file;
-
-            if (!certificate) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Certificate file is required" });
+        certificateUpload.single('certificate')(req, res, async (err) => {
+            if (err) {
+                console.error('Multer Error:', err);
+                return next(err)
             }
 
-            if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'All fields are required.' });
-            }
+            try {
+                const { name, email, phone, category, experience, hospital, password, confirmPassword } = req.body;
+                const certificate = req.file;
 
-            if (password !== confirmPassword) {
-                return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Passwords do not match" });
-            }
-
-            const hashedPassword = await bcryptUtil.hashPassword(password);
-
-            // Use IDoctor type for input
-            const doctorData: IDoctor = {
-                name, 
-                email, 
-                phone, 
-                category, 
-                yearsOfExperience: experience, 
-                workingHospital: hospital,
-                password: hashedPassword, 
-                otp: "", 
-                createdAt: new Date(),
-                certificateUrl: certificate.path
-            };
-
-            const result = await this.doctorService.registerDoctor(doctorData);
-
-            if (result.success) {
-                try {
-                    await this.doctorService.saveOtp(email, result.otp);
-                    return res.status(HttpStatus.OK).json({ success: true, message: 'Registration successful!' });
-                } catch (error) {
-                    console.error('Error saving OTP:', error);
-                    return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving OTP" });
+                if (!certificate) {
+                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Certificate file is required" });
                 }
-            } else {
-                return res.status(HttpStatus.CONFLICT).json(result);
+
+                if (!name || !email || !phone || !category || !experience || !hospital || !password || !confirmPassword) {
+                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: 'All fields are required.' });
+                }
+
+                if (password !== confirmPassword) {
+                    return res.status(HttpStatus.BAD_REQUEST).json({ success: false, message: "Passwords do not match" });
+                }
+
+                const hashedPassword = await bcryptUtil.hashPassword(password);
+
+                const doctorData: IDoctor = {
+                    name, 
+                    email, 
+                    phone, 
+                    category, 
+                    yearsOfExperience: experience, 
+                    workingHospital: hospital,
+                    password: hashedPassword, 
+                    otp: "", 
+                    createdAt: new Date(),
+                    certificateUrl: certificate.path
+                };
+
+                const result = await this.doctorService.registerDoctor(doctorData);
+
+                if (result.success) {
+                    try {
+                        await this.doctorService.saveOtp(email, result.otp);
+                        return res.status(HttpStatus.OK).json({ success: true, message: 'Registration successful!' });
+                    } catch (error) {
+                        console.error('Error saving OTP:', error);
+                        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({ success: false, message: "Error saving OTP" });
+                    }
+                } else {
+                    return res.status(HttpStatus.CONFLICT).json(result);
+                }
+            } catch (error) {
+                console.error('Error registering doctor:', error);
+                next(error)
             }
-        } catch (error) {
-            console.error('Error registering doctor:', error);
-            next(error)
-        }
-    });
-}
+        });
+    }
 
     verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -108,56 +107,56 @@ class DoctorController {
     }
 
     login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-        const { email, password } = req.body;
+        try {
+            const { email, password } = req.body;
 
-        const doctor = await this.doctorService.findDoctorByEmail(email);
-        if (!doctor) {
-            res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
-            return;
-        }
-
-        if (doctor.isBlocked) {
-            res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account has been blocked" });
-            return;
-        }
-
-        if (!doctor.isVerified) {
-            res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account is not verified" });
-            return;
-        }
-
-        const isMatch = await bcryptUtil.comparePassword(password, doctor.password);
-        if (!isMatch) {
-            res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
-            return;
-        }
-
-        const doctorId = (doctor as any)._id?.toString() || doctor.email;
-        const accessToken = generateAccessToken(doctorId, doctor.email);
-        const refreshToken = generateRefreshToken(doctorId, doctor.email);
-
-        res.status(HttpStatus.OK).json({
-            success: true,
-            message: "Login successful",
-            accessToken: accessToken,
-            refreshToken: refreshToken,
-            doctor: {
-                id: (doctor as any)._id,
-                name: doctor.name,
-                email: doctor.email,
-                category: doctor.category,
-                experience: doctor.yearsOfExperience,
-                hospital: doctor.workingHospital,
-                consultationfee: doctor.consultationfee,
-                profileImg: doctor.profileImg,
+            const doctor = await this.doctorService.findDoctorByEmail(email);
+            if (!doctor) {
+                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
+                return;
             }
-        })
-    } catch (error) {
-        console.error('Error logging in doctor:', error);
-        next(error)
+
+            if (doctor.isBlocked) {
+                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account has been blocked" });
+                return;
+            }
+
+            if (!doctor.isVerified) {
+                res.status(HttpStatus.FORBIDDEN).json({ success: false, message: "Your account is not verified" });
+                return;
+            }
+
+            const isMatch = await bcryptUtil.comparePassword(password, doctor.password);
+            if (!isMatch) {
+                res.status(HttpStatus.UNAUTHORIZED).json({ success: false, message: "Invalid credentials" });
+                return;
+            }
+
+            const doctorId = (doctor as any)._id?.toString() || doctor.email;
+            const accessToken = generateAccessToken(doctorId, doctor.email);
+            const refreshToken = generateRefreshToken(doctorId, doctor.email);
+
+            res.status(HttpStatus.OK).json({
+                success: true,
+                message: "Login successful",
+                accessToken: accessToken,
+                refreshToken: refreshToken,
+                doctor: {
+                    id: (doctor as any)._id,
+                    name: doctor.name,
+                    email: doctor.email,
+                    category: doctor.category,
+                    experience: doctor.yearsOfExperience,
+                    hospital: doctor.workingHospital,
+                    consultationfee: doctor.consultationfee,
+                    profileImg: doctor.profileImg,
+                }
+            })
+        } catch (error) {
+            console.error('Error logging in doctor:', error);
+            next(error)
+        }
     }
-}
 
     getCategories = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
@@ -170,8 +169,8 @@ class DoctorController {
 
     getDoctorProfile = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const doctorId = (req as any).user.id;
-            const doctorProfile = await this.doctorService.getDoctorProfile(doctorId);
+            const doctorEmail = (req as any).user.email; 
+            const doctorProfile = await this.doctorService.getDoctorProfile(doctorEmail);
             if (!doctorProfile) {
                 res.status(HttpStatus.NOT_FOUND).json({ message: 'Doctor not found' });
                 return;
@@ -184,9 +183,9 @@ class DoctorController {
 
     updateOfficialDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const doctorId = (req as any).user.id;
+            const doctorEmail = (req as any).user.email; 
             const officialDetails = req.body;
-            const updatedDoctor = await this.doctorService.updateOfficialDetails(doctorId, officialDetails);
+            const updatedDoctor = await this.doctorService.updateOfficialDetails(doctorEmail, officialDetails);
             res.status(HttpStatus.OK).json(updatedDoctor);
         } catch (error) {
             next(error)
@@ -195,9 +194,9 @@ class DoctorController {
 
     updatePersonalDetails = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const doctorId = (req as any).user.id;
+            const doctorEmail = (req as any).user.email; 
             const personalDetails = req.body;
-            const updatedDoctor = await this.doctorService.updatePersonalDetails(doctorId, personalDetails);
+            const updatedDoctor = await this.doctorService.updatePersonalDetails(doctorEmail, personalDetails);
             res.status(HttpStatus.OK).json(updatedDoctor);
         } catch (error) {
             next(error)
@@ -217,10 +216,10 @@ class DoctorController {
             }
 
             try {
-                const doctorId = (req as any).user.id;
+                const doctorEmail = (req as any).user.email; // Changed from .id to .email
                 const profileImageUrl = profileImage.filename;
 
-                const result = await this.doctorService.updateDoctorProfileImage(doctorId, profileImageUrl);
+                const result = await this.doctorService.updateDoctorProfileImage(doctorEmail, profileImageUrl);
 
                 if (result.success) {
                     return res.status(HttpStatus.OK).json({ success: true, profileImageUrl });
@@ -273,11 +272,13 @@ class DoctorController {
 
     resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { email, otp, newPassword } = req.body;
+            const { email, newPassword } = req.body;
 
-            const otpResult = await this.doctorService.verifyForgotOtp(email, otp);
-            if (!otpResult.success) {
-                res.status(HttpStatus.BAD_REQUEST).json(otpResult);
+            if (!email || !newPassword) {
+                res.status(HttpStatus.BAD_REQUEST).json({ 
+                    success: false, 
+                    message: 'Email and new password are required' 
+                });
                 return;
             }
 
@@ -301,7 +302,6 @@ class DoctorController {
             next(error)
         }
     }
-
 
     addSlot = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {

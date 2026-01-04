@@ -1,396 +1,227 @@
-import React, { useEffect, useState } from 'react';
-import { Calendar, momentLocalizer } from 'react-big-calendar';
-import moment from 'moment';
-import { RRule } from 'rrule';
-import 'react-big-calendar/lib/css/react-big-calendar.css';
+import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
-import doctorAxiosInstance from '../../Config/AxiosInstance/doctorInstance';
+import axios from 'axios';
+import { BASE_URL } from '../../Config/baseURL';
+import { FiCalendar, FiClock, FiPlus, FiTrash2 } from 'react-icons/fi';
 
-type Slot = {
-  _id?: string;
-  email: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  available: boolean;
-};
+interface Slot {
+    _id?: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+    available: boolean;
+}
 
-type CustomEvent = {
-  start: Date;
-  end: Date;
-  title: string;
-  backgroundColor?: string;
-  available: boolean;
-};
-
-const localizer = momentLocalizer(moment);
-
-function DoctorSlots({ email }: { email: string }) {
-  const [slots, setSlots] = useState<Slot[]>([]);
-  const [events, setEvents] = useState<CustomEvent[]>([]);
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
-  const [startTime, setStartTime] = useState<string>('');
-  const [endTime, setEndTime] = useState<string>('');
-  const [showTimeForm, setShowTimeForm] = useState<boolean>(false);
-  const [recurrence, setRecurrence] = useState<string>('none');
-  const [repeatDates, setRepeatDates] = useState<Date[]>([]);
-  const [currentMonth, setCurrentMonth] = useState<Date>(new Date()); // Track active month
-
-  useEffect(() => {
-    const fetchSlots = async () => {
-      try {
-        const response = await doctorAxiosInstance.get(`/slots/${email}`);
-        console.log(response);
-        const today = moment().startOf('day').toDate();
-
-        // Filter out past slots
-        const validSlots = response.data.filter((slot: Slot) => {
-          const slotEnd = new Date(`${slot.date}T${slot.endTime}`);
-          return slotEnd >= today;
-        });
-
-        setSlots(validSlots);
-
-        const formattedEvents: CustomEvent[] = validSlots.map((slot: Slot) => {
-          const startDate = new Date(`${slot.date}T${slot.startTime}`);
-          const endDate = new Date(`${slot.date}T${slot.endTime}`);
-
-          return {
-            start: startDate,
-            end: endDate,
-            title: slot.available ? 'Allocated Slot' : 'Booked Slot',
-            backgroundColor: slot.available ? 'green' : 'red',
-            available: slot.available,
-          };
-        });
-
-        setEvents(formattedEvents);
-      } catch (error) {
-        console.error('Error fetching slots:', error);
-      }
-    };
-    fetchSlots();
-  }, [email]);
-
-  const handleSlotSelect = (slotInfo: { start: Date; end: Date }) => {
-    const today = moment().startOf('day').toDate();
-    const selectedMonth = moment(slotInfo.start).month();
-    const activeMonth = moment(currentMonth).month();
-
-    // Check if the selected day is within the active month and not in the past
-    if (slotInfo.start < today || selectedMonth !== activeMonth) {
-      return;
-    }
-
-    setSelectedDay(slotInfo.start);
-    setShowTimeForm(true);
-  };
-
-
-  const isValidTimeInterval = (time: string) => {
-    const [hours, minutes] = time.split(':').map(Number);
-    return minutes === 0 || minutes === 30;
-  };  
-
-  const handleTimeSubmit = async () => {
-    if (!selectedDay || !startTime || !endTime) {
-      toast.warning('Please set the Timing');
-      return;
-    }
-
-    if (!isValidTimeInterval(startTime) || !isValidTimeInterval(endTime)) {
-      toast.warning('Timing must be in 30-minute intervals.');
-      return;
-    }
-
-    const now = new Date();
-    const selectedDateStart = moment(selectedDay).startOf('day').toDate();
-
-    // Check if the start or end time is already passed for today's date
-    if (selectedDateStart <= now && new Date(`${moment(selectedDay).format('YYYY-MM-DD')}T${startTime}`) <= now) {
-      toast.warning('Cannot allocate a time that already passed.');
-      return;
-    }
-
-    const formattedDate = moment(selectedDay).format('YYYY-MM-DD');
-
-    // Check for conflicts using adjusted logic to handle overlaps
-    const existingSlots = slots.filter((slot) => {
-      const slotStart = new Date(`${slot.date}T${slot.startTime}`);
-      const slotEnd = new Date(`${slot.date}T${slot.endTime}`);
-      const newSlotStart = new Date(`${formattedDate}T${startTime}`);
-      const newSlotEnd = new Date(`${formattedDate}T${endTime}`);
-
-      // Check for overlap or if the slot spills into the next day
-      return (
-        (slotStart <= newSlotEnd && newSlotStart < slotEnd) ||
-        (newSlotEnd <= newSlotStart && newSlotEnd < slotEnd)
-      );
+function DoctorSlots() {
+    const [slots, setSlots] = useState<Slot[]>([]);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
+    const [doctorEmail, setDoctorEmail] = useState('');
+    const [newSlot, setNewSlot] = useState<Slot>({
+        date: '',
+        startTime: '',
+        endTime: '',
+        available: true
     });
 
-    if (existingSlots.length > 0) {
-      toast.warning('Slot already allocated or overlaps with an existing slot.');
-      return;
-    }
+    useEffect(() => {
+        fetchDoctorProfile();
+    }, []);
 
-    // Handle multi-day slots
-    const startDateTime = new Date(`${formattedDate}T${startTime}`);
-    const endDateTime = new Date(`${formattedDate}T${endTime}`);
-    let multiDaySlot = false;
-
-    if (endDateTime <= startDateTime) {
-      multiDaySlot = true;
-    }
-
-    try {
-      const timeSlot = {
-        email,
-        date: formattedDate,
-        startTime,
-        endTime: multiDaySlot ? '23:59' : endTime,
-        available: true,
-      };
-
-      console.log('Time slot:', timeSlot);
-
-      const response = await doctorAxiosInstance.post(`/slots`, timeSlot);
-      console.log(response);
-
-      //doing this for allocate slot without reload
-      const newSlot: Slot = {
-        email,
-        date: formattedDate,
-        startTime,
-        endTime: multiDaySlot ? '23:59' : endTime,
-        available: true,
-      }
-
-      setSlots((prevSlots) => [...prevSlots, newSlot]);
-
-
-      const newEvent: CustomEvent = {
-        start: startDateTime,
-        end: endDateTime,
-        title: 'Allocated Slot',
-        backgroundColor: 'green',
-        available: true
-      };
-
-      setEvents((prevEvents) => [...prevEvents, newEvent])
-
-      // Save the slot for the next day if multi-day
-      if (multiDaySlot) {
-        const nextDay = moment(selectedDay).add(1, 'days').format('YYYY-MM-DD');
-        const nextDaySlot = {
-          email,
-          date: nextDay,
-          startTime: '00:00',
-          endTime,
-          available: true,
-        };
-        await doctorAxiosInstance.post(`/slots`, nextDaySlot);
-
-        //add the next day slot to the state
-        const nextSlot: Slot = {
-          email,
-          date: nextDay,
-          startTime: '00:00',
-          endTime,
-          available: true,
-        };
-
-        setSlots((prevSlots) => [...prevSlots, nextSlot]);
-
-        const nextDayEvent: CustomEvent = {
-          start: new Date(`${nextDay}T00:00`),
-          end: new Date(`${nextDay}T${endTime}`),
-          title: 'Allocated Slot',
-          backgroundColor: 'green',
-          available: true,
-        };
-
-        setEvents((prevEvents) => [...prevEvents, nextDayEvent])
-      };
-      
-
-      let recurrenceDates: Date[] = [];
-      if (recurrence === 'daily') {
-        const rule = new RRule({
-          freq: RRule.DAILY,
-          dtstart: selectedDay,
-          count: 7,
-        });
-        recurrenceDates = rule.all().filter((date) => date.toDateString() !== selectedDay.toDateString());
-      } else if (recurrence === 'weekly') {
-        const rule = new RRule({
-          freq: RRule.WEEKLY,
-          dtstart: selectedDay,
-          count: 4,
-        });
-        recurrenceDates = rule.all().filter((date) => date.toDateString() !== selectedDay.toDateString());
-      } else if (recurrence === 'specific-dates' && repeatDates.length > 0) {
-        recurrenceDates = repeatDates.filter((date) => date.toDateString() !== selectedDay.toDateString());
-      }
-
-      if (recurrenceDates.length > 0) {
-        for (const date of recurrenceDates) {
-          const recDate = moment(date).format('YYYY-MM-DD');
-          await doctorAxiosInstance.post(`/slots`, {
-            email,
-            date: recDate,
-            startTime,
-            endTime,
-            available: true,
-          });
+    const fetchDoctorProfile = async () => {
+        const storedToken = sessionStorage.getItem('doctorToken');
+        if (storedToken) {
+            try {
+                const response = await axios.get(`${BASE_URL}/doctor/doctor`, {
+                    headers: { Authorization: `Bearer ${storedToken}` },
+                });
+                setDoctorEmail(response.data.email);
+                fetchSlots(response.data.email);
+            } catch (error) {
+                console.error('Error fetching doctor profile:', error);
+                toast.error('Failed to fetch doctor details');
+            }
         }
-      }
-
-      toast.success('Successfully allocated slot!')
-
-      setShowTimeForm(false);
-      setStartTime('');
-      setEndTime('');
-      setSelectedDay(null);
-      setRepeatDates([]);
-
-    } catch (error) {
-      console.error('Error saving slot:', error);
-    }
-  };
-
-
-
-  const handleRecurrenceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRecurrence(e.target.value);
-    setRepeatDates([]);
-  };
-
-  const handleSpecificDateSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedDate = new Date(e.target.value);
-    setRepeatDates((prevDates) => [...prevDates, selectedDate]);
-  };
-
-  const eventPropGetter = (event: CustomEvent) => ({
-    style: {
-      backgroundColor: event.backgroundColor || 'blue',
-      color: 'white',
-      border: event.available ? '1px solid lightblue' : 'none',
-    },
-  });
-
-  const dayPropGetter = (date: Date) => {
-    const today = moment().startOf('day').toDate();
-    const isSelected = selectedDay && date.toDateString() === selectedDay.toDateString();
-    const isPast = date < today;
-    return {
-      style: {
-        backgroundColor: isSelected ? 'lightgreen' : isPast ? 'lightgrey' : '',
-        opacity: isPast ? 0.5 : 1,
-        cursor: isPast ? 'not-allowed' : 'pointer',
-        PointerEvents: isPast ? 'none' : 'auto',
-      },
     };
-  };
 
-  return (
-    <div className="container mx-auto py-10">
-      <h1 className="text-2xl font-bold mb-6 text-center">Manage Doctor Slots</h1>
-      <div className="flex justify-center">
-        <Calendar
-          localizer={localizer}
-          events={events}
-          startAccessor="start"
-          endAccessor="end"
-          style={{ height: 500, width: '100%' }}
-          selectable
-          onSelectSlot={handleSlotSelect}
-          eventPropGetter={eventPropGetter}
-          dayPropGetter={dayPropGetter}
-          views={['month']}
-          defaultView='month'
-          onNavigate={(date) => setCurrentMonth(date)}
-        />
-      </div>
-      {/* Time Input Form */}
-      {showTimeForm && selectedDay && (
-        <div className="time-input-form mt-6 p-6 bg-gray-100 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4 text-center">
-            Set Slot Timing for {moment(selectedDay).format('MMMM Do YYYY')}
-          </h2>
-          <div className="flex flex-col gap-4">
-            {/* Start Time */}
-            <div className="flex flex-col gap-2">
-              <label className="text-lg font-medium">Start Time:</label>
-              <input
-                type="time"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+    const fetchSlots = async (email: string) => {
+        const storedToken = sessionStorage.getItem('doctorToken');
+        if (storedToken) {
+            try {
+                const response = await axios.get(`${BASE_URL}/doctor/slots/${email}`, {
+                    headers: { Authorization: `Bearer ${storedToken}` },
+                });
+                setSlots(response.data);
+            } catch (error) {
+                console.error('Error fetching slots:', error);
+                toast.error('Failed to fetch slots');
+            }
+        }
+    };
 
-            {/* End Time */}
-            <div className="flex flex-col gap-2">
-              <label className="text-lg font-medium">End Time:</label>
-              <input
-                type="time"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+    const handleAddSlot = async () => {
+        if (!newSlot.date || !newSlot.startTime || !newSlot.endTime) {
+            toast.error('Please fill all fields');
+            return;
+        }
 
-            {/* Recurrence */}
-            <div className="flex flex-col gap-2">
-              <label className="text-lg font-medium">Recurrence:</label>
-              <select
-                value={recurrence}
-                onChange={handleRecurrenceChange}
-                className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="none">None</option>
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="specific-dates">Specific Dates</option>
-              </select>
-            </div>
+        setLoading(true);
+        const storedToken = sessionStorage.getItem('doctorToken');
+        
+        try {
+            await axios.post(
+                `${BASE_URL}/doctor/slots`,
+                {
+                    email: doctorEmail,
+                    ...newSlot
+                },
+                {
+                    headers: { Authorization: `Bearer ${storedToken}` },
+                }
+            );
+            
+            toast.success('Slot added successfully');
+            setIsModalOpen(false);
+            setNewSlot({ date: '', startTime: '', endTime: '', available: true });
+            fetchSlots(doctorEmail);
+        } catch (error) {
+            console.error('Error adding slot:', error);
+            toast.error('Failed to add slot');
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            {/* Specific Dates */}
-            {recurrence === 'specific-dates' && (
-              <div className="flex flex-col gap-2">
-                <label className="text-lg font-medium">Select Specific Dates:</label>
-                <input
-                  type="date"
-                  onChange={handleSpecificDateSelection}
-                  className="border border-gray-300 p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-                {repeatDates.length > 0 && (
-                  <ul className="mt-2 list-disc pl-6">
-                    {repeatDates.map((date, index) => (
-                      <li key={index} className="text-lg">
-                        {moment(date).format('MMMM Do YYYY')}
-                      </li>
-                    ))}
-                  </ul>
+    return (
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8 pb-20 lg:pb-8">
+            <div className="max-w-6xl mx-auto">
+                {/* Header */}
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 sm:mb-8">
+                    <div>
+                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-800">Manage Slots</h1>
+                        <p className="text-sm sm:text-base text-gray-600 mt-1">Add and manage your available time slots</p>
+                    </div>
+                    <button
+                        onClick={() => setIsModalOpen(true)}
+                        className="w-full sm:w-auto flex items-center justify-center gap-2 bg-teal-500 text-white px-4 sm:px-6 py-2 sm:py-3 rounded-lg hover:bg-teal-600 transition-colors shadow-md font-medium"
+                    >
+                        <FiPlus className="text-lg" />
+                        <span>Add New Slot</span>
+                    </button>
+                </div>
+
+                {/* Slots Grid */}
+                {slots.length === 0 ? (
+                    <div className="bg-white rounded-lg shadow-md p-8 sm:p-12 text-center">
+                        <FiCalendar className="text-5xl sm:text-6xl text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg sm:text-xl font-semibold text-gray-700 mb-2">No slots available</h3>
+                        <p className="text-sm sm:text-base text-gray-500">Click "Add New Slot" to create your first time slot</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        {slots.map((slot, index) => (
+                            <div key={index} className="bg-white rounded-lg shadow-md p-4 sm:p-6 hover:shadow-lg transition-shadow border border-gray-200">
+                                <div className="flex justify-between items-start mb-4">
+                                    <div className="flex items-center gap-2">
+                                        <FiCalendar className="text-teal-500 text-lg" />
+                                        <span className="font-semibold text-gray-800 text-sm sm:text-base">
+                                            {new Date(slot.date).toLocaleDateString('en-US', { 
+                                                year: 'numeric', 
+                                                month: 'short', 
+                                                day: 'numeric' 
+                                            })}
+                                        </span>
+                                    </div>
+                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        slot.available 
+                                            ? 'bg-green-100 text-green-700' 
+                                            : 'bg-red-100 text-red-700'
+                                    }`}>
+                                        {slot.available ? 'Available' : 'Booked'}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-gray-600 text-sm sm:text-base">
+                                    <FiClock className="text-gray-400" />
+                                    <span>{slot.startTime} - {slot.endTime}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                 )}
-              </div>
-            )}
 
-            {/* Submit Button */}
-            <div className="flex justify-center mt-4">
-              <button
-                onClick={handleTimeSubmit}
-                className="bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition duration-200"
-              >
-                Save Slot
-              </button>
+                {/* Add Slot Modal */}
+                {isModalOpen && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+                        <div className="bg-white rounded-lg shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+                            <div className="p-6 sm:p-8">
+                                <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">Add New Slot</h2>
+                                
+                                <div className="space-y-4 sm:space-y-5">
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Date</label>
+                                        <input
+                                            type="date"
+                                            value={newSlot.date}
+                                            min={new Date().toISOString().split('T')[0]}
+                                            onChange={(e) => setNewSlot({ ...newSlot, date: e.target.value })}
+                                            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Time</label>
+                                        <input
+                                            type="time"
+                                            value={newSlot.startTime}
+                                            onChange={(e) => setNewSlot({ ...newSlot, startTime: e.target.value })}
+                                            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-sm font-medium text-gray-700 mb-2">End Time</label>
+                                        <input
+                                            type="time"
+                                            value={newSlot.endTime}
+                                            onChange={(e) => setNewSlot({ ...newSlot, endTime: e.target.value })}
+                                            className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="available"
+                                            checked={newSlot.available}
+                                            onChange={(e) => setNewSlot({ ...newSlot, available: e.target.checked })}
+                                            className="w-4 h-4 text-teal-500 border-gray-300 rounded focus:ring-teal-500"
+                                        />
+                                        <label htmlFor="available" className="text-sm text-gray-700">Mark as available</label>
+                                    </div>
+                                </div>
+
+                                <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8">
+                                    <button
+                                        onClick={() => setIsModalOpen(false)}
+                                        className="w-full sm:flex-1 px-4 py-2 sm:py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleAddSlot}
+                                        disabled={loading}
+                                        className="w-full sm:flex-1 px-4 py-2 sm:py-3 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {loading ? 'Adding...' : 'Add Slot'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
-          </div>
         </div>
-      )}
-
-    </div>
-  );
+    );
 }
 
 export default DoctorSlots;
