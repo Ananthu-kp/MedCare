@@ -17,34 +17,33 @@ function LoginAdmin() {
     }, [isAuthenticated, navigate]);
 
     const validationSchema = Yup.object({
-        email: Yup.string().required('Email is required!'),
+        email: Yup.string().email('Invalid email address').required('Email is required!'),
         password: Yup.string()
             .min(6, 'Password must be at least 6 characters long!')
             .required('Password is required!')
     });
 
     const handleSubmit = async (values: any, { setSubmitting }: any) => {
-        console.log('Login form submitted:', values);
         try {
             const response = await axios.post(`${BASE_URL}/admin/login`, values);
 
-            console.log('Response data:', response.data);
-
-            if (response.data.token) {
-                console.log('Login successful:', response.data);
+            if (response.data.success && response.data.accessToken) {
                 toast.success("Login successful!");
-                sessionStorage.setItem("adminToken", response.data.token);
+                sessionStorage.setItem("adminToken", response.data.accessToken);
+                sessionStorage.setItem("adminRefreshToken", response.data.refreshToken);
+
                 setTimeout(() => {
                     navigate('/admin');
                 }, 1000);
             } else {
-                console.log('Login failed:', response); 
                 toast.error("Invalid credentials");
             }
         } catch (error: any) {
             console.error('Login error:', error);
             if (error.response?.status === 401) {
                 toast.error("Invalid credentials");
+            } else if (error.response?.status === 403) {
+                toast.error("Access denied");
             } else {
                 toast.error("Something went wrong!");
             }
@@ -53,9 +52,11 @@ function LoginAdmin() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center">
-            <div className="bg-white p-12 rounded-lg shadow-lg w-full max-w-md">
-                <h2 className="text-3xl font-bold text-center mb-8">Admin Login</h2>
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-teal-400 via-teal-500 to-green-300 p-4">
+            <div className="bg-white p-8 sm:p-12 rounded-lg shadow-lg w-full max-w-md">
+                <h2 className="text-2xl sm:text-3xl font-bold text-center mb-6 sm:mb-8 text-gray-800">
+                    Admin Login
+                </h2>
                 <Formik
                     initialValues={{ email: '', password: '' }}
                     validationSchema={validationSchema}
@@ -64,25 +65,27 @@ function LoginAdmin() {
                     {({ isSubmitting }) => (
                         <Form>
                             <div className="mb-4">
-                                <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Email
+                                </label>
                                 <Field
                                     type="email"
-                                    id="email"
                                     name="email"
                                     placeholder="Enter your email"
-                                    className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                    className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                                 />
                                 <ErrorMessage name="email" component="div" className="text-red-600 text-sm mt-1" />
                             </div>
 
-                            <div className="mb-4">
-                                <label htmlFor="password" className="block text-sm font-medium text-gray-700">Password</label>
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                    Password
+                                </label>
                                 <Field
                                     type="password"
-                                    id="password"
                                     name="password"
                                     placeholder="Enter your password"
-                                    className="mt-2 block w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                                    className="block w-full px-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                                 />
                                 <ErrorMessage name="password" component="div" className="text-red-600 text-sm mt-1" />
                             </div>
@@ -90,7 +93,7 @@ function LoginAdmin() {
                             <button
                                 type="submit"
                                 disabled={isSubmitting}
-                                className="w-full bg-teal-500 text-white py-2 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                                className="w-full bg-teal-500 text-white py-2 sm:py-3 px-4 rounded-lg shadow hover:bg-teal-600 focus:outline-none focus:ring-2 focus:ring-teal-500 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                                 {isSubmitting ? 'Logging in...' : 'Login'}
                             </button>

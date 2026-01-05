@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios, { AxiosError } from 'axios';
-import Swal from 'sweetalert2';
 import { toast } from 'sonner';
 import adminAxiosInstance from '../../Config/AxiosInstance/adminInstance';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { FaSave, FaTimes } from 'react-icons/fa';
+import { FiSearch, FiEdit2, FiTrash2 } from 'react-icons/fi';
 import { confirmDeletion } from '../../Utils/swalUtils';
+import { FaSave, FaTimes } from 'react-icons/fa';
 
 interface Category {
   _id: string;
@@ -32,8 +32,8 @@ const Specialization: React.FC = () => {
       try {
         const response = await adminAxiosInstance.get<Category[]>('/admin/categories', {
           params: { name: query },
-        })
-        setCategories(response.data)
+        });
+        setCategories(response.data);
       } catch (error) {
         if (axios.isAxiosError(error)) {
           console.error('Error fetching category:', error.response?.data);
@@ -43,8 +43,8 @@ const Specialization: React.FC = () => {
           setError('Unexpected error occurred');
         }
       }
-    }
-    fetchCategory(searchQuery)
+    };
+    fetchCategory(searchQuery);
   }, [searchQuery]);
 
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -139,127 +139,215 @@ const Specialization: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Categories Management</h1>
-      <div className="mb-4">
-        <input
-          type="text"
-          placeholder="Search Category"
-          value={searchQuery}
-          onChange={handleSearch}
-          className="w-full max-w-md px-4 py-2 border border-gray-300 rounded-lg"
-        />
-      </div>
-      {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 md:p-8 pb-20 lg:pb-8">
+      <div className="max-w-7xl mx-auto">
+        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-6 sm:mb-8 text-gray-800">
+          Categories Management
+        </h1>
 
-      <div className="flex gap-6">
-        <div className="w-2/3">
-          <h2 className="text-xl font-bold mb-4">Category List</h2>
-          <div className="overflow-x-auto">
-            <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg table-fixed">
-              <thead>
-                <tr className="bg-gray-200 text-gray-800 border-b border-gray-300">
-                  <th className="py-3 px-4 text-left w-12">No</th>
-                  <th className="py-3 px-4 text-left">Category</th>
-                  <th className="py-3 px-4 text-left w-32">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {categories.length === 0 ? (
-                  <tr>
-                    <td colSpan={3} className="py-4 px-4 text-gray-500 text-center">
-                      No categories available
-                    </td>
+        {/* Search Bar */}
+        <div className="mb-6 relative">
+          <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-lg sm:text-xl" />
+          <input
+            type="text"
+            placeholder="Search categories..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full pl-10 sm:pl-12 pr-4 py-2 sm:py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm sm:text-base"
+          />
+        </div>
+
+        {error && <p className="text-red-500 mb-4 text-center text-sm sm:text-base">{error}</p>}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Categories List */}
+          <div className="lg:col-span-2">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Category List</h2>
+
+            {/* Desktop Table */}
+            <div className="hidden md:block bg-white rounded-lg shadow-md overflow-hidden">
+              <table className="min-w-full">
+                <thead>
+                  <tr className="bg-gray-200 text-gray-800 border-b border-gray-300">
+                    <th className="py-3 px-4 text-left w-16">No</th>
+                    <th className="py-3 px-4 text-left">Category</th>
+                    <th className="py-3 px-4 text-left w-40">Actions</th>
                   </tr>
-                ) : (
-                  categories.map((category, index) => (
-                    <tr key={category._id} className="border-b border-gray-300 hover:bg-gray-50">
-                      <td className="py-3 px-4 text-center">{index + 1}</td>
-                      <td className="py-3 px-4">
+                </thead>
+                <tbody>
+                  {categories.length === 0 ? (
+                    <tr>
+                      <td colSpan={3} className="py-8 px-4 text-gray-500 text-center">
+                        No categories available
+                      </td>
+                    </tr>
+                  ) : (
+                    categories.map((category, index) => (
+                      <tr key={category._id} className="border-b border-gray-200 hover:bg-gray-50 transition-colors">
+                        <td className="py-3 px-4 text-gray-700">{index + 1}</td>
+                        <td className="py-3 px-4">
+                          {editCategoryId === category._id ? (
+                            <input
+                              type="text"
+                              value={editCategoryName}
+                              onChange={(e) => setEditCategoryName(e.target.value)}
+                              className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                              placeholder="Category Name"
+                            />
+                          ) : (
+                            <span className="font-medium text-gray-800">{category.name}</span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4">
+                          {editCategoryId === category._id ? (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => handleEditCategory(category._id, editCategoryName)}
+                                className="bg-green-500 text-white p-2 rounded-lg hover:bg-green-600 transition-colors"
+                                title="Save"
+                              >
+                                <FaSave />
+                              </button>
+                              <button
+                                onClick={handleCancelEdit}
+                                className="bg-gray-500 text-white p-2 rounded-lg hover:bg-gray-600 transition-colors"
+                                title="Cancel"
+                              >
+                                <FaTimes />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => {
+                                  setEditCategoryId(category._id);
+                                  setOriginalCategoryName(category.name);
+                                  setEditCategoryName(category.name);
+                                }}
+                                className="bg-blue-500 text-white p-2 rounded-lg hover:bg-blue-600 transition-colors"
+                                title="Edit"
+                              >
+                                <FiEdit2 />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteCategory(category._id)}
+                                className="bg-red-500 text-white p-2 rounded-lg hover:bg-red-600 transition-colors"
+                                title="Delete"
+                              >
+                                <FiTrash2 />
+                              </button>
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-4">
+              {categories.length === 0 ? (
+                <div className="bg-white rounded-lg shadow-md p-8 text-center text-gray-500">
+                  No categories available
+                </div>
+              ) : (
+                categories.map((category, index) => (
+                  <div key={category._id} className="bg-white rounded-lg shadow-md p-4 space-y-3">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
+                        <p className="text-xs text-gray-500 mb-1">Category #{index + 1}</p>
                         {editCategoryId === category._id ? (
                           <input
                             type="text"
                             value={editCategoryName}
                             onChange={(e) => setEditCategoryName(e.target.value)}
-                            className="w-full p-2 border border-gray-300 rounded-md"
+                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
                             placeholder="Category Name"
                           />
                         ) : (
-                          category.name
+                          <h3 className="font-semibold text-gray-800 text-lg">{category.name}</h3>
                         )}
-                      </td>
-                      <td className="py-3 px-4">
-                        {editCategoryId === category._id ? (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => handleEditCategory(category._id, editCategoryName)}
-                              className="bg-green-500 text-white px-4 py-2 rounded-full hover:bg-green-400 transition duration-300 mr-2 flex items-center"
-                            >
-                              <FaSave className="mr-2" />
-                              Save
-                            </button>
-                            <button
-                              onClick={handleCancelEdit}
-                              className="bg-gray-500 text-white px-4 py-2 rounded-full hover:bg-gray-400 transition duration-300 flex items-center"
-                            >
-                              <FaTimes className="mr-2" />
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <div className="flex space-x-2">
-                            <button
-                              onClick={() => {
-                                setEditCategoryId(category._id);
-                                setOriginalCategoryName(category.name);
-                                setEditCategoryName(category.name);
-                              }}
-                              className="bg-blue-500 text-white px-4 py-2 rounded-full hover:bg-blue-400 transition duration-300"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() => handleDeleteCategory(category._id)}
-                              className="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-400 transition duration-300"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                    <div className="pt-3 border-t border-gray-200">
+                      {editCategoryId === category._id ? (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditCategory(category._id, editCategoryName)}
+                            className="flex-1 bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <FaSave /> Save
+                          </button>
+                          <button
+                            onClick={handleCancelEdit}
+                            className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <FaTimes /> Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => {
+                              setEditCategoryId(category._id);
+                              setOriginalCategoryName(category.name);
+                              setEditCategoryName(category.name);
+                            }}
+                            className="flex-1 bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <FiEdit2 /> Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteCategory(category._id)}
+                            className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
+                          >
+                            <FiTrash2 /> Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="w-1/3">
-          <h2 className="text-xl font-bold mb-4">Add Category</h2>
-          <Formik
-            initialValues={{ name: '' }}
-            validationSchema={categorySchema}
-            onSubmit={(values, { resetForm }) => handleAddCategory(values, { resetForm })}
-          >
-            {({ errors, touched }) => (
-              <Form className="bg-white border border-gray-300 rounded-lg shadow-lg p-4">
-                <Field
-                  type="text"
-                  name="name"
-                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
-                  placeholder="Category Name"
-                />
-                <ErrorMessage name="name" component="div" className="text-red-500 mb-2" />
-                <button
-                  type="submit"
-                  className="text-white px-3 py-1 rounded-lg transition-colors mt-auto text-sm bg-gradient-to-br from-teal-400 via-teal-500 to-green-300 hover:opacity-90"
-                >
-                  Add Category
-                </button>
-              </Form>
-            )}
-          </Formik>
+          {/* Add Category Form */}
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Add Category</h2>
+            <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 sticky top-20">
+              <Formik
+                initialValues={{ name: '' }}
+                validationSchema={categorySchema}
+                onSubmit={(values, { resetForm }) => handleAddCategory(values, { resetForm })}
+              >
+                {({ errors, touched }) => (
+                  <Form>
+                    <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Category Name
+                      </label>
+                      <Field
+                        type="text"
+                        name="name"
+                        className="w-full p-2 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                        placeholder="Enter category name"
+                      />
+                      <ErrorMessage name="name" component="div" className="text-red-500 text-sm mt-1" />
+                    </div>
+                    <button
+                      type="submit"
+                      className="w-full text-white px-4 py-2 sm:py-3 rounded-lg transition-colors text-sm sm:text-base font-medium bg-gradient-to-br from-teal-400 via-teal-500 to-green-300 hover:opacity-90"
+                    >
+                      Add Category
+                    </button>
+                  </Form>
+                )}
+              </Formik>
+            </div>
+          </div>
         </div>
       </div>
     </div>

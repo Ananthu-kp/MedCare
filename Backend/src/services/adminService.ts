@@ -1,182 +1,84 @@
-// src/Services/adminService.ts
-import dotenv from 'dotenv';
+import { IAdminRepository } from "../Interfaces/adminRepository.interface";
+import { IAdminService } from "../Interfaces/adminService.interface";
 import { generateAccessToken, generateRefreshToken } from "../Utils/jwtConfig";
-import { IAdminService } from '../Interfaces/adminService.interface';
-import { IAdminRepository } from '../Interfaces/adminRepository.interface';
-import { sendRejectionEmail, sendVerificationEmail } from '../Config/nodeMailer';
-
-dotenv.config();
 
 class AdminService implements IAdminService {
-    private _adminRepository: IAdminRepository
+    private adminRepository: IAdminRepository;
 
     constructor(adminRepository: IAdminRepository) {
-        this._adminRepository = adminRepository
+        this.adminRepository = adminRepository;
     }
 
     async login(email: string, password: string): Promise<{ token: string; refreshToken: string }> {
-        try {
-            const adminEmail = process.env.ADMIN_EMAIL;
-            const adminPassword = process.env.ADMIN_PASS;
-
-            if (adminEmail !== email) {
-                throw new Error("Wrong email");
-            }
-            
-            if (adminPassword !== password) {
-                throw new Error("Wrong password");
-            }
-
-            // Generate both tokens
-            const adminToken = generateAccessToken(email, email);
-            const refreshToken = generateRefreshToken(email, email);
-            
-            return { 
-                token: adminToken,
-                refreshToken: refreshToken 
-            };
-        } catch (error) {
-            if (error instanceof Error) {
-                console.log("Login Service error:", error.message);
-            } else {
-                console.log("Unknown error occurred during login service");
-            }
-            throw error; 
+        if (email !== process.env.ADMIN_EMAIL || password !== process.env.ADMIN_PASS) {
+            throw new Error('Invalid credentials');
         }
+
+        const accessToken = generateAccessToken(email, email); 
+        const refreshToken = generateRefreshToken(email, email);
+
+        return {
+            token: accessToken,
+            refreshToken: refreshToken
+        };
     }
 
     async getUser(searchQuery?: string): Promise<any[]> {
-        try {
-            return await this._adminRepository.getUsers(searchQuery);
-        } catch (error) {
-            console.error('Error fetching users in service:', error);
-            throw new Error('Error fetching users');
-        }
-    }
-
-    async unBlockUser(email: string): Promise<string> {
-        try {
-            const response = await this._adminRepository.unBlockUser(email);
-            if (response.modifiedCount === 1) {
-                return "User unblocked successfully"
-            } else {
-                throw new Error("Can't unblock user")
-            }
-        } catch (error) {
-            throw error;
-        }
+        return await this.adminRepository.getUsers(searchQuery);
     }
 
     async blockUser(email: string): Promise<string> {
-        try {
-            const response = await this._adminRepository.blockUser(email);
-            if (response.modifiedCount === 1) {
-                return "User blocked successfully"
-            } else {
-                throw new Error("Can't block user")
-            }
-        } catch (error) {
-            throw error;
-        }
+        await this.adminRepository.blockUser(email);
+        return 'User blocked successfully';
+    }
+
+    async unBlockUser(email: string): Promise<string> {
+        await this.adminRepository.unBlockUser(email);
+        return 'User unblocked successfully';
     }
 
     async getDoctor(searchQuery?: string): Promise<any[]> {
-        try {
-            const doctors = await this._adminRepository.getDoctors(searchQuery);
-            return doctors;
-        } catch (error) {
-            console.error('Error fetching doctors in service:', error);
-            throw new Error('Error fetching doctors');
-        }
+        return await this.adminRepository.getDoctors(searchQuery);
     }
 
     async blockDoctor(email: string): Promise<string> {
-        try {
-            const response = await this._adminRepository.blockDoctor(email);
-            if (response.modifiedCount === 1) {
-                return "Doctor blocked successfully";
-            } else {
-                throw new Error("Can't block doctor");
-            }
-        } catch (error) {
-            throw error;
-        }
+        await this.adminRepository.blockDoctor(email);
+        return 'Doctor blocked successfully';
     }
 
     async unBlockDoctor(email: string): Promise<string> {
-        try {
-            const response = await this._adminRepository.unBlockDoctor(email);
-            if (response.modifiedCount === 1) {
-                return "Doctor unblocked successfully";
-            } else {
-                throw new Error("Can't unblock doctor");
-            }
-        } catch (error) {
-            throw error;
-        }
+        await this.adminRepository.unBlockDoctor(email);
+        return 'Doctor unblocked successfully';
     }
 
     async verifyDoctor(email: string): Promise<string> {
-        try {
-            const response = await this._adminRepository.verifyDoctor(email);
-            if (response.modifiedCount === 1) {
-                await sendVerificationEmail(email);
-                return "Doctor verified successfully";
-            } else {
-                throw new Error("Can't verify doctor");
-            }
-        } catch (error) {
-            throw error;
+        const doctor = await this.adminRepository.findDoctorByEmail(email);
+        if (!doctor) {
+            throw new Error('Doctor not found');
         }
+        await this.adminRepository.verifyDoctor(email);
+        return 'Doctor verified successfully';
     }
 
     async rejectDoctor(email: string): Promise<string> {
-        try {
-            const response = await this._adminRepository.rejectDoctor(email);
-            if (response.deletedCount === 1) {
-                await sendRejectionEmail(email);
-                return "Doctor rejected and removed successfully";
-            } else {
-                throw new Error("Can't reject doctor");
-            }
-        } catch (error) {
-            throw error;
-        }
+        await this.adminRepository.rejectDoctor(email);
+        return 'Doctor rejected successfully';
     }
 
     async getCategories(searchQuery?: string): Promise<any[]> {
-        try {
-            const categories = await this._adminRepository.getCategories(searchQuery);
-            return categories;
-        } catch (error) {
-            throw new Error('Error fetching categories');
-        }
+        return await this.adminRepository.getCategories(searchQuery);
     }
 
     async addCategory(name: string): Promise<any> {
-        try {
-            const newCategory = await this._adminRepository.addCategory(name);
-            return newCategory;
-        } catch (error) {
-            throw new Error('Error adding category');
-        }
+        return await this.adminRepository.addCategory(name);
     }
 
     async deleteCategory(id: string): Promise<void> {
-        try {
-            await this._adminRepository.deleteCategory(id);
-        } catch (error) {
-            throw new Error('Error deleting category');
-        }
+        await this.adminRepository.deleteCategory(id);
     }
 
     async editCategory(id: string, newName: string): Promise<any> {
-        try {
-            const editedCategory = await this._adminRepository.editCategory(id, newName);
-            return editedCategory;
-        } catch (error) {
-            throw new Error('Error editing category');
-        }
+        return await this.adminRepository.editCategory(id, newName);
     }
 }
 
